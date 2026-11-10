@@ -19,6 +19,7 @@ async function memberOrLogin(next: string) {
 
 function refresh(postId: string) {
   revalidatePath("/");
+  revalidatePath("/discover");
   revalidatePath(`/posts/${postId}`);
 }
 

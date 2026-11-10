@@ -6,7 +6,8 @@ Status is what a person can do in the app today. A database table with no screen
 
 - [ ] Personalised For You feed
 - [ ] Following feed
-- [x] Latest posts feed
+- [x] Updates and threads on your projects
+- [x] Latest posts feed, on Discover
 - [ ] Trending projects
 - [ ] Recommended builders
 - [ ] Recommended communities
