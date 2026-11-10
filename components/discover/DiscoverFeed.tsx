@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ReelComposer } from "@/components/discover/ReelComposer";
+import { PostActions } from "@/components/feed/PostActions";
 import { isVideoUrl } from "@/lib/auth/images";
 import { getMember } from "@/lib/auth/session";
+import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { createClient } from "@/lib/supabase/server";
 
 const views = [
@@ -122,16 +124,26 @@ async function loadPosts() {
 }
 
 async function PostList({ kind }: { kind: "posts" | "ideas" }) {
+  const member = await getMember();
   const posts = (await loadPosts()).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
   if (posts.length === 0) {
     return <p className="repo-empty">{kind === "ideas" ? "No ideas yet." : "No posts yet."}</p>;
   }
+  const supabase = await createClient();
+  const activity = await loadActivity(
+    supabase,
+    posts.map((post) => post.id),
+    member?.id ?? null,
+  );
+  const signedIn = Boolean(member?.onboardingComplete);
   return (
     <ul className="repo-list" role="list">
       {posts.map((post) => (
         <li key={post.id} className="repo-row">
           <div className="repo-title">
-            <strong>{post.title ?? "Post"}</strong>
+            <strong>
+              <Link href={`/posts/${post.id}`}>{post.title ?? "Post"}</Link>
+            </strong>
             <span className="repo-visibility">{post.type.replace("_", " ")}</span>
           </div>
           <p className="discover-copy">{post.content}</p>
@@ -140,6 +152,7 @@ async function PostList({ kind }: { kind: "posts" | "ideas" }) {
               <Link href={`/people/${post.author.username}`}>{post.author.display_name}</Link>
             </p>
           ) : null}
+          <PostActions postId={post.id} activity={activity.get(post.id) ?? emptyActivity()} signedIn={signedIn} />
         </li>
       ))}
     </ul>
@@ -149,6 +162,13 @@ async function PostList({ kind }: { kind: "posts" | "ideas" }) {
 async function ReelGrid() {
   const member = await getMember();
   const posts = (await loadPosts()).filter((post) => post.media_urls.length > 0);
+  const supabase = await createClient();
+  const activity = await loadActivity(
+    supabase,
+    posts.map((post) => post.id),
+    member?.id ?? null,
+  );
+  const signedIn = Boolean(member?.onboardingComplete);
   return (
     <>
       {member?.onboardingComplete ? (
@@ -172,6 +192,7 @@ async function ReelGrid() {
                 <img src={media} alt={label} />
               )}
               <p>{label}</p>
+              <PostActions postId={post.id} activity={activity.get(post.id) ?? emptyActivity()} signedIn={signedIn} />
             </li>
           );
         })}

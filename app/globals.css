@@ -514,6 +514,11 @@
   text-overflow: ellipsis;
 }
 
+.reel-card .reaction-bar {
+  margin-block-start: 0;
+  padding: 0 0.45rem 0.55rem;
+}
+
 .section-page a,
 .empty-feed a,
 .form-note a {
@@ -604,11 +609,7 @@
 }
 
 .home-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 42.5rem) minmax(16rem, 18.75rem);
-  gap: 1.5rem;
-  align-items: start;
-  max-inline-size: 72rem;
+  max-inline-size: 42.5rem;
   margin-inline: auto;
   padding: 2rem 1.5rem 4rem;
 }
