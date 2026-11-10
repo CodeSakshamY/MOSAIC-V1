@@ -1,7 +1,8 @@
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+export const MAX_PROFILE_PHOTO_BYTES = 5 * 1024 * 1024;
 
-export function imageKind(bytes: Uint8Array): "jpg" | "png" | "webp" | null {
-  if (bytes.length > MAX_AVATAR_BYTES) return null;
+export function imageKind(bytes: Uint8Array, maxBytes = MAX_AVATAR_BYTES): "jpg" | "png" | "webp" | null {
+  if (bytes.length > maxBytes) return null;
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
     return "jpg";
   }

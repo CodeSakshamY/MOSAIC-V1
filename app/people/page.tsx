@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PublicPeople } from "@/components/profile/PublicPeople";
 import { SectionPage } from "@/components/shell/SectionPage";
 
 export const metadata: Metadata = {
@@ -7,9 +9,10 @@ export const metadata: Metadata = {
 
 export default function PeoplePage() {
   return (
-    <SectionPage
-      title="People"
-      lede="A search for builders by skill, interest, and city will live here."
-    />
+    <SectionPage title="People" lede="Open a profile to see education, work, certificates, and projects.">
+      <Suspense fallback={null}>
+        <PublicPeople />
+      </Suspense>
+    </SectionPage>
   );
 }

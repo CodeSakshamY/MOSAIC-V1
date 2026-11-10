@@ -168,6 +168,7 @@
   grid-template-columns: 14.5rem minmax(0, 1fr);
   min-block-size: 100dvh;
   background: var(--background);
+  overflow-x: clip;
 }
 
 .sidebar {
@@ -194,11 +195,10 @@
 }
 
 .logo-mark {
-  inline-size: 0.625rem;
-  block-size: 0.625rem;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
   flex: none;
-  background: var(--sidebar);
-  box-shadow: inset 0 0 0 1.5px var(--primary);
+  border-radius: 6px;
 }
 
 .logo-word {
@@ -303,6 +303,8 @@
 .shell-content {
   flex: 1;
   min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-x: clip;
 }
 
 .mobile-nav {
@@ -376,6 +378,60 @@
 .section-page {
   padding: 2rem 1.5rem 4rem;
   max-inline-size: 44rem;
+  min-inline-size: 0;
+}
+
+.discover-page {
+  max-inline-size: 52rem;
+}
+
+.discover-feed {
+  margin-block-start: 1.5rem;
+  min-inline-size: 0;
+}
+
+.discover-format {
+  margin-block-start: 0.5rem;
+}
+
+.discover-copy {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.reel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reel-card {
+  min-inline-size: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.reel-card img {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.reel-card p {
+  margin: 0;
+  padding: 0.45rem 0.55rem 0.6rem;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .section-page a,
@@ -546,6 +602,349 @@
   max-inline-size: 24rem;
 }
 
+.build-page {
+  padding: 2rem 1.5rem 4rem;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  overflow-x: clip;
+}
+
+.build-layout,
+.project-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+  gap: 2rem;
+  align-items: start;
+  margin-block-start: 1.5rem;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.repo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding-block-end: 0.75rem;
+  border-block-end: 1px solid var(--border);
+}
+
+.repo-toolbar h2,
+.new-project h2,
+.project-layout h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.repo-search {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.repo-search-input,
+.field-select {
+  inline-size: 100%;
+  height: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  padding-inline: 0.75rem;
+}
+
+.repo-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.repo-filters a {
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  padding: 0.35rem 0.7rem;
+  text-decoration: none;
+}
+
+.repo-filters a[aria-current="page"] {
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.type-filters {
+  margin-block-start: 0.75rem;
+}
+
+.project-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-block-start: 1rem;
+  border-block-end: 1px solid var(--border);
+}
+
+.project-tabs a {
+  color: var(--text-secondary);
+  padding: 0.55rem 0.8rem;
+  text-decoration: none;
+}
+
+.project-tabs a[aria-current="page"] {
+  color: var(--foreground);
+  box-shadow: inset 0 -2px 0 var(--ring);
+}
+
+.type-name {
+  margin: 0.4rem 0 0;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.thread-replies {
+  margin-block-start: 0.75rem;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 2px solid var(--border);
+}
+
+.profile-page {
+  max-inline-size: 46rem;
+  min-inline-size: 0;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.profile-header h1 {
+  margin: 0.75rem 0 0;
+  font-size: clamp(1.75rem, 1.2rem + 1.5vw, 2.25rem);
+  font-weight: 500;
+}
+
+.profile-banner {
+  block-size: 10rem;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.profile-banner img,
+.profile-banner-empty {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar {
+  display: block;
+  inline-size: 6.5rem;
+  block-size: 6.5rem;
+  margin-block-start: -3.25rem;
+  margin-inline-start: 1rem;
+  border: 3px solid var(--background);
+  border-radius: 999px;
+  object-fit: cover;
+  background: var(--card);
+}
+
+.profile-avatar-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--foreground);
+  font-size: 1.75rem;
+  font-weight: 500;
+}
+
+.profile-header p,
+.profile-section p {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.profile-section {
+  margin-block-start: 1.75rem;
+  padding-block-start: 1.25rem;
+  border-block-start: 1px solid var(--border);
+}
+
+.profile-section h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.profile-entry + .profile-entry {
+  margin-block-start: 1rem;
+}
+
+.profile-entry h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.record-photo {
+  display: block;
+  max-inline-size: min(100%, 18rem);
+  margin-block-start: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.profile-meta {
+  margin: 0.15rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.skill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-row li {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.repo-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.repo-row {
+  padding-block: 1rem;
+  border-block-end: 1px solid var(--border);
+}
+
+.repo-title,
+.repo-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.repo-title a {
+  color: var(--ring);
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+
+.repo-title a:hover,
+.repo-crumb a:hover {
+  text-decoration: underline;
+}
+
+.repo-owner {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.repo-name,
+.repo-heading h1 {
+  font-weight: 600;
+}
+
+.repo-heading h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.repo-visibility {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+}
+
+.repo-row p,
+.project-layout p {
+  margin: 0.4rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.repo-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.repo-status::before {
+  content: "";
+  display: inline-block;
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  margin-inline-end: 0.35rem;
+  border-radius: 999px;
+  background: var(--ring);
+}
+
+.repo-empty {
+  margin: 1rem 0 0;
+  color: var(--text-secondary);
+}
+
+.new-project,
+.project-about {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  padding: 1rem;
+}
+
+.new-project-form {
+  margin-block-start: 1rem;
+  max-inline-size: none;
+}
+
+.visibility-choice {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.repo-crumb {
+  margin: 0 0 0.75rem;
+  color: var(--text-secondary);
+}
+
+.repo-crumb a {
+  color: var(--ring);
+  text-decoration: none;
+}
+
+.project-about dl {
+  margin: 0.75rem 0 0;
+}
+
+.project-about div + div {
+  margin-block-start: 0.75rem;
+}
+
+.project-about dt {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.project-about dd {
+  margin: 0.15rem 0 0;
+}
+
 [data-slot="dialog-content"],
 [data-slot="dialog-overlay"] {
   overscroll-behavior: contain;
@@ -555,6 +954,15 @@
   .home-layout {
     grid-template-columns: minmax(0, 42.5rem);
     justify-content: center;
+  }
+
+  .build-layout,
+  .project-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .reel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -601,7 +1009,9 @@
 
   .section-page,
   .home-layout,
-  .gallery {
+  .gallery,
+  .build-page,
+  .profile-page {
     padding-inline: 1rem;
   }
 }

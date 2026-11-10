@@ -463,6 +463,86 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"profile_awards": {
+                  Row: {
+                    "created_at": string,"id": string,"image_url": string | null,"issuer": string,"profile_id": string,"title": string,"year": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer": string,"profile_id": string,"title": string,"year"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer"?: string,"profile_id"?: string,"title"?: string,"year"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_awards_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"profile_certificates": {
+                  Row: {
+                    "created_at": string,"credential_url": string | null,"id": string,"image_url": string | null,"issuer": string,"name": string,"profile_id": string,"year": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer": string,"name": string,"profile_id": string,"year"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer"?: string,"name"?: string,"profile_id"?: string,"year"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_certificates_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"profile_education": {
+                  Row: {
+                    "created_at": string,"credential": string | null,"end_year": number | null,"id": string,"profile_id": string,"school": string,"start_year": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"credential"?: string | null,"end_year"?: number | null,"id"?: string,"profile_id": string,"school": string,"start_year"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"credential"?: string | null,"end_year"?: number | null,"id"?: string,"profile_id"?: string,"school"?: string,"start_year"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_education_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"profile_experience": {
+                  Row: {
+                    "created_at": string,"end_year": number | null,"id": string,"organization": string,"profile_id": string,"start_year": number | null,"summary": string | null,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"end_year"?: number | null,"id"?: string,"organization": string,"profile_id": string,"start_year"?: number | null,"summary"?: string | null,"title": string
+                  }
+                  Update: {
+                    "created_at"?: string,"end_year"?: number | null,"id"?: string,"organization"?: string,"profile_id"?: string,"start_year"?: number | null,"summary"?: string | null,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_experience_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profile_interests": {
                   Row: {
                     "created_at": string,"interest_id": string,"profile_id": string
@@ -537,14 +617,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "age_group": Database["public"]['Enums']["age_group"] | null,"avatar_url": string | null,"bio": string | null,"city": string | null,"collaboration_preference": Database["public"]['Enums']["collaboration_type"] | null,"country": string,"created_at": string,"deleted_at": string | null,"display_name": string,"education": string | null,"github_username": string | null,"id": string,"is_demo": boolean,"looking_for": (string)[],"onboarding_complete": boolean,"state": string | null,"updated_at": string,"username": string | null,"website_url": string | null
+                    "age_group": Database["public"]['Enums']["age_group"] | null,"avatar_url": string | null,"banner_url": string | null,"bio": string | null,"city": string | null,"collaboration_preference": Database["public"]['Enums']["collaboration_type"] | null,"country": string,"created_at": string,"deleted_at": string | null,"display_name": string,"education": string | null,"github_username": string | null,"id": string,"is_demo": boolean,"looking_for": (string)[],"onboarding_complete": boolean,"state": string | null,"updated_at": string,"username": string | null,"website_url": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name": string,"education"?: string | null,"github_username"?: string | null,"id": string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"website_url"?: string | null
+                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name": string,"education"?: string | null,"github_username"?: string | null,"id": string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"website_url"?: string | null
                   }
                   Update: {
-                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name"?: string,"education"?: string | null,"github_username"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"website_url"?: string | null
+                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name"?: string,"education"?: string | null,"github_username"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"website_url"?: string | null
                   }
                   Relationships: [
                     
@@ -570,6 +650,38 @@ isOneToOne: false
     },{
       foreignKeyName: "project_members_project_id_fkey"
       columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"project_pull_requests": {
+                  Row: {
+                    "author_id": string,"body": string,"created_at": string,"id": string,"proposed_description": string,"source_project_id": string,"status": string,"target_project_id": string,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "author_id": string,"body": string,"created_at"?: string,"id"?: string,"proposed_description": string,"source_project_id": string,"status"?: string,"target_project_id": string,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "author_id"?: string,"body"?: string,"created_at"?: string,"id"?: string,"proposed_description"?: string,"source_project_id"?: string,"status"?: string,"target_project_id"?: string,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_pull_requests_author_id_fkey"
+      columns: ["author_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_pull_requests_source_project_id_fkey"
+      columns: ["source_project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_pull_requests_target_project_id_fkey"
+      columns: ["target_project_id"]
 isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id"]
