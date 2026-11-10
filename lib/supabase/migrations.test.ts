@@ -1,0 +1,39 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import { brand } from "@/lib/brand";
+
+const migrationsDir = "supabase/migrations";
+
+describe("phase 2 database files", () => {
+  it("ships migrations 001 through 016, the member status function, and no feed migration", () => {
+    const files = readdirSync(migrationsDir).filter((file) => file.endsWith(".sql")).sort();
+    expect(files).toHaveLength(17);
+    expect(files[0]).toBe("001_initial_extensions.sql");
+    expect(files[15]).toBe("016_seed_reference.sql");
+    expect(files[16]).toBe("018_member_status.sql");
+    expect(files.some((file) => file.startsWith("017_"))).toBe(false);
+  });
+
+  it("rejects every reserved username in the database", () => {
+    const sql = readFileSync(`${migrationsDir}/002_profiles.sql`, "utf8");
+    const reserved = readFileSync(`${migrationsDir}/001_initial_extensions.sql`, "utf8");
+    expect(sql).toContain("private.is_reserved_username");
+    for (const name of brand.reservedUsernames) {
+      expect(reserved).toContain(`'${name}'`);
+    }
+  });
+
+  it("keeps the secret key on the server", () => {
+    const admin = readFileSync("lib/supabase/admin.ts", "utf8");
+    const browser = readFileSync("lib/supabase/client.ts", "utf8");
+    const proxy = readFileSync("proxy.ts", "utf8");
+    expect(admin).toContain('import "server-only"');
+    expect(admin).toContain("SUPABASE_SECRET_KEY");
+    expect(admin).not.toContain("NEXT_PUBLIC_SUPABASE_SECRET");
+    expect(readFileSync("lib/supabase/env.ts", "utf8")).not.toContain("SECRET");
+    expect(browser).not.toContain("SECRET");
+    expect(browser).not.toContain("service_role");
+    expect(proxy).toContain("getClaims");
+    expect(proxy).not.toContain(".getSession");
+  });
+});

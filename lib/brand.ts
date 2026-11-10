@@ -1,0 +1,25 @@
+export const brand = {
+  name: "Polymath",
+  description:
+    "A social network for people who build things. What you build is your content.",
+  reservedUsernames: [
+    "polymath",
+    "admin",
+    "help",
+    "support",
+    "home",
+    "discover",
+    "build",
+    "people",
+    "opportunities",
+    "communities",
+    "profile",
+    "notifications",
+    "settings",
+    "login",
+    "signup",
+    "onboarding",
+    "api",
+    "auth",
+  ],
+} as const;
