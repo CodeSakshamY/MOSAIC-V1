@@ -390,8 +390,16 @@
   min-inline-size: 0;
 }
 
-.discover-format {
+.discover-format,
+.home-feed-tabs {
   margin-block-start: 0.5rem;
+}
+
+.home-feed-tabs [aria-current="page"] {
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  padding: 0.35rem 0.7rem;
 }
 
 .discover-copy {
