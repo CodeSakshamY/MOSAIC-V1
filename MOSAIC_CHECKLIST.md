@@ -1,0 +1,360 @@
+# MOSAIC checklist
+
+Status is what a person can do in the app today. A database table with no screen is not ticked.
+
+## 1. Home feed
+
+- [ ] Personalised For You feed
+- [ ] Following feed
+- [ ] Latest posts feed
+- [ ] Trending projects
+- [ ] Recommended builders
+- [ ] Recommended communities
+- [ ] Project showcase posts
+- [ ] Build-in-public updates
+- [ ] Research findings and experiments
+- [ ] Ideas and concepts
+- [ ] Questions and help requests
+- [ ] Collaboration requests
+- [ ] Competition and achievement posts
+- [ ] Opportunity announcements
+- [ ] Event announcements
+- [ ] Image, video, document and link attachments
+- [ ] Rich project previews embedded in posts
+- [ ] Like or appreciation reactions
+- [ ] Interesting reaction
+- [ ] Inspired reaction
+- [ ] Save/bookmark posts
+- [ ] Comment and threaded replies
+- [ ] Repost/share with attribution
+- [ ] Follow authors directly from posts
+- [ ] Follow projects directly from posts
+- [ ] Report and hide content
+- [ ] Infinite scrolling with proper pagination
+- [ ] Content recommendation controls: show more, show less, not interested
+- [ ] Feed ranking based on interests, followed users, project activity and quality signals
+
+## 2. Projects and portfolios
+
+- [x] Create a project
+- [x] Project title and description
+- [ ] Project tagline
+- [ ] Project cover image and gallery
+- [x] Project category
+- [ ] Project subcategories
+- [ ] Technology stack and tools used
+- [ ] Skills required
+- [ ] Project status: Idea, Researching, In development, Prototype, Testing, Completed, On hold
+- [x] Public or private visibility
+- [ ] Project timeline
+- [ ] Project milestones
+- [ ] Project documentation
+- [x] Demo, GitHub, website, paper and video links as first-class fields
+- [ ] Project updates and build logs shown on the project as a public history beyond the commit form
+- [ ] Project contributors and team members shown as a team
+- [ ] Contribution history
+- [ ] Credits and acknowledgements
+- [x] Project discussions (threads and replies)
+- [ ] Collaboration requests on the project
+- [ ] Follow/watch a project
+- [ ] Save a project
+- [ ] Share a project
+- [ ] Report a project
+- [ ] Project analytics for owners
+- [ ] Related and similar projects
+- [ ] Project version history
+- [x] Fork another project with the original kept as the parent
+- [ ] Project lineage showing derivative projects and contributors
+
+## 3. Build logs and progress updates
+
+- [x] Publish a text build log (shown as a commit on the project)
+- [ ] Add images, videos and attachments to a build log
+- [ ] Record milestones
+- [ ] Share problems encountered
+- [ ] Document experiments
+- [ ] Share failed attempts and lessons learned
+- [ ] Add technical explanations as a distinct log type
+- [x] Link updates to a specific project
+- [x] Display those updates in chronological order on the project
+- [ ] Comment on an individual update
+- [ ] React to build logs
+- [ ] Follow build-log updates
+- [ ] Highlight major milestones on project pages
+
+## 4. Builder profiles
+
+- [x] Username and profile URL
+- [x] Profile picture and banner
+- [x] Name and short bio
+- [x] Location at city and state, optional
+- [ ] Interests and disciplines shown and editable
+- [x] Skills shown when chosen during onboarding
+- [x] Current projects (repositories you own)
+- [ ] Featured projects
+- [ ] Completed projects as their own list
+- [ ] Research and publications
+- [x] Achievements and awards, including photos
+- [ ] Competitions participated in
+- [ ] Communities joined
+- [ ] Collaboration interests
+- [ ] Looking-for status
+- [x] GitHub and personal website
+- [ ] LinkedIn and other external links
+- [x] Education, optional
+- [ ] Follow/unfollow
+- [ ] Followers and following
+- [x] Contribution history (projects contributed to, merged pull requests)
+- [ ] Activity timeline
+- [ ] Profile visibility settings
+- [ ] Verified achievement or credential indicators
+- [ ] Profile completion indicator
+- [ ] Custom profile sections
+
+## 5. People and networking
+
+- [ ] Search builders by name or username
+- [ ] Filter by discipline
+- [ ] Filter by skills and technologies
+- [ ] Filter by interests
+- [ ] Filter by project experience
+- [ ] Filter by availability for collaboration
+- [ ] Filter by broad location or institution
+- [ ] Recommended builders
+- [ ] Similar-interest discovery
+- [ ] People working on related projects
+- [ ] Follow builders
+- [ ] View shared interests
+- [ ] View mutual connections
+- [ ] Find potential teammates
+- [ ] Find mentors and experienced contributors
+- [ ] Find research collaborators
+- [ ] Find co-founders and student teams
+- [ ] Send structured collaboration requests
+- [ ] Accept or decline requests
+- [ ] Block and report accounts
+
+## 6. Collaboration and team formation
+
+- [ ] Mark a project as open to collaborators
+- [ ] Publish a teammate requirement
+- [ ] Specify required skills
+- [ ] Specify responsibilities and expected contribution
+- [ ] Specify project stage
+- [ ] Specify time commitment
+- [ ] Specify remote or in-person preference
+- [ ] Receive collaboration applications
+- [ ] Review applicant profiles and projects
+- [ ] Accept or decline applicants
+- [ ] Add contributors to projects
+- [ ] Assign project roles
+- [ ] Display team members publicly
+- [ ] Track contributions
+- [ ] Credit contributors
+- [ ] Create team pages
+- [ ] Team activity feed
+- [ ] Project-specific discussion space beyond the current threads
+- [ ] Invite people to collaborate
+- [ ] Collaboration request status tracking
+
+## 7. Discover
+
+- [x] Discover projects
+- [x] Discover builders
+- [ ] Discover research
+- [ ] Discover experiments
+- [ ] Discover communities
+- [ ] Discover opportunities
+- [ ] Discover events
+- [ ] Discover competitions
+- [ ] Discover hackathons
+- [ ] Discover open-source projects
+- [ ] Discover trending technologies
+- [x] Discover projects by discipline (type filters on Build, not yet on Discover)
+- [ ] Search everything across MOSAIC
+- [ ] Advanced filters
+- [ ] Sort by relevance, latest and popularity
+- [ ] Related content recommendations
+- [ ] Curated collections
+- [ ] Editor's picks
+- [ ] New and emerging projects
+- [x] Ideas as their own Discover section
+- [x] Posts and Reels as Discover sections
+
+## 8. Opportunities
+
+- [ ] Hackathons, competitions, internships, programmes, fellowships, scholarships, workshops, conferences, fairs, startup programmes, incubators, open source, volunteering, mentorship, grants
+- [ ] Filters by eligibility, discipline, country and region
+- [ ] Application deadlines that are never invented
+- [ ] Opportunity details and official application links
+- [ ] Save opportunities
+- [ ] Deadline reminders
+- [ ] Mark as applied, shortlisted or completed
+- [ ] Community-submitted opportunities
+- [ ] Report outdated or misleading listings
+- [ ] Opportunity verification and moderation
+
+## 9. Communities
+
+- [ ] Create a community
+- [ ] Community name, description and cover
+- [ ] Public, private or restricted membership
+- [ ] Categories and tags
+- [ ] Community feed, discussions, questions, projects, events
+- [ ] Pinned posts, resources, member directory, moderators
+- [ ] Membership requests and community guidelines
+- [ ] Announcements, polls and resource sharing
+- [ ] Community discovery
+- [ ] Follow or join communities
+- [ ] Community-specific recommendations
+
+## 10. Messaging and communication
+
+Later phase. Not started, on purpose. Unrestricted direct messages are out of the first release.
+
+- [ ] Collaboration-request conversations
+- [ ] Project-specific discussions as messages
+- [ ] Community discussions as messages
+- [ ] Notifications for replies and mentions
+- [ ] Basic one-to-one messaging
+- [ ] Group conversations for project teams
+- [ ] Message attachments, link sharing, conversation search
+- [ ] Mute, block, report, message requests, spam protection, privacy settings
+
+## 11. Events and calendar
+
+- [ ] Discover upcoming events, hackathons, workshops, meetups and presentations
+- [ ] Online and offline events
+- [ ] Registration links, save, calendar, reminders
+- [ ] Create community events
+- [ ] Event discussion threads
+- [ ] Event announcements
+- [ ] Post-event summaries and project showcases
+
+## 12. Notifications
+
+- [ ] New followers, reactions, comments, replies, mentions
+- [ ] Collaboration requests and updates
+- [ ] Project invitations, updates and new contributors
+- [ ] Community announcements and invitations
+- [ ] Opportunity and event reminders
+- [ ] Saved project updates
+- [ ] System and security notifications
+- [ ] Mark as read/unread
+- [ ] Notification and email preferences
+
+## 13. Search
+
+- [ ] Search people, projects, posts, communities, opportunities, events, skills and tags
+- [ ] Search by discipline
+- [ ] Recent and suggested searches
+- [ ] Search filters
+- [ ] Relevance ranking
+- [ ] Typo-tolerant search
+- [ ] Related search suggestions
+
+## 14. Reputation and contribution system
+
+- [x] Contribution history on a profile (projects contributed to, merged pull requests)
+- [ ] Project contributor credits as a public credit list
+- [ ] Verified achievements
+- [ ] Community contribution recognition
+- [ ] Helpful answer recognition
+- [ ] Open-source contribution links
+- [ ] Peer endorsements for specific skills
+- [ ] Builder badges with transparent criteria
+- [ ] Research and competition achievements as their own records
+- [ ] Project lineage and remix attribution beyond the parent link
+- [ ] Community reputation
+- [ ] Quality-based recognition
+
+## 15. AI-powered features
+
+Not started. Future phase.
+
+- [ ] Recommendations, matching, natural-language search, writing help, summaries, eligibility checks, moderation signals
+- [ ] Labels on AI-generated content
+- [ ] No fabricated opportunities, credentials, results or activity
+
+## 16. User settings and personalisation
+
+- [x] Edit profile
+- [x] Change username
+- [x] Password change while signed in
+- [ ] Account settings page with real controls
+- [ ] Email settings
+- [ ] Two-factor authentication
+- [ ] Connected accounts
+- [ ] Privacy controls and profile visibility
+- [ ] Follow and interaction controls
+- [ ] Feed and interest preferences
+- [ ] Notification preferences
+- [ ] Blocked and muted accounts
+- [ ] Download account data
+- [ ] Delete account
+- [ ] Session management
+- [ ] Theme preferences
+- [ ] Language preferences
+
+## 17. Admin and moderation dashboard
+
+- [ ] Admin dashboard and every moderation queue listed in the spec
+
+The database has reports, sanctions and admin roles. There is no admin screen.
+
+## 18. Platform infrastructure
+
+- [x] Email and password authentication, including email confirmation
+- [ ] OAuth login (Google is visible and switched off)
+- [x] Secure session checks on the server
+- [x] PostgreSQL
+- [x] Row Level Security
+- [x] Image and video storage for profile photos, banners and reels
+- [ ] Optimised media delivery
+- [x] Responsive web application
+- [x] Mobile navigation
+- [ ] PWA support
+- [ ] Search indexing
+- [ ] Background jobs
+- [ ] Email delivery beyond local development mail
+- [ ] Rate limiting
+- [x] Database migrations
+- [ ] Error monitoring, analytics, automated backups, logging, performance monitoring
+- [ ] SEO for public projects and profiles
+- [x] Skip link and dark colour scheme
+- [x] Secure file uploads that check the file bytes
+- [ ] Spam and abuse prevention beyond the report tables
+
+## Launch phase 1, the functional core
+
+- [x] Authentication and onboarding
+- [x] Builder profiles, the first usable version
+- [x] Create and showcase a project, the first usable version
+- [ ] Home feed
+- [ ] Posts, reactions and comments on the home feed
+- [ ] Follow users
+- [x] Project build logs, as text commits
+- [ ] Search projects and people
+- [ ] Basic notifications
+- [ ] Report and block
+
+## Additional additions
+
+These are in the app and are not separate items in the spec above.
+
+- The product name MOSAIC, with the hexagon mark in the sidebar and the browser tab.
+- Age is stored as a band. Accounts start at 13. A date of birth is never collected.
+- A nine-step onboarding flow: username, photo, city and state, age band, education, skills, interests, links, and what the person wants.
+- Draft community guidelines linked from sign-up.
+- Password rules: 8 characters, one uppercase letter, one lowercase letter, one special character.
+- Email confirmation before the account can be used.
+- Password reset by email.
+- Google sign-in is drawn on the form and stays switched off until credentials exist.
+- Suspended and closed account pages.
+- A pull request from a fork that changes the original description only when the owner merges it.
+- Reddit-style threads on a project, which do not edit the original.
+- Project types beyond a single category: Software, Hardware, CAD, PCB, Firmware, Mechanical, Research and Design.
+- Certificates and awards as their own profile records, with optional photos.
+- Work experience as its own profile record.
+- Discover Reels as a photo grid, separate from written posts.
+- Signing in is only required from Profile. Home and Discover can be read signed out.
