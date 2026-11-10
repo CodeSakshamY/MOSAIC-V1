@@ -1,9 +1,10 @@
 export const brand = {
-  name: "Polymath",
+  name: "MOSAIC",
   description:
     "A social network for people who build things. What you build is your content.",
   reservedUsernames: [
     "polymath",
+    "mosaic",
     "admin",
     "help",
     "support",

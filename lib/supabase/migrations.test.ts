@@ -7,7 +7,7 @@ const migrationsDir = "supabase/migrations";
 describe("phase 2 database files", () => {
   it("ships migrations 001 through 016, the member status function, and no feed migration", () => {
     const files = readdirSync(migrationsDir).filter((file) => file.endsWith(".sql")).sort();
-    expect(files).toHaveLength(22);
+    expect(files).toHaveLength(23);
     expect(files[0]).toBe("001_initial_extensions.sql");
     expect(files[15]).toBe("016_seed_reference.sql");
     expect(files[16]).toBe("018_member_status.sql");
@@ -16,12 +16,16 @@ describe("phase 2 database files", () => {
     expect(files[19]).toBe("021_profile_photos.sql");
     expect(files[20]).toBe("022_profile_banner.sql");
     expect(files[21]).toBe("023_reel_media.sql");
+    expect(files[22]).toBe("024_reserved_mosaic.sql");
     expect(files.some((file) => file.startsWith("017_"))).toBe(false);
   });
 
   it("rejects every reserved username in the database", () => {
     const sql = readFileSync(`${migrationsDir}/002_profiles.sql`, "utf8");
-    const reserved = readFileSync(`${migrationsDir}/001_initial_extensions.sql`, "utf8");
+    const reserved = readdirSync(migrationsDir)
+      .filter((file) => file.endsWith(".sql"))
+      .map((file) => readFileSync(`${migrationsDir}/${file}`, "utf8"))
+      .join("\n");
     expect(sql).toContain("private.is_reserved_username");
     for (const name of brand.reservedUsernames) {
       expect(reserved).toContain(`'${name}'`);

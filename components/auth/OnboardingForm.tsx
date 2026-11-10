@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { retreatOnboarding, saveOnboarding } from "@/lib/auth/onboarding";
 import { lookingForOptions } from "@/lib/auth/looking-for";
+import { brand } from "@/lib/brand";
 import { ageGroups } from "@/lib/profile/age-groups";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { Input } from "@/components/ui/input";
@@ -97,7 +98,7 @@ export function OnboardingForm({
       ) : null}
       {step >= 9 ? (
         <fieldset className="field">
-          <legend>What do you want from Polymath?</legend>
+          <legend>What do you want from {brand.name}?</legend>
           <ul className="choice-list" role="list">
             {lookingForOptions.map((option) => (
               <li key={option.value}>

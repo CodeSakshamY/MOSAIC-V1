@@ -3,11 +3,12 @@ import { brand } from "./brand";
 
 describe("brand", () => {
   it("keeps the product name in one place", () => {
-    expect(brand.name).toBe("Polymath");
+    expect(brand.name).toBe("MOSAIC");
   });
 
   it("reserves route and staff names", () => {
     expect(brand.reservedUsernames).toContain("polymath");
+    expect(brand.reservedUsernames).toContain("mosaic");
     expect(brand.reservedUsernames).toContain("admin");
     expect(brand.reservedUsernames).toContain("settings");
   });

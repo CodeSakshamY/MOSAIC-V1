@@ -1,6 +1,6 @@
-# Polymath
+# MOSAIC
 
-Social infrastructure for people who build things. A builder's identity on Polymath is their projects, their progress, their contributions, and the people they build with.
+Social infrastructure for people who build things. A builder's identity on MOSAIC is their projects, their progress, their contributions, and the people they build with.
 
 The product name lives in `lib/brand.ts`. The name can change without a sweep through the interface.
 
@@ -40,6 +40,6 @@ The application is not deployed. There is no production URL yet.
 
 ## Stack
 
-Next.js 16 (App Router) on Vercel. Supabase Postgres, Auth, and Storage. TypeScript strict. Tailwind CSS. shadcn/ui primitives, themed with the Polymath tokens.
+Next.js 16 (App Router) on Vercel. Supabase Postgres, Auth, and Storage. TypeScript strict. Tailwind CSS. shadcn/ui primitives, themed with the MOSAIC tokens.
 
 Secrets stay in environment variables. Copy `.env.example` to `.env.local` when Phase 2 needs Supabase. Never commit `.env.local`.
