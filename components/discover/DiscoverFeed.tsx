@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { ReelComposer } from "@/components/discover/ReelComposer";
+import { isVideoUrl } from "@/lib/auth/images";
+import { getMember } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
 const views = [
@@ -144,20 +147,35 @@ async function PostList({ kind }: { kind: "posts" | "ideas" }) {
 }
 
 async function ReelGrid() {
+  const member = await getMember();
   const posts = (await loadPosts()).filter((post) => post.media_urls.length > 0);
-  if (posts.length === 0) return <p className="repo-empty">No photo posts yet.</p>;
   return (
-    <ul className="reel-grid" role="list">
-      {posts.map((post) => {
-        const image = post.media_urls[0];
-        if (!image) return null;
-        return (
-          <li key={post.id} className="reel-card">
-            <img src={image} alt={post.title ?? "Photo post"} />
-            <p>{post.title ?? post.author?.display_name ?? "Photo"}</p>
-          </li>
-        );
-      })}
-    </ul>
+    <>
+      {member?.onboardingComplete ? (
+        <ReelComposer />
+      ) : (
+        <p className="form-note">
+          <Link href="/profile?next=/discover?view=reels">Log in</Link> to post a photo or a reel.
+        </p>
+      )}
+      {posts.length === 0 ? <p className="repo-empty">No photos or reels yet.</p> : null}
+      <ul className="reel-grid" role="list">
+        {posts.map((post) => {
+          const media = post.media_urls[0];
+          if (!media) return null;
+          const label = post.title ?? post.author?.display_name ?? "Post";
+          return (
+            <li key={post.id} className="reel-card">
+              {isVideoUrl(media) ? (
+                <video src={media} controls playsInline preload="metadata" />
+              ) : (
+                <img src={media} alt={label} />
+              )}
+              <p>{label}</p>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }

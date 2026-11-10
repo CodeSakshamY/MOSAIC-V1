@@ -36,3 +36,22 @@ export function imageContentType(kind: "jpg" | "png" | "webp") {
   if (kind === "png") return "image/png";
   return "image/webp";
 }
+
+const MAX_REEL_BYTES = 32 * 1024 * 1024;
+
+export function reelMedia(bytes: Uint8Array): { extension: string; contentType: string } | null {
+  const image = imageKind(bytes, MAX_PROFILE_PHOTO_BYTES);
+  if (image) return { extension: image, contentType: imageContentType(image) };
+  if (bytes.length > MAX_REEL_BYTES) return null;
+  if (bytes.length >= 12 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+    return { extension: "mp4", contentType: "video/mp4" };
+  }
+  if (bytes.length >= 4 && bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) {
+    return { extension: "webm", contentType: "video/webm" };
+  }
+  return null;
+}
+
+export function isVideoUrl(url: string) {
+  return /\.(mp4|webm)(\?|$)/i.test(url);
+}

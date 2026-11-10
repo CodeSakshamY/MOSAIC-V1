@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { imageKind } from "./images";
+import { imageKind, reelMedia } from "./images";
 
 describe("image bytes", () => {
   it("recognises jpeg, png, and webp headers", () => {
@@ -13,5 +13,14 @@ describe("image bytes", () => {
 
   it("rejects other files", () => {
     expect(imageKind(Uint8Array.from([0x47, 0x49, 0x46, 0x38]))).toBeNull();
+  });
+});
+
+describe("reel media", () => {
+  it("recognises an mp4 header and a webm header", () => {
+    const mp4 = new Uint8Array(16);
+    mp4.set([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70], 0);
+    expect(reelMedia(mp4)?.contentType).toBe("video/mp4");
+    expect(reelMedia(Uint8Array.from([0x1a, 0x45, 0xdf, 0xa3]))?.contentType).toBe("video/webm");
   });
 });

@@ -417,11 +417,18 @@
   background: var(--card);
 }
 
-.reel-card img {
+.reel-card img,
+.reel-card video {
   display: block;
   inline-size: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
+  background: #000;
+}
+
+.reel-composer {
+  margin-block-start: 1rem;
+  max-inline-size: 24rem;
 }
 
 .reel-card p {
