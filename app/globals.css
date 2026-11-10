@@ -402,6 +402,71 @@
   padding: 0.35rem 0.7rem;
 }
 
+.reaction-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 0.75rem;
+}
+
+.reaction-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-block-size: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--foreground);
+  padding-inline: 0.7rem;
+  font: inherit;
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.reaction-button svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+}
+
+.post-page {
+  max-inline-size: 42.5rem;
+  margin-inline: auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.post-page h1 {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.comment-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-block: 0.75rem;
+}
+
+.comment-form textarea {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+}
+
+.reaction-button[aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
 .discover-copy {
   display: -webkit-box;
   -webkit-line-clamp: 4;

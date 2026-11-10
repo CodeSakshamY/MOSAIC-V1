@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { PostActions } from "@/components/feed/PostActions";
 import { getMember } from "@/lib/auth/session";
 import { brand } from "@/lib/brand";
+import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -32,8 +34,38 @@ async function HomeFeed() {
     .order("created_at", { ascending: false })
     .limit(30);
   const posts = data ?? [];
-  const authorIds = [...new Set(posts.map((post) => post.author_id))];
-  const projectIds = [...new Set(posts.map((post) => post.project_id).filter((id) => id !== null))];
+  const { data: repostRows } = await supabase
+    .from("reposts")
+    .select("id, user_id, post_id, created_at")
+    .order("created_at", { ascending: false })
+    .limit(30);
+  const reposts = repostRows ?? [];
+  const missingIds = reposts.map((repost) => repost.post_id).filter((id) => !posts.some((post) => post.id === id));
+  const { data: repostedPosts } = missingIds.length
+    ? await supabase
+        .from("posts")
+        .select("id, title, content, type, author_id, project_id, created_at")
+        .in("id", missingIds)
+        .eq("visibility", "public")
+        .is("removed_at", null)
+    : { data: [] };
+  const postById = new Map([...posts, ...(repostedPosts ?? [])].map((post) => [post.id, post]));
+  const feed = [
+    ...posts.map((post) => ({ key: post.id, at: post.created_at, post, reposterId: null as string | null })),
+    ...reposts.flatMap((repost) => {
+      const post = postById.get(repost.post_id);
+      return post ? [{ key: repost.id, at: repost.created_at, post, reposterId: repost.user_id }] : [];
+    }),
+  ]
+    .sort((left, right) => (left.at < right.at ? 1 : -1))
+    .slice(0, 30);
+  const activity = await loadActivity(
+    supabase,
+    [...new Set(feed.map((item) => item.post.id))],
+    member?.id ?? null,
+  );
+  const authorIds = [...new Set([...feed.map((item) => item.post.author_id), ...feed.map((item) => item.reposterId).filter((id) => id !== null)])];
+  const projectIds = [...new Set(feed.map((item) => item.post.project_id).filter((id) => id !== null))];
   const [{ data: authors }, { data: projects }, { data: railProjects }, { data: railPeople }] = await Promise.all([
     authorIds.length
       ? supabase.from("profiles").select("id, username, display_name").in("id", authorIds)
@@ -69,7 +101,7 @@ async function HomeFeed() {
         <nav className="repo-filters home-feed-tabs" aria-label="Home feed">
           <span aria-current="page">Latest</span>
         </nav>
-        {posts.length === 0 ? (
+        {feed.length === 0 ? (
           <div className="empty-feed">
             <h2>{member?.onboardingComplete ? "Your feed is empty" : "Nothing published yet"}</h2>
             <p>
@@ -86,13 +118,27 @@ async function HomeFeed() {
           </div>
         ) : (
           <ul className="repo-list" role="list">
-            {posts.map((post) => {
+            {feed.map((item) => {
+              const post = item.post;
               const author = authorName.get(post.author_id);
+              const reposter = item.reposterId ? authorName.get(item.reposterId) : undefined;
               const project = post.project_id ? projectName.get(post.project_id) : undefined;
               return (
-                <li key={post.id} className="repo-row">
+                <li key={item.key} className="repo-row">
+                  {reposter ? (
+                    <p className="profile-meta">
+                      {reposter.username ? (
+                        <Link href={`/people/${reposter.username}`}>{reposter.display_name}</Link>
+                      ) : (
+                        "Someone"
+                      )}{" "}
+                      reposted
+                    </p>
+                  ) : null}
                   <div className="repo-title">
-                    <strong>{post.title ?? "Post"}</strong>
+                    <strong>
+                      <Link href={`/posts/${post.id}`}>{post.title ?? "Post"}</Link>
+                    </strong>
                     <span className="repo-visibility">{post.type.replaceAll("_", " ")}</span>
                   </div>
                   <p className="discover-copy">{post.content}</p>
@@ -109,6 +155,11 @@ async function HomeFeed() {
                       </>
                     ) : null}
                   </p>
+                  <PostActions
+                    postId={post.id}
+                    activity={activity.get(post.id) ?? emptyActivity()}
+                    signedIn={Boolean(member?.onboardingComplete)}
+                  />
                 </li>
               );
             })}

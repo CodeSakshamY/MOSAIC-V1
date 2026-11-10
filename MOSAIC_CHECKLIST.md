@@ -21,12 +21,12 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Event announcements
 - [ ] Image, video, document and link attachments
 - [ ] Rich project previews embedded in posts
-- [ ] Like or appreciation reactions
+- [x] Like or appreciation reactions
 - [ ] Interesting reaction
 - [ ] Inspired reaction
-- [ ] Save/bookmark posts
-- [ ] Comment and threaded replies
-- [ ] Repost/share with attribution
+- [x] Save/bookmark posts
+- [x] Comment and threaded replies
+- [x] Repost/share with attribution
 - [ ] Follow authors directly from posts
 - [ ] Follow projects directly from posts
 - [ ] Report and hide content
@@ -331,7 +331,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Builder profiles, the first usable version
 - [x] Create and showcase a project, the first usable version
 - [ ] Home feed
-- [ ] Posts, reactions and comments on the home feed
+- [x] Posts, reactions and comments on the home feed
 - [ ] Follow users
 - [x] Project build logs, as text commits
 - [ ] Search projects and people
@@ -358,3 +358,4 @@ These are in the app and are not separate items in the spec above.
 - Work experience as its own profile record.
 - Discover Reels as a photo grid, separate from written posts.
 - Signing in is only required from Profile. Home and Discover can be read signed out.
+- Downvote sits next to like and upvote. It is the Reddit vote, and a downvote removes an upvote on the same post.
