@@ -38,10 +38,12 @@ async function HomeFeed() {
               <h2>Your feed is empty</h2>
               <p>
                 Discover is where you look through projects, people, and
-                opportunities. When you publish a project, it will show up in
-                this column. The project editor is not available yet.
+                opportunities. Start a project from Build, and it will show up
+                in this column once it is public.
               </p>
               <p>
+                <Link href="/build">Build</Link>
+                {" · "}
                 <Link href="/discover">Discover</Link>
                 {" · "}
                 <Link href="/people">People</Link>

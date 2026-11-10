@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/CredentialForm";
+import { ProfessionalProfile } from "@/components/profile/ProfessionalProfile";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { safeNext } from "@/lib/auth/validation";
@@ -47,14 +47,5 @@ async function ProfileContent({
   const gate = memberGate(member);
   if (gate) redirect(gate);
 
-  return (
-    <SectionPage
-      title="Profile"
-      lede="A builder profile shows work, skills, and collaborations rather than a résumé."
-    >
-      <p className="lede">
-        <Link href="/settings">Settings</Link>
-      </p>
-    </SectionPage>
-  );
+  return <ProfessionalProfile profileId={member.id} editable />;
 }
