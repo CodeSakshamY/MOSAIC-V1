@@ -103,8 +103,8 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] GitHub and personal website
 - [ ] LinkedIn and other external links
 - [x] Education, optional
-- [ ] Follow/unfollow
-- [ ] Followers and following
+- [x] Follow/unfollow
+- [x] Followers and following
 - [x] Contribution history (projects contributed to, merged pull requests)
 - [ ] Activity timeline
 - [ ] Profile visibility settings
@@ -124,7 +124,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Recommended builders
 - [ ] Similar-interest discovery
 - [ ] People working on related projects
-- [ ] Follow builders
+- [x] Follow builders
 - [ ] View shared interests
 - [ ] View mutual connections
 - [ ] Find potential teammates
@@ -333,7 +333,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Create and showcase a project, the first usable version
 - [ ] Home feed
 - [x] Posts, reactions and comments on the home feed
-- [ ] Follow users
+- [x] Follow users
 - [x] Project build logs, as text commits
 - [ ] Search projects and people
 - [ ] Basic notifications

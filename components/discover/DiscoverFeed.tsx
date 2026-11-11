@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ReelComposer } from "@/components/discover/ReelComposer";
 import { PostActions } from "@/components/feed/PostActions";
+import { FollowButton } from "@/components/profile/FollowButton";
 import { isVideoUrl } from "@/lib/auth/images";
 import { getMember } from "@/lib/auth/session";
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
@@ -52,23 +53,31 @@ function hrefFor(view: View) {
 
 async function PeopleList() {
   const supabase = await createClient();
+  const member = await getMember();
   const { data } = await supabase
     .from("profiles")
-    .select("username, display_name, bio, avatar_url, banner_url, education, city, state")
+    .select("id, username, display_name, bio, avatar_url, banner_url, education, city, state")
     .eq("onboarding_complete", true)
     .not("username", "is", null)
     .order("display_name")
     .limit(30);
   const people = (data ?? []).filter((person) => person.username);
   if (people.length === 0) return <p className="repo-empty">No public profiles yet.</p>;
+  const ids = people.map((person) => person.id);
+  const { data: followed } = member
+    ? await supabase.from("follows").select("following_id").eq("follower_id", member.id).in("following_id", ids)
+    : { data: [] };
+  const following = new Set((followed ?? []).map((row) => row.following_id));
+  const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
   return (
     <ul className="repo-list" role="list">
       {people.map((person) => {
         const place = [person.city, person.state].filter(Boolean).join(", ");
         const initial = person.display_name.trim().charAt(0).toUpperCase() || "?";
+        const username = person.username as string;
         return (
-          <li key={person.username} className="repo-row person-card">
-            <Link href={`/people/${person.username}`}>
+          <li key={username} className="repo-row person-card">
+            <Link href={`/people/${username}`}>
               <div className="profile-banner person-banner">
                 {person.banner_url ? <img src={person.banner_url} alt="" /> : <div className="profile-banner-empty" />}
               </div>
@@ -88,6 +97,11 @@ async function PeopleList() {
                 ) : null}
               </div>
             </Link>
+            {member?.id === person.id ? null : (
+              <div className="person-follow">
+                <FollowButton username={username} following={following.has(person.id)} signedIn={signedIn} />
+              </div>
+            )}
           </li>
         );
       })}

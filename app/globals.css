@@ -778,6 +778,52 @@
   letter-spacing: -0.03em;
 }
 
+.person-follow {
+  padding: 0 1rem 1rem;
+}
+
+.follow-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-block-start: 0.85rem;
+}
+
+.profile-header .follow-row p {
+  margin: 0;
+  color: var(--foreground);
+}
+
+.follow-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 6.5rem;
+  text-decoration: none;
+}
+
+.follow-button[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.person-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  margin: 0.35rem 0 0.85rem;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-section h3 {
+  margin: 0.85rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 560;
+}
+
 .card-body {
   padding: 1rem 1.05rem;
 }
