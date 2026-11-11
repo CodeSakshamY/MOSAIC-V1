@@ -72,7 +72,7 @@ test("signed-in home tabs stay separate", async ({ page }) => {
   await onboard(page, `home${stamp}`, `Home ${stamp}`, `home.${stamp}@example.com`);
   await expect(page.getByRole("link", { name: "Your projects" })).toHaveAttribute("aria-current", "page");
   await page.getByRole("link", { name: "Following" }).click();
-  await expect(page.getByText("Follow builders and their posts will show here.")).toBeVisible();
+  await expect(page.getByText("Follow builders or projects and their posts will show here.")).toBeVisible();
   await page.getByRole("link", { name: "For you" }).click();
   await expect(page.getByText("No public posts to show yet.").or(page.getByText("Shown because you're new here. Add interests and it will sharpen.")).first()).toBeVisible();
   await page.getByRole("link", { name: "Nearby" }).click();

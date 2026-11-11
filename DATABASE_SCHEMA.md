@@ -557,6 +557,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `015_functions_and_triggers.sql` | Remaining functions: anonymize, staff helpers, admin-column guard. Helpers that policies need are created in 013 before the policies, or 013 is ordered after the helper section of 015. The implementer will put helper functions immediately before the policies that call them, and keep the filenames stable. |
 | `016_seed_reference.sql` | Skills and interests. |
 | `028_feed_events.sql` | `feed_events` for impressions and dismiss. `feed_candidates` was not created. |
+| `029_project_follows.sql` | Watch a project. Build-log notifications include those followers. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

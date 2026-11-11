@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 const tabs: { id: HomeTab; label: string; lede: string }[] = [
   { id: "projects", label: "Your projects", lede: "Updates and threads on your projects." },
-  { id: "following", label: "Following", lede: "Posts from people you follow, newest first." },
+  { id: "following", label: "Following", lede: "Posts from people and projects you follow, newest first." },
   { id: "for-you", label: "For you", lede: "Public posts scored from your interests, skills, follows, and how recent they are." },
   { id: "nearby", label: "Nearby", lede: "Public posts from your city, or your state when the city has none." },
 ];

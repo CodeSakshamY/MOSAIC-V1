@@ -655,6 +655,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"project_follows": {
+                  Row: {
+                    "created_at": string,"profile_id": string,"project_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"profile_id": string,"project_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"profile_id"?: string,"project_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_follows_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_follows_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project_members": {
                   Row: {
                     "created_at": string,"id": string,"joined_at": string | null,"profile_id": string,"project_id": string,"role": Database["public"]['Enums']["member_role"],"status": Database["public"]['Enums']["member_status"],"updated_at": string

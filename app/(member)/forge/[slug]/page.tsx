@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
 import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
+import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
 import { projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
@@ -65,7 +66,7 @@ async function ProjectView({
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -78,6 +79,14 @@ async function ProjectView({
           .eq("project_id", project.id)
           .eq("profile_id", member.id)
           .eq("status", "active")
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    member
+      ? supabase
+          .from("project_follows")
+          .select("profile_id")
+          .eq("profile_id", member.id)
+          .eq("project_id", project.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
@@ -102,6 +111,12 @@ async function ProjectView({
         </h1>
         <span className="repo-visibility">{project.visibility === "private" ? "Private" : "Public"}</span>
         <span className="repo-visibility">{project.category}</span>
+        <ProjectFollowButton
+          projectId={project.id}
+          following={Boolean(watchResult.data)}
+          signedIn={Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt)}
+          next={`/forge/${project.slug}`}
+        />
         {!isOwner && member ? (
           <form action={forkProject}>
             <input type="hidden" name="projectId" value={project.id} />

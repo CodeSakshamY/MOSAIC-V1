@@ -3,6 +3,7 @@ import { ReelComposer } from "@/components/discover/ReelComposer";
 import { FilterMenu } from "@/components/filters/FilterMenu";
 import { PostActions } from "@/components/feed/PostActions";
 import { FollowButton } from "@/components/profile/FollowButton";
+import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { isVideoUrl } from "@/lib/auth/images";
 import { getMember } from "@/lib/auth/session";
 import { type DiscoverFilters, peopleFilterActive, readDiscoverFilters } from "@/lib/discover/filters";
@@ -233,7 +234,7 @@ async function loadPosts(type: ProjectCategory | null) {
   }
   let query = supabase
     .from("posts")
-    .select("id, title, content, type, media_urls, author_id, created_at")
+    .select("id, title, content, type, media_urls, author_id, project_id, created_at")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("created_at", { ascending: false })
@@ -255,6 +256,16 @@ async function followedIds(memberId: string | null, authorIds: string[]) {
   const supabase = await createClient();
   const { data } = await supabase.from("follows").select("following_id").eq("follower_id", memberId).in("following_id", unique);
   return new Set((data ?? []).map((row) => row.following_id));
+}
+
+async function watchedProjects(memberId: string | null, projectIds: string[]) {
+  const unique = [...new Set(projectIds)];
+  if (unique.length === 0) return new Set<string>();
+  const supabase = await createClient();
+  const { data } = memberId
+    ? await supabase.from("project_follows").select("project_id").eq("profile_id", memberId).in("project_id", unique)
+    : { data: [] };
+  return new Set((data ?? []).map((row) => row.project_id));
 }
 
 async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: DiscoverFilters }) {
@@ -283,6 +294,10 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
   const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
   const viewerId = signedIn && member ? member.id : null;
   const following = await followedIds(viewerId, posts.map((post) => post.author_id));
+  const watched = await watchedProjects(
+    viewerId,
+    posts.flatMap((post) => (post.project_id ? [post.project_id] : [])),
+  );
   return (
     <ul className="repo-list" role="list">
       {posts.map((post) => (
@@ -312,6 +327,14 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
                   next={`/posts/${post.id}`}
                 />
               )}
+              {post.project_id ? (
+                <ProjectFollowButton
+                  projectId={post.project_id}
+                  following={watched.has(post.project_id)}
+                  signedIn={signedIn}
+                  next={`/posts/${post.id}`}
+                />
+              ) : null}
             </div>
           ) : null}
           <PostActions postId={post.id} activity={activity.get(post.id) ?? emptyActivity()} signedIn={signedIn} />
@@ -333,6 +356,10 @@ async function ReelGrid({ filters }: { filters: DiscoverFilters }) {
   const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
   const viewerId = signedIn && member ? member.id : null;
   const following = await followedIds(viewerId, posts.map((post) => post.author_id));
+  const watched = await watchedProjects(
+    viewerId,
+    posts.flatMap((post) => (post.project_id ? [post.project_id] : [])),
+  );
   return (
     <>
       {member?.onboardingComplete ? (
@@ -363,6 +390,14 @@ async function ReelGrid({ filters }: { filters: DiscoverFilters }) {
                   <FollowButton
                     username={post.author.username}
                     following={following.has(post.author_id)}
+                    signedIn={signedIn}
+                    next={`/posts/${post.id}`}
+                  />
+                ) : null}
+                {post.project_id ? (
+                  <ProjectFollowButton
+                    projectId={post.project_id}
+                    following={watched.has(post.project_id)}
                     signedIn={signedIn}
                     next={`/posts/${post.id}`}
                   />
