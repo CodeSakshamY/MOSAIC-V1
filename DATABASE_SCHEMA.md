@@ -174,7 +174,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 
 ### project_skills
 
-PK `(project_id, skill_id, relation)`. A project can both use Python and be seeking Python. Index on `skill_id`.
+PK `(project_id, skill_id, relation)`. A project can both use Python and be seeking Python. Index on `skill_id`. The project page writes `relation = uses` for the tools it uses, and a trigger stops that relation at 8 rows. The app does not write `seeking`.
 
 ### project_members
 
@@ -570,6 +570,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `033_project_gallery.sql` | Extra photos on a public project. |
 | `034_project_gallery_cap.sql` | Stop a project at 8 gallery photos. |
 | `035_project_subcategories.sql` | Closed subcategory under the project category. |
+| `036_project_tools.sql` | Stop a project at 8 tools it uses. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

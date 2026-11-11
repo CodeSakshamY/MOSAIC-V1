@@ -6,6 +6,7 @@ import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
+import { ToolsForm } from "@/components/build/ToolsForm";
 import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
@@ -69,7 +70,7 @@ async function ProjectView({
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, toolsResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -93,10 +94,15 @@ async function ProjectView({
           .maybeSingle()
       : Promise.resolve({ data: null }),
     supabase.from("project_gallery").select("id, image_url").eq("project_id", project.id).order("created_at", { ascending: true }),
+    supabase.from("skills").select("id, name").order("name"),
+    supabase.from("project_skills").select("skill_id").eq("project_id", project.id).eq("relation", "uses"),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
   const isOwner = member?.id === project.owner_id;
+  const skills = skillsResult.data ?? [];
+  const usedIds = new Set((toolsResult.data ?? []).map((row) => row.skill_id));
+  const tools = skills.filter((skill) => usedIds.has(skill.id));
   const onProject = Boolean(membershipResult.data);
   const typeNote = projectTypeNotes[project.category as ProjectCategory];
 
@@ -116,6 +122,11 @@ async function ProjectView({
         <span className="repo-visibility">{project.visibility === "private" ? "Private" : "Public"}</span>
         <span className="repo-visibility">{project.category}</span>
         {project.subcategory ? <span className="repo-visibility">{project.subcategory}</span> : null}
+        {tools.map((tool) => (
+          <span key={tool.id} className="repo-visibility">
+            {tool.name}
+          </span>
+        ))}
         <ProjectFollowButton
           projectId={project.id}
           following={Boolean(watchResult.data)}
@@ -136,6 +147,7 @@ async function ProjectView({
       {isOwner && isProjectCategory(project.category) ? (
         <SubcategoryForm projectId={project.id} category={project.category} subcategory={project.subcategory} />
       ) : null}
+      {isOwner ? <ToolsForm projectId={project.id} skills={skills} selected={[...usedIds]} /> : null}
       {!isOwner && member ? (
         <ReportForm kind="project" target={project.id} reported={reportedState(query.reported)} />
       ) : null}
