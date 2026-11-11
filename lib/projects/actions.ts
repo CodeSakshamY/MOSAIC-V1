@@ -128,6 +128,54 @@ export async function updateSubcategory(formData: FormData) {
   revalidatePath("/discover");
 }
 
+export async function updateTools(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  if (!projectIdPattern.test(projectId)) return;
+  const requested = [...new Set(formData.getAll("tool").map((value) => String(value)))];
+  if (requested.length > 8 || requested.some((id) => !projectIdPattern.test(id))) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { data: known } = requested.length
+    ? await supabase.from("skills").select("id").in("id", requested)
+    : { data: [] };
+  const allowed = new Set((known ?? []).map((row) => row.id));
+  if (requested.some((id) => !allowed.has(id))) return;
+  const { data: existing } = await supabase
+    .from("project_skills")
+    .select("skill_id")
+    .eq("project_id", projectId)
+    .eq("relation", "uses");
+  const have = new Set((existing ?? []).map((row) => row.skill_id));
+  const next = new Set(requested);
+  const remove = [...have].filter((id) => !next.has(id));
+  const add = [...next].filter((id) => !have.has(id));
+  if (remove.length) {
+    const { error } = await supabase
+      .from("project_skills")
+      .delete()
+      .eq("project_id", projectId)
+      .eq("relation", "uses")
+      .in("skill_id", remove);
+    if (error) return;
+  }
+  if (add.length) {
+    const { error } = await supabase.from("project_skills").insert(
+      add.map((skillId) => ({ project_id: projectId, skill_id: skillId, relation: "uses" as const })),
+    );
+    if (error) return;
+  }
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/forge");
+  revalidatePath("/discover");
+}
+
 export async function updateCover(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");
@@ -217,20 +265,36 @@ export async function forkProject(formData: FormData) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const slug = attempt === 0 ? base : projectSlug(`${base}-${attempt + 1}`);
     if (!isProjectSlug(slug)) break;
-    const { error } = await supabase.from("projects").insert({
-      owner_id: member.id,
-      name,
-      slug,
-      description: source.description,
-      tagline: source.tagline,
-      subcategory: source.subcategory,
-      category: source.category,
-      visibility: source.visibility,
-      parent_project_id: projectId,
-      status: "idea",
-    });
-    if (!error) redirect(`/forge/${slug}`);
-    if (error.code !== "23505") break;
+    const { data: created, error } = await supabase
+      .from("projects")
+      .insert({
+        owner_id: member.id,
+        name,
+        slug,
+        description: source.description,
+        tagline: source.tagline,
+        subcategory: source.subcategory,
+        category: source.category,
+        visibility: source.visibility,
+        parent_project_id: projectId,
+        status: "idea",
+      })
+      .select("id")
+      .single();
+    if (!error && created) {
+      const { data: tools } = await supabase
+        .from("project_skills")
+        .select("skill_id")
+        .eq("project_id", projectId)
+        .eq("relation", "uses");
+      if (tools?.length) {
+        await supabase.from("project_skills").insert(
+          tools.map((row) => ({ project_id: created.id, skill_id: row.skill_id, relation: "uses" as const })),
+        );
+      }
+      redirect(`/forge/${slug}`);
+    }
+    if (error?.code !== "23505") break;
   }
   redirect(`/forge/${source.slug}?tab=overview`);
 }
