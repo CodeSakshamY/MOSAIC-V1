@@ -73,13 +73,13 @@ export async function loadPublicProjects(): Promise<HomeItem[]> {
 }
 
 export async function loadHome(memberId: string, tab: HomeTab, cursor: string | null): Promise<HomeFeedResult> {
-  if (tab === "projects") return loadProjectUpdates(memberId);
+  if (tab === "projects") return loadProjectUpdates(memberId, cursor);
   if (tab === "following") return loadFollowing(memberId, cursor);
   if (tab === "nearby") return loadNearby(memberId, cursor);
   return loadForYou(memberId, cursor);
 }
 
-async function loadProjectUpdates(memberId: string): Promise<HomeFeedResult> {
+async function loadProjectUpdates(memberId: string, cursor: string | null): Promise<HomeFeedResult> {
   const supabase = await createClient();
   const [{ data: owned }, { data: memberships }] = await Promise.all([
     supabase.from("projects").select("id, name, slug").eq("owner_id", memberId).is("removed_at", null),
@@ -93,20 +93,26 @@ async function loadProjectUpdates(memberId: string): Promise<HomeFeedResult> {
   }
   const projectIds = [...projects.keys()];
   const { data } = projectIds.length
-    ? await supabase
-        .from("posts")
-        .select("id, title, content, type, project_id, author_id, created_at, media_urls")
-        .in("project_id", projectIds)
-        .in("type", ["build_log", "idea"])
-        .is("removed_at", null)
-        .order("created_at", { ascending: false })
-        .limit(30)
+    ? await (() => {
+        let query = supabase
+          .from("posts")
+          .select("id, title, content, type, project_id, author_id, created_at, media_urls")
+          .in("project_id", projectIds)
+          .in("type", ["build_log", "idea"])
+          .is("removed_at", null)
+          .order("created_at", { ascending: false })
+          .limit(pageSize + 1);
+        if (cursor) query = query.lt("created_at", cursor);
+        return query;
+      })()
     : { data: [] as PostRow[] };
   const posts = (data ?? []).filter((post) => post.project_id);
   const visible = await omitHidden(memberId, posts);
-  const names = await authorNames(visible.map((post) => post.author_id));
+  const page = visible.slice(0, pageSize);
+  const last = page.at(-1);
+  const names = await authorNames(page.map((post) => post.author_id));
   return {
-    items: visible.map((post) => {
+    items: page.map((post) => {
       const project = post.project_id ? projects.get(post.project_id) : undefined;
       const author = names.get(post.author_id);
       const tab = post.type === "build_log" ? "commits" : "threads";
@@ -125,7 +131,7 @@ async function loadProjectUpdates(memberId: string): Promise<HomeFeedResult> {
     }),
     empty: "Build logs and threads from projects you work on will show up here.",
     note: null,
-    nextCursor: null,
+    nextCursor: visible.length > pageSize && last ? last.created_at : null,
   };
 }
 
