@@ -481,6 +481,71 @@
   cursor: pointer;
 }
 
+.nav-count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 1.25rem;
+  min-block-size: 1.25rem;
+  margin-inline-start: auto;
+  padding-inline: 0.3rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.75rem;
+}
+
+.notify-link {
+  position: relative;
+  display: inline-flex;
+}
+
+.notify-link .nav-count {
+  position: absolute;
+  inset-block-start: -0.35rem;
+  inset-inline-end: -0.45rem;
+  margin: 0;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notification-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.notification-row.is-unread {
+  border-color: var(--ring);
+}
+
+.notification-row form:first-child {
+  flex: 1 1 16rem;
+  min-inline-size: 0;
+}
+
+.notification-open {
+  min-block-size: 2.5rem;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
 .sidebar-account .nav-link {
   margin-inline-end: 0;
 }

@@ -241,7 +241,7 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 - [ ] Opportunity and event reminders
 - [ ] Saved project updates
 - [ ] System and security notifications
-- [ ] Mark as read/unread
+- [x] Mark as read/unread
 - [ ] Notification and email preferences
 
 ## 13. Search
@@ -336,7 +336,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Follow users
 - [x] Project build logs, as text commits
 - [x] Search projects and people
-- [ ] Basic notifications
+- [x] Basic notifications
 - [ ] Report and block
 
 ## Additional additions
