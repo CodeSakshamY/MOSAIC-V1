@@ -12,7 +12,7 @@ export function ReelComposer() {
     <form className="form-stack reel-composer" action={action}>
       <div className="field">
         <Label htmlFor="reel-media">Photo or reel</Label>
-        <Input id="reel-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required />
+        <Input id="reel-media" name="media" type="file" accept="image/*,video/mp4,video/webm" required />
         <p className="form-note">Photos up to 5 MB. MP4 or WebM reels up to 32 MB.</p>
       </div>
       <div className="field">

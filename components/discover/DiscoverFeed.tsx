@@ -54,7 +54,7 @@ async function PeopleList() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("username, display_name, education, city, state")
+    .select("username, display_name, bio, avatar_url, banner_url, education, city, state")
     .eq("onboarding_complete", true)
     .not("username", "is", null)
     .order("display_name")
@@ -65,13 +65,29 @@ async function PeopleList() {
     <ul className="repo-list" role="list">
       {people.map((person) => {
         const place = [person.city, person.state].filter(Boolean).join(", ");
+        const initial = person.display_name.trim().charAt(0).toUpperCase() || "?";
         return (
-          <li key={person.username} className="repo-row">
-            <div className="repo-title">
-              <Link href={`/people/${person.username}`}>{person.display_name}</Link>
-            </div>
-            {person.education ? <p>{person.education}</p> : null}
-            {place ? <p className="profile-meta">{place}</p> : null}
+          <li key={person.username} className="repo-row person-card">
+            <Link href={`/people/${person.username}`}>
+              <div className="profile-banner person-banner">
+                {person.banner_url ? <img src={person.banner_url} alt="" /> : <div className="profile-banner-empty" />}
+              </div>
+              {person.avatar_url ? (
+                <img className="profile-avatar person-avatar" src={person.avatar_url} alt="" />
+              ) : (
+                <span className="profile-avatar profile-avatar-fallback person-avatar" aria-hidden="true">
+                  {initial}
+                </span>
+              )}
+              <div className="person-body">
+                <strong>{person.display_name}</strong>
+                <p className="profile-meta">@{person.username}</p>
+                {person.bio ? <p className="discover-copy">{person.bio}</p> : null}
+                {person.education || place ? (
+                  <p className="profile-meta">{[person.education, place].filter(Boolean).join(" · ")}</p>
+                ) : null}
+              </div>
+            </Link>
           </li>
         );
       })}
@@ -79,28 +95,52 @@ async function PeopleList() {
   );
 }
 
+function firstImage(urls: string[] | null | undefined) {
+  return (urls ?? []).find((url) => url && !isVideoUrl(url));
+}
+
 async function ProjectList() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("projects")
-    .select("id, name, slug, description, category")
+    .select("id, name, slug, description, category, cover_image_url")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("updated_at", { ascending: false })
     .limit(30);
   const projects = data ?? [];
   if (projects.length === 0) return <p className="repo-empty">No public projects yet.</p>;
+  const ids = projects.map((project) => project.id);
+  const { data: mediaPosts } = await supabase
+    .from("posts")
+    .select("project_id, media_urls, created_at")
+    .in("project_id", ids)
+    .eq("visibility", "public")
+    .is("removed_at", null)
+    .order("created_at", { ascending: false });
+  const photoByProject = new Map<string, string>();
+  for (const post of mediaPosts ?? []) {
+    if (!post.project_id || photoByProject.has(post.project_id)) continue;
+    const image = firstImage(post.media_urls);
+    if (image) photoByProject.set(post.project_id, image);
+  }
   return (
     <ul className="repo-list" role="list">
-      {projects.map((project) => (
-        <li key={project.id} className="repo-row">
-          <div className="repo-title">
-            <Link href={`/build/${project.slug}`}>{project.name}</Link>
-            <span className="repo-visibility">{project.category}</span>
-          </div>
-          <p>{project.description}</p>
-        </li>
-      ))}
+      {projects.map((project) => {
+        const photo = firstImage(project.cover_image_url ? [project.cover_image_url] : []) ?? photoByProject.get(project.id);
+        return (
+          <li key={project.id} className="repo-row media-card">
+            {photo ? <img className="discover-photo" src={photo} alt="" /> : null}
+            <div className="card-body">
+              <div className="repo-title">
+                <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+                <span className="repo-visibility">{project.category}</span>
+              </div>
+              <p>{project.description}</p>
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -147,6 +187,13 @@ async function PostList({ kind }: { kind: "posts" | "ideas" }) {
             <span className="repo-visibility">{post.type.replace("_", " ")}</span>
           </div>
           <p className="discover-copy">{post.content}</p>
+          {kind === "ideas" ? (
+            <div className="idea-photos">
+              {(post.media_urls ?? []).filter((url) => url && !isVideoUrl(url)).slice(0, 4).map((url) => (
+                <img key={url} src={url} alt="" />
+              ))}
+            </div>
+          ) : null}
           {post.author?.username ? (
             <p className="profile-meta">
               <Link href={`/people/${post.author.username}`}>{post.author.display_name}</Link>

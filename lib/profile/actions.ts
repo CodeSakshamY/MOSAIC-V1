@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { imageContentType, imageKind, MAX_PROFILE_PHOTO_BYTES } from "@/lib/auth/images";
 import { getMember, memberGate } from "@/lib/auth/session";
+import { photoLimits, storeUserFile } from "@/lib/media/store";
 import {
   parseDisplayName,
   parseGithubUsername,
@@ -36,27 +36,14 @@ function text(value: FormDataEntryValue | null, max: number) {
   return String(value ?? "").trim().slice(0, max);
 }
 
-async function savePhoto(
+function savePhoto(
   supabase: SupabaseClient<Database>,
   userId: string,
   value: FormDataEntryValue | null,
   bucket: "avatars" | "post-media",
-  maxBytes: number,
+  limits: { maxBytes: number; maxEdge: number },
 ) {
-  if (!(value instanceof File) || value.size === 0) return { ok: true as const, url: null };
-  const bytes = new Uint8Array(await value.arrayBuffer());
-  const kind = imageKind(bytes, maxBytes);
-  if (!kind) {
-    const limit = maxBytes === MAX_PROFILE_PHOTO_BYTES ? "5 MB" : "2 MB";
-    return { ok: false as const, error: `Use a JPEG, PNG, or WebP photo under ${limit}.` };
-  }
-  const path = `${userId}/${crypto.randomUUID()}.${kind}`;
-  const { error } = await supabase.storage.from(bucket).upload(path, bytes, {
-    contentType: imageContentType(kind),
-    upsert: false,
-  });
-  if (error) return { ok: false as const, error: "The photo was not uploaded." };
-  return { ok: true as const, url: supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl };
+  return storeUserFile(supabase, userId, value, { bucket, ...limits });
 }
 
 export async function addEducation(_state: { error?: string } | null, formData: FormData) {
@@ -118,7 +105,7 @@ export async function addCertificate(_state: { error?: string } | null, formData
   if (url && !url.startsWith("https://")) return { error: "The certificate link must start with https://." };
 
   const supabase = await createClient();
-  const photo = await savePhoto(supabase, member.id, formData.get("photo"), "post-media", MAX_PROFILE_PHOTO_BYTES);
+  const photo = await savePhoto(supabase, member.id, formData.get("photo"), "post-media", photoLimits.post);
   if (!photo.ok) return { error: photo.error };
   const { error } = await supabase.from("profile_certificates").insert({
     profile_id: member.id,
@@ -139,7 +126,7 @@ export async function addAchievement(_state: { error?: string } | null, formData
   if (!title || !content) return { error: "Add a title and a short account of the achievement." };
 
   const supabase = await createClient();
-  const photo = await savePhoto(supabase, member.id, formData.get("photo"), "post-media", MAX_PROFILE_PHOTO_BYTES);
+  const photo = await savePhoto(supabase, member.id, formData.get("photo"), "post-media", photoLimits.post);
   if (!photo.ok) return { error: photo.error };
   const { error } = await supabase.from("posts").insert({
     author_id: member.id,
@@ -163,7 +150,7 @@ export async function addAward(_state: { error?: string } | null, formData: Form
   if (!awarded.ok) return { error: awarded.error };
 
   const supabase = await createClient();
-  const photo = await savePhoto(supabase, member.id, formData.get("photo"), "post-media", MAX_PROFILE_PHOTO_BYTES);
+  const photo = await savePhoto(supabase, member.id, formData.get("photo"), "post-media", photoLimits.post);
   if (!photo.ok) return { error: photo.error };
   const { error } = await supabase.from("profile_awards").insert({
     profile_id: member.id,
@@ -216,9 +203,9 @@ export async function updateProfile(_state: { error?: string } | null, formData:
   }
 
   const supabase = await createClient();
-  const avatar = await savePhoto(supabase, member.id, formData.get("avatar"), "avatars", 2 * 1024 * 1024);
+  const avatar = await savePhoto(supabase, member.id, formData.get("avatar"), "avatars", photoLimits.avatar);
   if (!avatar.ok) return { error: avatar.error };
-  const banner = await savePhoto(supabase, member.id, formData.get("banner"), "post-media", MAX_PROFILE_PHOTO_BYTES);
+  const banner = await savePhoto(supabase, member.id, formData.get("banner"), "post-media", photoLimits.banner);
   if (!banner.ok) return { error: banner.error };
 
   const { error } = await supabase

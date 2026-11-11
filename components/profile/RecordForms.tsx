@@ -137,7 +137,7 @@ function PhotoField({ id }: { id: string }) {
   return (
     <div className="field">
       <Label htmlFor={id}>Photo</Label>
-      <Input id={id} name="photo" type="file" accept="image/jpeg,image/png,image/webp" />
+      <Input id={id} name="photo" type="file" accept="image/*" />
       <p className="form-note">Optional. JPEG, PNG, or WebP, up to 5 MB.</p>
     </div>
   );

@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Build",
+  title: "Forge",
 };
 
 export default function BuildPage({
@@ -53,14 +53,14 @@ async function BuildWorkspace({
   return (
     <div className="build-page">
       <header className="page-header">
-        <h1>Build</h1>
+        <h1>Forge</h1>
         <p className="lede">Your projects live here, listed the way repositories are. Create one, then open it.</p>
       </header>
       <div className="build-layout">
         <section aria-labelledby="your-projects">
           <div className="repo-toolbar">
             <h2 id="your-projects">Your projects</h2>
-            <form className="repo-search" action="/build">
+            <form className="repo-search" action="/forge">
               <label className="sr-only" htmlFor="project-search">
                 Find a project
               </label>
@@ -111,7 +111,7 @@ async function BuildWorkspace({
               {projects.map((project) => (
                 <li key={project.slug} className="repo-row">
                   <div className="repo-title">
-                    <Link href={`/build/${project.slug}`}>
+                    <Link href={`/forge/${project.slug}`}>
                       <span className="repo-owner">{username}</span>
                       <span aria-hidden="true"> / </span>
                       <span className="repo-name">{project.name}</span>
@@ -153,7 +153,7 @@ function filterHref(query: string, visibility: string, type: string) {
   if (visibility !== "all") params.set("visibility", visibility);
   if (type !== "all") params.set("type", type);
   const suffix = params.toString();
-  return suffix ? `/build?${suffix}` : "/build";
+  return suffix ? `/forge?${suffix}` : "/forge";
 }
 
 function FilterLink({

@@ -97,6 +97,10 @@ export function ThreadForm({ projectId, slug }: { projectId: string; slug: strin
         <Textarea id="thread-body" name="content" required rows={4} />
         <p className="form-note">A thread can explore a change. It does not edit the project.</p>
       </div>
+      <div className="field">
+        <Label htmlFor="thread-photo">Photo</Label>
+        <Input id="thread-photo" name="photo" type="file" accept="image/*" />
+      </div>
       <ErrorLine state={state} />
       <SubmitButton>Start thread</SubmitButton>
     </form>

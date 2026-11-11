@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { imageContentType, imageKind } from "@/lib/auth/images";
+import { photoLimits, storeUserFile } from "@/lib/media/store";
 import { parseLookingFor } from "@/lib/auth/looking-for";
 import { getMember } from "@/lib/auth/session";
 import {
@@ -74,19 +74,15 @@ export async function saveOnboarding(
     if (!(file instanceof File) || file.size === 0) {
       return { error: "Choose an image, or skip this step." };
     }
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const kind = imageKind(bytes);
-    if (!kind) return { error: "Use a JPEG, PNG, or WebP image under 2 MB." };
-    const path = `${member.id}/${crypto.randomUUID()}.${kind}`;
-    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, bytes, {
-      contentType: imageContentType(kind),
-      upsert: false,
+    const avatar = await storeUserFile(supabase, member.id, file, {
+      bucket: "avatars",
+      ...photoLimits.avatar,
+      required: true,
     });
-    if (uploadError) return { error: "The image was not uploaded. Try again." };
-    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    if (!avatar.ok || !avatar.url) return { error: avatar.ok ? "Choose an image, or skip this step." : avatar.error };
     const { error } = await supabase
       .from("profiles")
-      .update({ avatar_url: data.publicUrl })
+      .update({ avatar_url: avatar.url })
       .eq("id", member.id);
     if (error) return { error: "The image was uploaded but not saved on your profile." };
     return advance(3);

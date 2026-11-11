@@ -260,7 +260,7 @@ export async function ProfessionalProfile({
           {(ownedResult.data ?? []).map((project) => (
             <li key={project.id} className="repo-row">
               <div className="repo-title">
-                <Link href={`/build/${project.slug}`}>{project.name}</Link>
+                <Link href={`/forge/${project.slug}`}>{project.name}</Link>
                 <span className="repo-visibility">{project.visibility === "private" ? "Private" : "Public"}</span>
                 <span className="repo-visibility">{project.category}</span>
               </div>
@@ -271,7 +271,7 @@ export async function ProfessionalProfile({
         <ProjectGroup title="Contributions" empty="No contributions yet.">
           {(contributed.data ?? []).map((project) => (
             <li key={project.id} className="repo-row">
-              <Link href={`/build/${project.slug}`}>{project.name}</Link>
+              <Link href={`/forge/${project.slug}`}>{project.name}</Link>
               <p>{project.description}</p>
             </li>
           ))}
@@ -284,7 +284,7 @@ export async function ProfessionalProfile({
                 <strong>{request.title}</strong>
                 {target ? (
                   <p>
-                    Merged into <Link href={`/build/${target.slug}`}>{target.name}</Link>
+                    Merged into <Link href={`/forge/${target.slug}`}>{target.name}</Link>
                   </p>
                 ) : (
                   <p>Merged</p>

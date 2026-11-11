@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Fraunces, JetBrains_Mono, Outfit } from "next/font/google";
 import { AccountGate } from "@/components/auth/AccountGate";
 import { AppShell } from "@/components/shell/AppShell";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,20 +10,19 @@ import { brand } from "@/lib/brand";
 import { themeFromId } from "@/lib/theme/themes";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
 });
 
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
   subsets: ["latin"],
-  weight: "400",
 });
 
 export const instant = false;
@@ -53,7 +52,7 @@ export default async function RootLayout({
     <html
       lang="en"
       data-theme={theme.id}
-      className={`${theme.mode === "dark" ? "dark " : ""}${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${theme.mode === "dark" ? "dark " : ""}${outfit.variable} ${fraunces.variable} ${jetbrains.variable} h-full antialiased`}
       style={{ colorScheme: theme.mode }}
     >
       <body className="min-h-full">

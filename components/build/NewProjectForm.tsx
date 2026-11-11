@@ -62,6 +62,11 @@ export function NewProjectForm({ username }: { username: string }) {
           ))}
         </select>
       </div>
+      <div className="field">
+        <Label htmlFor="project-cover">Cover photo</Label>
+        <Input id="project-cover" name="cover" type="file" accept="image/*" />
+        <p className="form-note">Optional. Large photos are reduced to fit. It shows on Discover for public projects.</p>
+      </div>
       <fieldset className="field">
         <legend>Visibility</legend>
         <label className="visibility-choice">

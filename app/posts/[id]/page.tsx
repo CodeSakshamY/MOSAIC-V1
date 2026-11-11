@@ -69,7 +69,7 @@ async function PostPageContent({ params }: { params: Promise<{ id: string }> }) 
         {project ? (
           <>
             {" · "}
-            <Link href={`/build/${project.slug}`}>{project.name}</Link>
+            <Link href={`/forge/${project.slug}`}>{project.name}</Link>
           </>
         ) : null}
       </p>
