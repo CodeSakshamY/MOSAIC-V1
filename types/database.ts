@@ -707,6 +707,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_gallery": {
+                  Row: {
+                    "created_at": string,"id": string,"image_url": string,"project_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"image_url": string,"project_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"image_url"?: string,"project_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_gallery_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project_members": {
                   Row: {
                     "created_at": string,"id": string,"joined_at": string | null,"profile_id": string,"project_id": string,"role": Database["public"]['Enums']["member_role"],"status": Database["public"]['Enums']["member_status"],"updated_at": string
@@ -793,14 +813,14 @@ isOneToOne: false
                   ]
                 },"projects": {
                   Row: {
-                    "category": string,"collaboration_type": Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url": string | null,"created_at": string,"demo_url": string | null,"description": string,"detailed_description": string | null,"documentation_url": string | null,"featured_at": string | null,"github_url": string | null,"id": string,"is_demo": boolean,"looking_for_contributors": boolean,"name": string,"owner_id": string,"parent_project_id": string | null,"problem": string | null,"removed_at": string | null,"slug": string,"solution": string | null,"status": Database["public"]['Enums']["project_status"],"updated_at": string,"visibility": Database["public"]['Enums']["visibility"]
+                    "category": string,"collaboration_type": Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url": string | null,"created_at": string,"demo_url": string | null,"description": string,"detailed_description": string | null,"documentation_url": string | null,"featured_at": string | null,"github_url": string | null,"id": string,"is_demo": boolean,"looking_for_contributors": boolean,"name": string,"owner_id": string,"parent_project_id": string | null,"problem": string | null,"removed_at": string | null,"slug": string,"solution": string | null,"status": Database["public"]['Enums']["project_status"],"tagline": string | null,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "category": string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description": string,"detailed_description"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name": string,"owner_id": string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug": string,"solution"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
+                    "category": string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description": string,"detailed_description"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name": string,"owner_id": string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug": string,"solution"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
                   }
                   Update: {
-                    "category"?: string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description"?: string,"detailed_description"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name"?: string,"owner_id"?: string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug"?: string,"solution"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
+                    "category"?: string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description"?: string,"detailed_description"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name"?: string,"owner_id"?: string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug"?: string,"solution"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
                   }
                   Relationships: [
                     {

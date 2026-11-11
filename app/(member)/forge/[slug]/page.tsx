@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { ProjectMedia } from "@/components/build/ProjectMedia";
+import { TaglineForm } from "@/components/build/TaglineForm";
 import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
@@ -60,13 +62,13 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, visibility, status, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, tagline, cover_image_url, visibility, status, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -89,6 +91,7 @@ async function ProjectView({
           .eq("project_id", project.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase.from("project_gallery").select("id, image_url").eq("project_id", project.id).order("created_at", { ascending: true }),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
@@ -126,6 +129,8 @@ async function ProjectView({
           </form>
         ) : null}
       </header>
+      {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
+      {isOwner ? <TaglineForm projectId={project.id} tagline={project.tagline} /> : null}
       {!isOwner && member ? (
         <ReportForm kind="project" target={project.id} reported={reportedState(query.reported)} />
       ) : null}
@@ -144,7 +149,16 @@ async function ProjectView({
       <div className="project-layout">
         <div>
           {tab === "overview" ? (
-            <Overview description={project.description} forks={forksResult.data ?? []} />
+            <>
+              <ProjectMedia
+                projectId={project.id}
+                cover={project.cover_image_url}
+                images={galleryResult.data ?? []}
+                isOwner={isOwner}
+                isPublic={project.visibility === "public"}
+              />
+              <Overview description={project.description} forks={forksResult.data ?? []} />
+            </>
           ) : null}
           {tab === "commits" ? (
             <Commits projectId={project.id} slug={slug} canCommit={onProject} />

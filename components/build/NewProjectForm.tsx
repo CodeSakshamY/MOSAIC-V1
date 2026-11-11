@@ -49,6 +49,16 @@ export function NewProjectForm({ username }: { username: string }) {
         </p>
       </div>
       <div className="field">
+        <Label htmlFor="project-tagline">Tagline</Label>
+        <Input id="project-tagline" name="tagline" maxLength={80} />
+        <p className="form-note">Optional. One line under the project name. The description stays the longer summary.</p>
+      </div>
+      <div className="field">
+        <Label htmlFor="project-tagline">Tagline</Label>
+        <Input id="project-tagline" name="tagline" maxLength={80} />
+        <p className="form-note">Optional. One line under the project name. The description stays the longer summary.</p>
+      </div>
+      <div className="field">
         <Label htmlFor="project-description">Description</Label>
         <Input id="project-description" name="description" required maxLength={200} />
       </div>

@@ -38,14 +38,14 @@ async function BuildWorkspace({
   const supabase = await createClient();
   let request = supabase
     .from("projects")
-    .select("name, slug, description, visibility, status, category, updated_at")
+    .select("name, slug, description, tagline, visibility, status, category, updated_at")
     .eq("owner_id", member?.id ?? "")
     .is("removed_at", null)
     .order("updated_at", { ascending: false });
   if (visibility !== "all") request = request.eq("visibility", visibility);
   if (type !== "all") request = request.eq("category", type);
   if (query) {
-    request = request.or(`name.ilike.%${query}%,description.ilike.%${query}%`);
+    request = request.or(`name.ilike.%${query}%,description.ilike.%${query}%,tagline.ilike.%${query}%`);
   }
   const { data } = await request;
   const projects = data ?? [];
@@ -122,6 +122,7 @@ async function BuildWorkspace({
                     <span className="repo-visibility">{project.visibility === "private" ? "Private" : "Public"}</span>
                     <span className="repo-visibility">{project.category}</span>
                   </div>
+                  {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
                   <p>{project.description}</p>
                   <p className="repo-meta">
                     <span className="repo-status">{projectStatusLabel(project.status)}</span>

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
@@ -15,6 +16,7 @@ export async function createProject(_state: ActionState, formData: FormData): Pr
 
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
+  const tagline = String(formData.get("tagline") ?? "").trim();
   const category = String(formData.get("category") ?? "");
   const visibility = formData.get("visibility") === "private" ? "private" : "public";
   const slug = projectSlug(String(formData.get("slug") ?? name));
@@ -27,6 +29,9 @@ export async function createProject(_state: ActionState, formData: FormData): Pr
   }
   if (description.length < 1 || description.length > 200) {
     return { error: "Add a description of 200 characters or fewer." };
+  }
+  if (tagline.length > 80) {
+    return { error: "Keep the tagline to 80 characters." };
   }
   if (!isProjectCategory(category)) {
     return { error: "Choose a category." };
@@ -47,6 +52,7 @@ export async function createProject(_state: ActionState, formData: FormData): Pr
     name,
     slug,
     description,
+    tagline: tagline || null,
     category,
     visibility,
     status: "idea",
@@ -65,13 +71,112 @@ async function requireMember() {
   return member;
 }
 
+const projectIdPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export async function updateTagline(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const tagline = String(formData.get("tagline") ?? "").trim();
+  if (!projectIdPattern.test(projectId) || tagline.length > 80) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ tagline: tagline || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/forge");
+  revalidatePath("/discover");
+}
+
+export async function updateCover(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  if (!projectIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id, visibility")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const remove = formData.get("remove") === "1";
+  let url: string | null = null;
+  if (!remove) {
+    if (project.visibility !== "public") return;
+    const stored = await storeUserFile(supabase, member.id, formData.get("cover"), {
+      bucket: "project-covers",
+      ...photoLimits.cover,
+      required: true,
+    });
+    if (!stored.ok || !stored.url) return;
+    url = stored.url;
+  }
+  const { error } = await supabase.from("projects").update({ cover_image_url: url }).eq("id", projectId).eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/discover");
+}
+
+export async function addGalleryImage(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  if (!projectIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id, visibility")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id || project.visibility !== "public") return;
+  const { count } = await supabase.from("project_gallery").select("id", { count: "exact", head: true }).eq("project_id", projectId);
+  if ((count ?? 0) >= 8) return;
+  const stored = await storeUserFile(supabase, member.id, formData.get("photo"), {
+    bucket: "project-covers",
+    ...photoLimits.cover,
+    required: true,
+  });
+  if (!stored.ok || !stored.url) return;
+  const { error } = await supabase.from("project_gallery").insert({ project_id: projectId, image_url: stored.url });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function removeGalleryImage(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const imageId = String(formData.get("imageId") ?? "");
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(imageId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  await supabase.from("project_gallery").delete().eq("id", imageId).eq("project_id", projectId);
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function forkProject(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");
   const supabase = await createClient();
   const { data: source } = await supabase
     .from("projects")
-    .select("name, slug, description, category, visibility, owner_id")
+    .select("name, slug, description, tagline, category, visibility, owner_id")
     .eq("id", projectId)
     .is("removed_at", null)
     .maybeSingle();
@@ -87,6 +192,7 @@ export async function forkProject(formData: FormData) {
       name,
       slug,
       description: source.description,
+      tagline: source.tagline,
       category: source.category,
       visibility: source.visibility,
       parent_project_id: projectId,
