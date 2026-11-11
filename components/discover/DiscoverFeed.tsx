@@ -39,7 +39,10 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
           </Link>
         ))}
       </nav>
-      {view === "people" ? <PeopleFilters filters={filters} /> : <TypeFilters view={view} filters={filters} />}
+      <div className="discover-tools">
+        {view === "people" || view === "projects" ? <DiscoverSearch view={view} filters={filters} /> : null}
+        {view === "people" ? <PeopleFilters filters={filters} /> : <TypeFilters view={view} filters={filters} />}
+      </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
@@ -58,6 +61,7 @@ export { readDiscoverFilters };
 function hrefFor(view: View, filters: DiscoverFilters, type: ProjectCategory | null = filters.type) {
   const params = new URLSearchParams();
   if (view !== "posts") params.set("view", view);
+  if ((view === "people" || view === "projects") && filters.q) params.set("q", filters.q);
   if (view === "people") {
     if (filters.age) params.set("age", filters.age);
     if (filters.place) params.set("place", filters.place);
@@ -84,6 +88,7 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
     const place = filters.place;
     query = query.or(`city.ilike.%${place}%,state.ilike.%${place}%,education.ilike.%${place}%`);
   }
+  if (filters.q) query = query.or(`display_name.ilike.%${filters.q}%,username.ilike.%${filters.q}%`);
   if (filters.skill) {
     const { data: skill } = await supabase.from("skills").select("id").eq("slug", filters.skill).maybeSingle();
     const { data: links } = skill
@@ -98,7 +103,7 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
   const { data } = await query;
   const people = (data ?? []).filter((person) => person.username);
   if (people.length === 0) {
-    return <p className="repo-empty">{peopleFilterActive(filters) ? "No people match that filter." : "No public profiles yet."}</p>;
+    return <p className="repo-empty">{peopleFilterActive(filters) ? "No people match that filter." : filters.q ? "No people match that search." : "No public profiles yet."}</p>;
   }
   const ids = people.map((person) => person.id);
   const { data: followed } = member
@@ -164,10 +169,15 @@ async function ProjectList({ filters }: { filters: DiscoverFilters }) {
     .order("updated_at", { ascending: false })
     .limit(30);
   if (filters.type) query = query.eq("category", filters.type);
+  if (filters.q) query = query.or(`name.ilike.%${filters.q}%,description.ilike.%${filters.q}%`);
   const { data } = await query;
   const projects = data ?? [];
   if (projects.length === 0) {
-    return <p className="repo-empty">{filters.type ? "No projects match that filter." : "No public projects yet."}</p>;
+    return (
+      <p className="repo-empty">
+        {filters.type ? "No projects match that filter." : filters.q ? "No projects match that search." : "No public projects yet."}
+      </p>
+    );
   }
   const ids = projects.map((project) => project.id);
   const { data: mediaPosts } = await supabase
@@ -330,6 +340,27 @@ async function ReelGrid({ filters }: { filters: DiscoverFilters }) {
         })}
       </ul>
     </>
+  );
+}
+
+function DiscoverSearch({ view, filters }: { view: "people" | "projects"; filters: DiscoverFilters }) {
+  return (
+    <form className="repo-search discover-search" action="/discover">
+      <input type="hidden" name="view" value={view} />
+      {filters.age ? <input type="hidden" name="age" value={filters.age} /> : null}
+      {filters.place ? <input type="hidden" name="place" value={filters.place} /> : null}
+      {filters.skill ? <input type="hidden" name="skill" value={filters.skill} /> : null}
+      {filters.type ? <input type="hidden" name="type" value={filters.type} /> : null}
+      <label htmlFor="discover-search">Search</label>
+      <input
+        id="discover-search"
+        name="q"
+        defaultValue={filters.q}
+        placeholder={view === "people" ? "Name or username" : "Project name"}
+        maxLength={80}
+        className="repo-search-input"
+      />
+    </form>
   );
 }
 

@@ -114,7 +114,7 @@ Status is what a person can do in the app today. A database table with no screen
 
 ## 5. People and networking
 
-- [ ] Search builders by name or username
+- [x] Search builders by name or username
 - [ ] Filter by discipline
 - [x] Filter by skills and technologies
 - [ ] Filter by interests
@@ -335,7 +335,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Posts, reactions and comments on the home feed
 - [x] Follow users
 - [x] Project build logs, as text commits
-- [ ] Search projects and people
+- [x] Search projects and people
 - [ ] Basic notifications
 - [ ] Report and block
 

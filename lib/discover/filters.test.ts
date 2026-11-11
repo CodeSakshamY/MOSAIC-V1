@@ -9,8 +9,10 @@ describe("readDiscoverFilters", () => {
         place: "  Bengaluru ",
         skill: "machine-learning",
         type: "Software",
+        q: " Sensor% ",
       }),
     ).toEqual({
+      q: "Sensor",
       age: "18_24",
       place: "Bengaluru",
       skill: "machine-learning",
@@ -27,6 +29,7 @@ describe("readDiscoverFilters", () => {
         type: "robotics",
       }),
     ).toEqual({
+      q: "",
       age: null,
       place: "City",
       skill: "",

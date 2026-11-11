@@ -1144,6 +1144,31 @@
   margin-block-start: 0.75rem;
 }
 
+.discover-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-block-start: 0.75rem;
+}
+
+.discover-tools .filter-menu,
+.discover-tools .discover-search {
+  margin-block-start: 0;
+}
+
+.discover-search {
+  flex: 1 1 16rem;
+  min-inline-size: min(100%, 12rem);
+}
+
+.discover-search label {
+  display: block;
+  margin-block-end: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
 .filter-menu {
   margin-block-start: 0.75rem;
   min-inline-size: 0;
