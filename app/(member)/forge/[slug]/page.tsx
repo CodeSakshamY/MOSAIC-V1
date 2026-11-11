@@ -4,12 +4,13 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
+import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
-import { projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
+import { isProjectCategory, projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -62,7 +63,7 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, tagline, cover_image_url, visibility, status, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, tagline, subcategory, cover_image_url, visibility, status, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
@@ -114,6 +115,7 @@ async function ProjectView({
         </h1>
         <span className="repo-visibility">{project.visibility === "private" ? "Private" : "Public"}</span>
         <span className="repo-visibility">{project.category}</span>
+        {project.subcategory ? <span className="repo-visibility">{project.subcategory}</span> : null}
         <ProjectFollowButton
           projectId={project.id}
           following={Boolean(watchResult.data)}
@@ -131,6 +133,9 @@ async function ProjectView({
       </header>
       {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
       {isOwner ? <TaglineForm projectId={project.id} tagline={project.tagline} /> : null}
+      {isOwner && isProjectCategory(project.category) ? (
+        <SubcategoryForm projectId={project.id} category={project.category} subcategory={project.subcategory} />
+      ) : null}
       {!isOwner && member ? (
         <ReportForm kind="project" target={project.id} reported={reportedState(query.reported)} />
       ) : null}

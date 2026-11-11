@@ -154,6 +154,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `solution` | Nullable, max 2000. |
 | `cover_image_url` | Nullable. Public projects only. |
 | `category` | Text, max 60, matching an interest slug where possible. |
+| `subcategory` | Nullable. A closed list under `category`, checked by `is_project_subcategory`. |
 | `status` | `project_status`, default `idea`. |
 | `github_url`, `demo_url`, `documentation_url` | Nullable, `https` only. |
 | `visibility` | Default `public`. |
@@ -568,6 +569,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `032_project_tagline.sql` | Optional one-line tagline on a project. |
 | `033_project_gallery.sql` | Extra photos on a public project. |
 | `034_project_gallery_cap.sql` | Stop a project at 8 gallery photos. |
+| `035_project_subcategories.sql` | Closed subcategory under the project category. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

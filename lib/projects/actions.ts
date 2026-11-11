@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
-import { isProjectCategory, isProjectSlug, projectSlug } from "@/lib/projects/slug";
+import { isProjectCategory, isProjectSlug, isProjectSubcategory, projectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/auth/actions";
 
@@ -17,6 +17,7 @@ export async function createProject(_state: ActionState, formData: FormData): Pr
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const tagline = String(formData.get("tagline") ?? "").trim();
+  const subcategory = String(formData.get("subcategory") ?? "").trim();
   const category = String(formData.get("category") ?? "");
   const visibility = formData.get("visibility") === "private" ? "private" : "public";
   const slug = projectSlug(String(formData.get("slug") ?? name));
@@ -32,6 +33,9 @@ export async function createProject(_state: ActionState, formData: FormData): Pr
   }
   if (tagline.length > 80) {
     return { error: "Keep the tagline to 80 characters." };
+  }
+  if (subcategory && !isProjectSubcategory(category, subcategory)) {
+    return { error: "Choose a subcategory for that project type." };
   }
   if (!isProjectCategory(category)) {
     return { error: "Choose a category." };
@@ -53,6 +57,7 @@ export async function createProject(_state: ActionState, formData: FormData): Pr
     slug,
     description,
     tagline: tagline || null,
+    subcategory: subcategory || null,
     category,
     visibility,
     status: "idea",
@@ -90,6 +95,31 @@ export async function updateTagline(formData: FormData) {
   const { error } = await supabase
     .from("projects")
     .update({ tagline: tagline || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/forge");
+  revalidatePath("/discover");
+}
+
+export async function updateSubcategory(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const subcategory = String(formData.get("subcategory") ?? "").trim();
+  if (!projectIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id, category")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  if (subcategory && !isProjectSubcategory(project.category, subcategory)) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ subcategory: subcategory || null })
     .eq("id", projectId)
     .eq("owner_id", member.id);
   if (error) return;
@@ -176,7 +206,7 @@ export async function forkProject(formData: FormData) {
   const supabase = await createClient();
   const { data: source } = await supabase
     .from("projects")
-    .select("name, slug, description, tagline, category, visibility, owner_id")
+    .select("name, slug, description, tagline, subcategory, category, visibility, owner_id")
     .eq("id", projectId)
     .is("removed_at", null)
     .maybeSingle();
@@ -193,6 +223,7 @@ export async function forkProject(formData: FormData) {
       slug,
       description: source.description,
       tagline: source.tagline,
+      subcategory: source.subcategory,
       category: source.category,
       visibility: source.visibility,
       parent_project_id: projectId,

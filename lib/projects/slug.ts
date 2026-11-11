@@ -47,8 +47,23 @@ export function isProjectSlug(slug: string) {
   return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) && slug.length >= 3 && slug.length <= 60;
 }
 
+export const projectSubcategories: Record<ProjectCategory, readonly string[]> = {
+  Software: ["Web", "Mobile", "Desktop", "Library"],
+  Hardware: ["Enclosure", "Sensor", "Power", "Robot"],
+  CAD: ["Part", "Assembly", "Drawing"],
+  PCB: ["Schematic", "Layout", "Module"],
+  Firmware: ["Microcontroller", "Driver", "Bootloader"],
+  Mechanical: ["Mechanism", "Structure", "Motion"],
+  Research: ["Experiment", "Measurement", "Survey"],
+  Design: ["Interface", "Graphic", "Form"],
+};
+
 export function isProjectCategory(value: string): value is ProjectCategory {
   return (projectCategories as readonly string[]).includes(value);
+}
+
+export function isProjectSubcategory(category: string, subcategory: string) {
+  return isProjectCategory(category) && projectSubcategories[category].includes(subcategory);
 }
 
 export function projectStatusLabel(status: string) {

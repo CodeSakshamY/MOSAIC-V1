@@ -169,7 +169,7 @@ async function ProjectList({ filters }: { filters: DiscoverFilters }) {
   const supabase = await createClient();
   let query = supabase
     .from("projects")
-    .select("id, name, slug, description, tagline, category, cover_image_url")
+    .select("id, name, slug, description, tagline, subcategory, category, cover_image_url")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("updated_at", { ascending: false })
@@ -212,6 +212,7 @@ async function ProjectList({ filters }: { filters: DiscoverFilters }) {
                 <span className="repo-visibility">{project.category}</span>
               </div>
               {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
+              {project.subcategory ? <p className="repo-meta">{project.subcategory}</p> : null}
               <p>{project.description}</p>
             </div>
           </li>

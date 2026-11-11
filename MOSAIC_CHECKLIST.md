@@ -42,7 +42,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Project tagline
 - [x] Project cover image and gallery
 - [x] Project category
-- [ ] Project subcategories
+- [x] Project subcategories
 - [ ] Technology stack and tools used
 - [ ] Skills required
 - [ ] Project status: Idea, Researching, In development, Prototype, Testing, Completed, On hold
