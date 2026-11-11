@@ -114,13 +114,13 @@ Status is what a person can do in the app today. A database table with no screen
 
 ## 5. People and networking
 
-- [ ] Search builders by name or username
+- [x] Search builders by name or username
 - [ ] Filter by discipline
-- [ ] Filter by skills and technologies
+- [x] Filter by skills and technologies
 - [ ] Filter by interests
 - [ ] Filter by project experience
 - [ ] Filter by availability for collaboration
-- [ ] Filter by broad location or institution
+- [x] Filter by broad location or institution
 - [ ] Recommended builders
 - [ ] Similar-interest discovery
 - [ ] People working on related projects
@@ -171,7 +171,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Discover hackathons
 - [ ] Discover open-source projects
 - [ ] Discover trending technologies
-- [x] Discover projects by discipline (type filters on Build, not yet on Discover)
+- [x] Discover projects by discipline (type filters on Forge and Discover)
 - [ ] Search everything across MOSAIC
 - [ ] Advanced filters
 - [ ] Sort by relevance, latest and popularity
@@ -241,7 +241,7 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 - [ ] Opportunity and event reminders
 - [ ] Saved project updates
 - [ ] System and security notifications
-- [ ] Mark as read/unread
+- [x] Mark as read/unread
 - [ ] Notification and email preferences
 
 ## 13. Search
@@ -335,8 +335,8 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Posts, reactions and comments on the home feed
 - [x] Follow users
 - [x] Project build logs, as text commits
-- [ ] Search projects and people
-- [ ] Basic notifications
+- [x] Search projects and people
+- [x] Basic notifications
 - [ ] Report and block
 
 ## Additional additions

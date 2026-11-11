@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { DiscoverFeed, discoverView } from "@/components/discover/DiscoverFeed";
+import { DiscoverFeed, discoverView, readDiscoverFilters } from "@/components/discover/DiscoverFeed";
 import { SectionPage } from "@/components/shell/SectionPage";
 
 export const metadata: Metadata = {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; q?: string; age?: string; place?: string; skill?: string; type?: string }>;
 }) {
   return (
     <Suspense fallback={null}>
@@ -22,7 +22,7 @@ export default function DiscoverPage({
 async function DiscoverPageContent({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; q?: string; age?: string; place?: string; skill?: string; type?: string }>;
 }) {
   const params = await searchParams;
   return (
@@ -32,7 +32,7 @@ async function DiscoverPageContent({
       title="Discover"
       lede="Look through people, projects, and ideas. Posts are the written feed. Reels are the photo posts. Reading does not need an account."
     >
-      <DiscoverFeed view={discoverView(params.view)} />
+      <DiscoverFeed view={discoverView(params.view)} filters={readDiscoverFilters(params)} />
     </SectionPage>
   );
 }
