@@ -88,6 +88,11 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
     query = query.or(`city.ilike.%${place}%,state.ilike.%${place}%,education.ilike.%${place}%`);
   }
   if (filters.q) query = query.or(`display_name.ilike.%${filters.q}%,username.ilike.%${filters.q}%`);
+  if (member) {
+    const { data: blocked } = await supabase.from("blocks").select("blocked_id").eq("blocker_id", member.id);
+    const blockedIds = (blocked ?? []).map((row) => row.blocked_id);
+    if (blockedIds.length > 0) query = query.not("id", "in", `(${blockedIds.join(",")})`);
+  }
   if (filters.skill) {
     const { data: skill } = await supabase.from("skills").select("id").eq("slug", filters.skill).maybeSingle();
     const { data: links } = skill

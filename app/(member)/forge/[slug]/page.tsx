@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
 import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
+import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
 import { projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
@@ -35,7 +36,7 @@ export default function ProjectPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ tab?: string; thread?: string }>;
+  searchParams: Promise<{ tab?: string; thread?: string; reported?: string }>;
 }) {
   return (
     <Suspense fallback={null}>
@@ -49,7 +50,7 @@ async function ProjectView({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ tab?: string; thread?: string }>;
+  searchParams: Promise<{ tab?: string; thread?: string; reported?: string }>;
 }) {
   const { slug } = await params;
   const query = await searchParams;
@@ -110,6 +111,9 @@ async function ProjectView({
           </form>
         ) : null}
       </header>
+      {!isOwner && member ? (
+        <ReportForm kind="project" target={project.id} reported={reportedState(query.reported)} />
+      ) : null}
       {parentResult.data ? (
         <p className="repo-crumb">
           Forked from <Link href={`/forge/${parentResult.data.slug}`}>{parentResult.data.name}</Link>

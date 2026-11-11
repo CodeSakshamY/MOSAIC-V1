@@ -1,6 +1,7 @@
 import { Children, type ReactNode } from "react";
 import Link from "next/link";
 import { FollowButton } from "@/components/profile/FollowButton";
+import { ReportForm, type reportedState } from "@/components/safety/ReportForm";
 import { removeProfileItem } from "@/lib/profile/actions";
 import {
   AchievementForm,
@@ -11,6 +12,7 @@ import {
 } from "@/components/profile/RecordForms";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
 import { getMember, memberGate } from "@/lib/auth/session";
+import { toggleBlock } from "@/lib/safety/actions";
 import { createClient } from "@/lib/supabase/server";
 
 type RecordItem = {
@@ -25,9 +27,11 @@ type RecordItem = {
 export async function ProfessionalProfile({
   profileId,
   editable,
+  reported = null,
 }: {
   profileId: string;
   editable: boolean;
+  reported?: ReturnType<typeof reportedState>;
 }) {
   const supabase = await createClient();
   const [
@@ -86,6 +90,10 @@ export async function ProfessionalProfile({
 
   const viewer = await getMember();
   const signedIn = Boolean(viewer && !memberGate(viewer));
+  const { data: blockRow } = viewer
+    ? await supabase.from("blocks").select("blocked_id").eq("blocker_id", viewer.id).eq("blocked_id", profileId).maybeSingle()
+    : { data: null };
+  const blocked = Boolean(blockRow);
   const skillIds = (skillsResult.data ?? []).map((row) => row.skill_id);
   const projectIds = (memberResult.data ?? []).map((row) => row.project_id);
   const targetIds = (mergedResult.data ?? []).map((row) => row.target_project_id);
@@ -191,11 +199,32 @@ export async function ProfessionalProfile({
             {" · "}
             <strong>{followingCount.count ?? 0}</strong> following
           </p>
-          {viewer?.id === profileId ? null : (
-            <FollowButton username={profile.username} following={Boolean(mine.data)} signedIn={signedIn} />
+          {viewer?.id === profileId ? null : blocked ? (
+            <form action={toggleBlock}>
+              <input type="hidden" name="username" value={profile.username} />
+              <button className="text-button follow-button" type="submit" aria-pressed="true">
+                Unblock
+              </button>
+            </form>
+          ) : (
+            <>
+              <FollowButton username={profile.username} following={Boolean(mine.data)} signedIn={signedIn} />
+              {signedIn ? (
+                <form action={toggleBlock}>
+                  <input type="hidden" name="username" value={profile.username} />
+                  <button className="text-button follow-button" type="submit">
+                    Block
+                  </button>
+                </form>
+              ) : null}
+            </>
           )}
         </div>
       </header>
+
+      {viewer?.id === profileId ? null : (
+        <ReportForm kind="profile" target={profile.username} reported={reported} />
+      )}
 
       <section className="profile-section" aria-labelledby="network-heading">
         <h2 id="network-heading">Network</h2>
