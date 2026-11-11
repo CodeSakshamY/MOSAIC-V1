@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { NewProjectForm } from "@/components/build/NewProjectForm";
+import { FilterMenu } from "@/components/filters/FilterMenu";
 import { getMember } from "@/lib/auth/session";
 import { isProjectCategory, projectCategories, projectStatusLabel } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
@@ -86,20 +87,22 @@ async function BuildWorkspace({
               </FilterLink>
             </nav>
           </div>
-          <nav className="repo-filters type-filters" aria-label="Project type">
-            <FilterLink href={filterHref(query, visibility, "all")} current={type === "all"}>
-              All types
-            </FilterLink>
-            {projectCategories.map((category) => (
-              <FilterLink
-                key={category}
-                href={filterHref(query, visibility, category)}
-                current={type === category}
-              >
-                {category}
+          <FilterMenu active={type === "all" ? 0 : 1}>
+            <nav className="repo-filters type-filters" aria-label="Project type">
+              <FilterLink href={filterHref(query, visibility, "all")} current={type === "all"}>
+                All types
               </FilterLink>
-            ))}
-          </nav>
+              {projectCategories.map((category) => (
+                <FilterLink
+                  key={category}
+                  href={filterHref(query, visibility, category)}
+                  current={type === category}
+                >
+                  {category}
+                </FilterLink>
+              ))}
+            </nav>
+          </FilterMenu>
           {projects.length === 0 ? (
             <p className="repo-empty">
               {query || visibility !== "all" || type !== "all"

@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
-import type { ReactNode } from "react";
 import { ReelComposer } from "@/components/discover/ReelComposer";
+import { FilterMenu } from "@/components/filters/FilterMenu";
 import { PostActions } from "@/components/feed/PostActions";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { isVideoUrl } from "@/lib/auth/images";
@@ -437,18 +436,5 @@ function TypeFilters({ view, filters }: { view: View; filters: DiscoverFilters }
       ))}
     </nav>
     </FilterMenu>
-  );
-}
-
-function FilterMenu({ active, children }: { active: number; children: ReactNode }) {
-  return (
-    <details className="filter-menu">
-      <summary>
-        <span>Filters</span>
-        {active > 0 ? <span className="filter-count">{active}</span> : null}
-        <ChevronDown aria-hidden="true" />
-      </summary>
-      <div className="filter-panel">{children}</div>
-    </details>
   );
 }
