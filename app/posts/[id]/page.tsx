@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { CommentForm } from "@/components/feed/CommentForm";
 import { PostActions } from "@/components/feed/PostActions";
 import { FollowButton } from "@/components/profile/FollowButton";
+import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { getMember } from "@/lib/auth/session";
@@ -70,6 +71,14 @@ async function PostPageContent({
         .eq("following_id", post.author_id)
         .maybeSingle()
     : { data: null };
+  const { data: projectFollow } = member && post.project_id
+    ? await supabase
+        .from("project_follows")
+        .select("profile_id")
+        .eq("profile_id", member.id)
+        .eq("project_id", post.project_id)
+        .maybeSingle()
+    : { data: null };
   const rows = comments ?? [];
   const commenterIds = [...new Set(rows.map((comment) => comment.author_id))];
   const { data: commenters } = commenterIds.length
@@ -97,8 +106,16 @@ async function PostPageContent({
             next={`/posts/${post.id}`}
           />
         ) : null}
-        {project ? (
-          <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+        {project && post.project_id ? (
+          <>
+            <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+            <ProjectFollowButton
+              projectId={post.project_id}
+              following={Boolean(projectFollow)}
+              signedIn={signedIn}
+              next={`/posts/${post.id}`}
+            />
+          </>
         ) : null}
       </div>
       <h1>{post.title ?? "Post"}</h1>

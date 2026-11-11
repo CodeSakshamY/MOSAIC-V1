@@ -29,7 +29,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Comment and threaded replies
 - [x] Repost/share with attribution
 - [x] Follow authors directly from posts
-- [ ] Follow projects directly from posts
+- [x] Follow projects directly from posts
 - [ ] Report and hide content
 - [ ] Infinite scrolling with proper pagination
 - [ ] Content recommendation controls: show more, show less, not interested
@@ -57,7 +57,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Credits and acknowledgements
 - [x] Project discussions (threads and replies)
 - [ ] Collaboration requests on the project
-- [ ] Follow/watch a project
+- [x] Follow/watch a project
 - [ ] Save a project
 - [ ] Share a project
 - [x] Report a project
