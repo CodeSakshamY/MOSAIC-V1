@@ -1144,6 +1144,67 @@
   margin-block-start: 0.75rem;
 }
 
+.filter-menu {
+  margin-block-start: 0.75rem;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.filter-menu summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-block-size: 2.5rem;
+  padding-inline: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  list-style: none;
+}
+
+.filter-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.filter-menu summary svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+}
+
+.filter-menu[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.filter-count {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 1.25rem;
+  min-block-size: 1.25rem;
+  padding-inline: 0.3rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.75rem;
+}
+
+.filter-panel {
+  margin-block-start: 0.5rem;
+  max-inline-size: 42rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.filter-panel .discover-filters,
+.filter-panel .type-filters {
+  margin-block-start: 0;
+}
+
 .discover-filters .field {
   flex: 1 1 10rem;
   min-inline-size: min(100%, 10rem);

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
+import type { ReactNode } from "react";
 import { ReelComposer } from "@/components/discover/ReelComposer";
 import { PostActions } from "@/components/feed/PostActions";
 import { FollowButton } from "@/components/profile/FollowButton";
@@ -335,7 +337,9 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
   const supabase = await createClient();
   const { data } = await supabase.from("skills").select("slug, name").order("name");
   const skills = data ?? [];
+  const active = Number(Boolean(filters.age)) + Number(Boolean(filters.place)) + Number(Boolean(filters.skill));
   return (
+    <FilterMenu active={active}>
     <form className="discover-filters" action="/discover">
       <input type="hidden" name="view" value="people" />
       <div className="field">
@@ -380,11 +384,13 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
         </Link>
       ) : null}
     </form>
+    </FilterMenu>
   );
 }
 
 function TypeFilters({ view, filters }: { view: View; filters: DiscoverFilters }) {
   return (
+    <FilterMenu active={filters.type ? 1 : 0}>
     <nav className="repo-filters type-filters" aria-label="Project type">
       <Link href={hrefFor(view, filters, null)} aria-current={filters.type ? undefined : "page"}>
         All types
@@ -399,5 +405,19 @@ function TypeFilters({ view, filters }: { view: View; filters: DiscoverFilters }
         </Link>
       ))}
     </nav>
+    </FilterMenu>
+  );
+}
+
+function FilterMenu({ active, children }: { active: number; children: ReactNode }) {
+  return (
+    <details className="filter-menu">
+      <summary>
+        <span>Filters</span>
+        {active > 0 ? <span className="filter-count">{active}</span> : null}
+        <ChevronDown aria-hidden="true" />
+      </summary>
+      <div className="filter-panel">{children}</div>
+    </details>
   );
 }

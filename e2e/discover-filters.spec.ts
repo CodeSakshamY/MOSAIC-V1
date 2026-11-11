@@ -16,6 +16,9 @@ test("Discover filters people by age, location, and skill, and projects by type"
   await expect(page.getByText("No people match that filter.")).toBeVisible();
 
   await page.goto("/discover?view=people");
+  await expect(page.getByLabel("Age band")).toBeHidden();
+  await page.locator(".filter-menu summary").click();
+  await expect(page.getByLabel("Age band")).toBeVisible();
   await page.getByLabel("Age band").selectOption("16–17");
   await page.getByLabel("Location").fill("Bengaluru");
   await page.getByRole("button", { name: "Apply" }).click();
@@ -25,8 +28,7 @@ test("Discover filters people by age, location, and skill, and projects by type"
 
   await page.goto("/discover?view=projects&type=Software");
   await expect(page.getByRole("link", { name: "Sensor Node" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Hardware" })).toHaveAttribute("href", /type=Hardware/);
-
-  await page.goto("/discover?view=projects&type=Hardware");
+  await page.locator(".filter-menu summary").click();
+  await page.getByRole("link", { name: "Hardware" }).click();
   await expect(page.getByText("No projects match that filter.")).toBeVisible();
 });
