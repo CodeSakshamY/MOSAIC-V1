@@ -294,7 +294,7 @@ Not started. Future phase.
 - [ ] Download account data
 - [ ] Delete account
 - [ ] Session management
-- [ ] Theme preferences
+- [x] Theme preferences
 - [ ] Language preferences
 
 ## 17. Admin and moderation dashboard

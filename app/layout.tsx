@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { AccountGate } from "@/components/auth/AccountGate";
@@ -6,6 +7,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { brand } from "@/lib/brand";
+import { themeFromId } from "@/lib/theme/themes";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,19 +37,24 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  colorScheme: "dark",
+  colorScheme: "dark light",
   themeColor: "#141817",
   width: "device-width",
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const saved = (await cookies()).get("mosaic-theme")?.value;
+  const theme = themeFromId(saved);
+
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      data-theme={theme.id}
+      className={`${theme.mode === "dark" ? "dark " : ""}${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      style={{ colorScheme: theme.mode }}
     >
       <body className="min-h-full">
         <TooltipProvider>
