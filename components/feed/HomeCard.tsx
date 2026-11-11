@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { dismissPost } from "@/lib/feed/actions";
+import { tuneFeed } from "@/lib/feed/actions";
 import type { HomeItem } from "@/lib/feed/home";
 
 export function HomeCard({ item, dismiss }: { item: HomeItem; dismiss: boolean }) {
@@ -27,12 +27,29 @@ export function HomeCard({ item, dismiss }: { item: HomeItem; dismiss: boolean }
         ) : null}
       </p>
       {dismiss ? (
-        <form action={dismissPost}>
-          <input type="hidden" name="postId" value={item.id} />
-          <button className="text-button" type="submit">
-            Not interested
-          </button>
-        </form>
+        <div className="author-row">
+          <form action={tuneFeed}>
+            <input type="hidden" name="postId" value={item.id} />
+            <input type="hidden" name="signal" value="more" />
+            <button className="text-button" type="submit" aria-pressed={item.preference === "more"}>
+              Show more
+            </button>
+          </form>
+          <form action={tuneFeed}>
+            <input type="hidden" name="postId" value={item.id} />
+            <input type="hidden" name="signal" value="less" />
+            <button className="text-button" type="submit" aria-pressed={item.preference === "less"}>
+              Show less
+            </button>
+          </form>
+          <form action={tuneFeed}>
+            <input type="hidden" name="postId" value={item.id} />
+            <input type="hidden" name="signal" value="dismiss" />
+            <button className="text-button" type="submit">
+              Not interested
+            </button>
+          </form>
+        </div>
       ) : null}
     </li>
   );

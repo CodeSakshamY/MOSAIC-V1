@@ -15,6 +15,7 @@ export type HomeItem = {
   projectName: string | null;
   projectSlug: string | null;
   reason: string | null;
+  preference?: "more" | "less" | null;
 };
 
 export type HomeFeedResult = {
@@ -232,7 +233,7 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
   const projectIds = [...new Set(posts.flatMap((post) => (post.project_id ? [post.project_id] : [])))];
   const postIds = posts.map((post) => post.id);
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [{ data: authors }, { data: authorInterests }, { data: projectSkills }, { data: covers }, { data: events }, { data: reactions }, { data: watched }] =
+  const [{ data: authors }, { data: authorInterests }, { data: projectSkills }, { data: covers }, { data: events }, { data: reactions }, { data: watched }, { data: signals }] =
     await Promise.all([
       supabase.from("profiles").select("id, username, display_name, city, state").in("id", authorIds),
       supabase.from("profile_interests").select("profile_id, interest_id").in("profile_id", authorIds),
@@ -251,6 +252,13 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
       projectIds.length
         ? supabase.from("project_follows").select("project_id").eq("profile_id", memberId).in("project_id", projectIds)
         : Promise.resolve({ data: [] as { project_id: string }[] }),
+      supabase
+        .from("feed_events")
+        .select("post_id, event_type, created_at")
+        .eq("user_id", memberId)
+        .in("event_type", ["more", "less"])
+        .order("created_at", { ascending: false })
+        .limit(100),
     ]);
 
   const authorById = new Map((authors ?? []).map((author) => [author.id, author]));
@@ -267,6 +275,11 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
   );
   const projectById = new Map((covers ?? []).map((project) => [project.id, project]));
   const dismissed = new Set((events ?? []).filter((event) => event.event_type === "dismiss").map((event) => event.post_id));
+  const preferenceByPost = new Map<string, "more" | "less">();
+  for (const event of [...(events ?? [])].sort((left, right) => left.created_at.localeCompare(right.created_at))) {
+    if (event.event_type === "more" || event.event_type === "less") preferenceByPost.set(event.post_id, event.event_type);
+  }
+  const bias = await feedBias(posts, signals ?? []);
   const seen = new Set(
     (events ?? [])
       .filter((event) => event.event_type === "impression" && event.created_at >= since)
@@ -299,6 +312,10 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
       dismissed: dismissed.has(post.id),
       seenRecently: seen.has(post.id),
       reacted: reacted.has(post.id),
+      preferAuthor: bias.author.get(post.author_id) === "more",
+      avoidAuthor: bias.author.get(post.author_id) === "less",
+      preferProject: post.project_id ? bias.project.get(post.project_id) === "more" : false,
+      avoidProject: post.project_id ? bias.project.get(post.project_id) === "less" : false,
     };
   });
 
@@ -321,6 +338,7 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
         projectName: project?.name ?? null,
         projectSlug: project?.slug ?? null,
         reason: item.reason,
+        preference: preferenceByPost.get(post.id) ?? null,
       },
     ];
   });
@@ -454,6 +472,29 @@ function labelFor(type: string) {
 
 function place(value: string | null) {
   return value?.trim().toLowerCase() ?? "";
+}
+
+async function feedBias(
+  posts: { id: string; author_id: string; project_id: string | null }[],
+  signals: { post_id: string; event_type: string }[],
+) {
+  const known = new Map(posts.map((post) => [post.id, { author_id: post.author_id, project_id: post.project_id }]));
+  const missing = [...new Set(signals.map((signal) => signal.post_id).filter((id) => !known.has(id)))];
+  if (missing.length > 0) {
+    const supabase = await createClient();
+    const { data } = await supabase.from("posts").select("id, author_id, project_id").in("id", missing);
+    for (const post of data ?? []) known.set(post.id, post);
+  }
+  const author = new Map<string, "more" | "less">();
+  const project = new Map<string, "more" | "less">();
+  for (const signal of signals) {
+    if (signal.event_type !== "more" && signal.event_type !== "less") continue;
+    const post = known.get(signal.post_id);
+    if (!post) continue;
+    if (!author.has(post.author_id)) author.set(post.author_id, signal.event_type);
+    if (post.project_id && !project.has(post.project_id)) project.set(post.project_id, signal.event_type);
+  }
+  return { author, project };
 }
 
 async function omitHidden<T extends { id: string }>(userId: string, posts: T[]) {
