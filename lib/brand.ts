@@ -11,6 +11,7 @@ export const brand = {
     "home",
     "discover",
     "build",
+    "forge",
     "people",
     "opportunities",
     "communities",

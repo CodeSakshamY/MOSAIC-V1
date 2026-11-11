@@ -388,13 +388,34 @@
   block-size: 2.25rem;
   flex: none;
   border-radius: 6px;
+  background: #f4f1e8;
+}
+
+.forge-icon {
+  display: inline-block;
+  flex: none;
+  background-color: currentColor;
+  -webkit-mask-image: url("/forge-icon.png");
+  mask-image: url("/forge-icon.png");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 
 .logo-word {
   font-family: var(--font-serif), Georgia, serif;
   font-size: 1.5rem;
+  font-weight: 560;
   line-height: 1;
   letter-spacing: -0.02em;
+  color: var(--sidebar-foreground);
+}
+
+.topbar .logo-word {
+  color: var(--foreground);
 }
 
 .nav-list {

@@ -91,7 +91,7 @@ async function HomeFeed() {
             <h2>No updates yet</h2>
             <p>
               Build logs and threads from projects you work on will show up here. Start one from{" "}
-              <Link href="/build">Build</Link>.
+              <Link href="/forge">Forge</Link>.
             </p>
           </div>
         ) : (
@@ -105,7 +105,7 @@ async function HomeFeed() {
                   <div className="repo-title">
                     <strong>
                       {project ? (
-                        <Link href={`/build/${project.slug}?tab=${tab}`}>{post.title ?? "Update"}</Link>
+                        <Link href={`/forge/${project.slug}?tab=${tab}`}>{post.title ?? "Update"}</Link>
                       ) : (
                         (post.title ?? "Update")
                       )}
@@ -122,7 +122,7 @@ async function HomeFeed() {
                     {project ? (
                       <>
                         {" · "}
-                        <Link href={`/build/${project.slug}`}>{project.name}</Link>
+                        <Link href={`/forge/${project.slug}`}>{project.name}</Link>
                       </>
                     ) : null}
                   </p>

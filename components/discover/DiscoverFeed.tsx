@@ -95,7 +95,7 @@ async function ProjectList() {
       {projects.map((project) => (
         <li key={project.id} className="repo-row">
           <div className="repo-title">
-            <Link href={`/build/${project.slug}`}>{project.name}</Link>
+            <Link href={`/forge/${project.slug}`}>{project.name}</Link>
             <span className="repo-visibility">{project.category}</span>
           </div>
           <p>{project.description}</p>

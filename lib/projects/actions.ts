@@ -8,7 +8,7 @@ import type { ActionState } from "@/lib/auth/actions";
 
 export async function createProject(_state: ActionState, formData: FormData): Promise<ActionState> {
   const member = await getMember();
-  if (!member) redirect("/profile?next=/build");
+  if (!member) redirect("/profile?next=/forge");
   const gate = memberGate(member);
   if (gate) redirect(gate);
 
@@ -43,12 +43,12 @@ export async function createProject(_state: ActionState, formData: FormData): Pr
   });
   if (error?.code === "23505") return { error: "A project with that link already exists." };
   if (error) return { error: "The project was not created." };
-  redirect(`/build/${slug}`);
+  redirect(`/forge/${slug}`);
 }
 
 async function requireMember() {
   const member = await getMember();
-  if (!member) redirect("/profile?next=/build");
+  if (!member) redirect("/profile?next=/forge");
   const gate = memberGate(member);
   if (gate) redirect(gate);
   return member;
@@ -64,7 +64,7 @@ export async function forkProject(formData: FormData) {
     .eq("id", projectId)
     .is("removed_at", null)
     .maybeSingle();
-  if (!source || source.owner_id === member.id) redirect("/build");
+  if (!source || source.owner_id === member.id) redirect("/forge");
 
   const name = `Fork of ${source.name}`.slice(0, 80);
   const base = projectSlug(`${source.slug}-fork`);
@@ -81,10 +81,10 @@ export async function forkProject(formData: FormData) {
       parent_project_id: projectId,
       status: "idea",
     });
-    if (!error) redirect(`/build/${slug}`);
+    if (!error) redirect(`/forge/${slug}`);
     if (error.code !== "23505") break;
   }
-  redirect(`/build/${source.slug}?tab=overview`);
+  redirect(`/forge/${source.slug}?tab=overview`);
 }
 
 export async function createCommit(_state: ActionState, formData: FormData): Promise<ActionState> {
@@ -104,7 +104,7 @@ export async function createCommit(_state: ActionState, formData: FormData): Pro
     content,
   });
   if (error) return { error: "That commit was not saved. Only people on the project can commit." };
-  redirect(`/build/${slug}?tab=commits`);
+  redirect(`/forge/${slug}?tab=commits`);
 }
 
 export async function openPullRequest(_state: ActionState, formData: FormData): Promise<ActionState> {
@@ -140,7 +140,7 @@ export async function openPullRequest(_state: ActionState, formData: FormData): 
     status: "open",
   });
   if (error) return { error: "That pull request was not opened. One open request per fork is the limit." };
-  redirect(`/build/${slug}?tab=pulls`);
+  redirect(`/forge/${slug}?tab=pulls`);
 }
 
 export async function reviewPullRequest(formData: FormData) {
@@ -154,8 +154,8 @@ export async function reviewPullRequest(formData: FormData) {
     .update({ status: decision })
     .eq("id", requestId)
     .eq("status", "open");
-  if (error || !member) redirect(`/build/${slug}?tab=pulls`);
-  redirect(`/build/${slug}?tab=pulls`);
+  if (error || !member) redirect(`/forge/${slug}?tab=pulls`);
+  redirect(`/forge/${slug}?tab=pulls`);
 }
 
 export async function startThread(_state: ActionState, formData: FormData): Promise<ActionState> {
@@ -185,7 +185,7 @@ export async function startThread(_state: ActionState, formData: FormData): Prom
     is_demo: false,
   });
   if (error) return { error: "The thread was not started." };
-  redirect(`/build/${slug}?tab=threads`);
+  redirect(`/forge/${slug}?tab=threads`);
 }
 
 export async function replyToThread(_state: ActionState, formData: FormData): Promise<ActionState> {
@@ -202,5 +202,5 @@ export async function replyToThread(_state: ActionState, formData: FormData): Pr
     content,
   });
   if (error) return { error: "The reply was not posted." };
-  redirect(`/build/${slug}?tab=threads&thread=${postId}`);
+  redirect(`/forge/${slug}?tab=threads&thread=${postId}`);
 }

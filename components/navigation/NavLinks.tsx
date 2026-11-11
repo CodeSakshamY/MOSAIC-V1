@@ -22,9 +22,9 @@ export function NavLinks({ placement }: { placement: "sidebar" | "mobile" }) {
               href={item.href}
               className="nav-link"
               aria-current={current ? "page" : undefined}
-              data-nav={item.href === "/build" ? "build" : undefined}
+              data-nav={item.href === "/forge" ? "build" : undefined}
             >
-              {placement === "mobile" && item.href === "/build" ? (
+              {placement === "mobile" && item.href === "/forge" ? (
                 <span className="mobile-build-icon">
                   <Icon aria-hidden="true" size={18} strokeWidth={1.5} />
                 </span>

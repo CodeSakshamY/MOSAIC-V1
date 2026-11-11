@@ -89,7 +89,7 @@ async function ProjectView({
   return (
     <article className="build-page">
       <p className="repo-crumb">
-        <Link href="/build">Build</Link>
+        <Link href="/forge">Forge</Link>
         <span aria-hidden="true"> / </span>
         <span>{username}</span>
       </p>
@@ -112,12 +112,12 @@ async function ProjectView({
       </header>
       {parentResult.data ? (
         <p className="repo-crumb">
-          Forked from <Link href={`/build/${parentResult.data.slug}`}>{parentResult.data.name}</Link>
+          Forked from <Link href={`/forge/${parentResult.data.slug}`}>{parentResult.data.name}</Link>
         </p>
       ) : null}
       <nav className="project-tabs" aria-label="Project sections">
         {tabs.map((item) => (
-          <Link key={item.id} href={`/build/${slug}?tab=${item.id}`} aria-current={tab === item.id ? "page" : undefined}>
+          <Link key={item.id} href={`/forge/${slug}?tab=${item.id}`} aria-current={tab === item.id ? "page" : undefined}>
             {item.label}
           </Link>
         ))}
@@ -183,7 +183,7 @@ function Overview({
           <ul className="repo-list" role="list">
             {forks.map((fork) => (
               <li key={fork.slug} className="repo-row">
-                <Link href={`/build/${fork.slug}`}>{fork.name}</Link>
+                <Link href={`/forge/${fork.slug}`}>{fork.name}</Link>
               </li>
             ))}
           </ul>
@@ -325,7 +325,7 @@ async function Threads({
       <ul className="repo-list" role="list">
         {threads.map((thread) => (
           <li key={thread.id} className="repo-row">
-            <Link href={`/build/${slug}?tab=threads&thread=${thread.id}`}>
+            <Link href={`/forge/${slug}?tab=threads&thread=${thread.id}`}>
               <strong>{thread.title}</strong>
             </Link>
             <p>{thread.content}</p>
