@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommentForm } from "@/components/feed/CommentForm";
 import { PostActions } from "@/components/feed/PostActions";
+import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { getMember } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -14,16 +15,29 @@ export const metadata: Metadata = {
   title: "Post",
 };
 
-export default function PostPage({ params }: { params: Promise<{ id: string }> }) {
+export default function PostPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ reported?: string }>;
+}) {
   return (
     <Suspense fallback={null}>
-      <PostPageContent params={params} />
+      <PostPageContent params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function PostPageContent({ params }: { params: Promise<{ id: string }> }) {
+async function PostPageContent({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ reported?: string }>;
+}) {
   const { id } = await params;
+  const query = await searchParams;
   const member = await getMember();
   const supabase = await createClient();
   const { data: post } = await supabase
@@ -75,6 +89,9 @@ async function PostPageContent({ params }: { params: Promise<{ id: string }> }) 
       </p>
       <h1>{post.title ?? "Post"}</h1>
       <p className="discover-copy">{post.content}</p>
+      {member && post.author_id !== member.id ? (
+        <ReportForm kind="post" target={post.id} reported={reportedState(query.reported)} />
+      ) : null}
       <PostActions
         postId={post.id}
         activity={activity.get(post.id) ?? emptyActivity()}

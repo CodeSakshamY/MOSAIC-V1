@@ -60,7 +60,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Follow/watch a project
 - [ ] Save a project
 - [ ] Share a project
-- [ ] Report a project
+- [x] Report a project
 - [ ] Project analytics for owners
 - [ ] Related and similar projects
 - [ ] Project version history
@@ -133,7 +133,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Find co-founders and student teams
 - [ ] Send structured collaboration requests
 - [ ] Accept or decline requests
-- [ ] Block and report accounts
+- [x] Block and report accounts
 
 ## 6. Collaboration and team formation
 
@@ -337,7 +337,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Project build logs, as text commits
 - [x] Search projects and people
 - [x] Basic notifications
-- [ ] Report and block
+- [x] Report and block
 
 ## Additional additions
 

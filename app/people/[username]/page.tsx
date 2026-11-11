@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProfessionalProfile } from "@/components/profile/ProfessionalProfile";
+import { reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,10 +18,13 @@ export async function generateMetadata({
 
 export default async function PublicProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ username: string }>;
+  searchParams: Promise<{ reported?: string }>;
 }) {
   const { username } = await params;
+  const query = await searchParams;
   const supabase = await createClient();
   const member = await getMember();
   const { data } = await supabase
@@ -30,5 +34,11 @@ export default async function PublicProfilePage({
     .maybeSingle();
   if (!data || data.deleted_at) notFound();
 
-  return <ProfessionalProfile profileId={data.id} editable={member?.id === data.id} />;
+  return (
+    <ProfessionalProfile
+      profileId={data.id}
+      editable={member?.id === data.id}
+      reported={reportedState(query.reported)}
+    />
+  );
 }
