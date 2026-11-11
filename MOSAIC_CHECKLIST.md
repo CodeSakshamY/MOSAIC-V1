@@ -116,11 +116,11 @@ Status is what a person can do in the app today. A database table with no screen
 
 - [ ] Search builders by name or username
 - [ ] Filter by discipline
-- [ ] Filter by skills and technologies
+- [x] Filter by skills and technologies
 - [ ] Filter by interests
 - [ ] Filter by project experience
 - [ ] Filter by availability for collaboration
-- [ ] Filter by broad location or institution
+- [x] Filter by broad location or institution
 - [ ] Recommended builders
 - [ ] Similar-interest discovery
 - [ ] People working on related projects
@@ -171,7 +171,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Discover hackathons
 - [ ] Discover open-source projects
 - [ ] Discover trending technologies
-- [x] Discover projects by discipline (type filters on Build, not yet on Discover)
+- [x] Discover projects by discipline (type filters on Forge and Discover)
 - [ ] Search everything across MOSAIC
 - [ ] Advanced filters
 - [ ] Sort by relevance, latest and popularity

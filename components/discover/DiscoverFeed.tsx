@@ -4,7 +4,10 @@ import { PostActions } from "@/components/feed/PostActions";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { isVideoUrl } from "@/lib/auth/images";
 import { getMember } from "@/lib/auth/session";
+import { type DiscoverFilters, peopleFilterActive, readDiscoverFilters } from "@/lib/discover/filters";
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
+import { ageGroups } from "@/lib/profile/age-groups";
+import { projectCategories, type ProjectCategory } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 
 const views = [
@@ -17,28 +20,29 @@ const views = [
 
 type View = (typeof views)[number]["id"];
 
-export async function DiscoverFeed({ view }: { view: View }) {
+export async function DiscoverFeed({ view, filters }: { view: View; filters: DiscoverFilters }) {
   return (
     <div className="discover-feed">
       <nav className="repo-filters" aria-label="Discover">
         {views.slice(0, 3).map((item) => (
-          <Link key={item.id} href={hrefFor(item.id)} aria-current={view === item.id ? "page" : undefined}>
+          <Link key={item.id} href={hrefFor(item.id, filters)} aria-current={view === item.id ? "page" : undefined}>
             {item.label}
           </Link>
         ))}
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.slice(3).map((item) => (
-          <Link key={item.id} href={hrefFor(item.id)} aria-current={view === item.id ? "page" : undefined}>
+          <Link key={item.id} href={hrefFor(item.id, filters)} aria-current={view === item.id ? "page" : undefined}>
             {item.label}
           </Link>
         ))}
       </nav>
-      {view === "people" ? <PeopleList /> : null}
-      {view === "projects" ? <ProjectList /> : null}
-      {view === "ideas" ? <PostList kind="ideas" /> : null}
-      {view === "posts" ? <PostList kind="posts" /> : null}
-      {view === "reels" ? <ReelGrid /> : null}
+      {view === "people" ? <PeopleFilters filters={filters} /> : <TypeFilters view={view} filters={filters} />}
+      {view === "people" ? <PeopleList filters={filters} /> : null}
+      {view === "projects" ? <ProjectList filters={filters} /> : null}
+      {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
+      {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
+      {view === "reels" ? <ReelGrid filters={filters} /> : null}
     </div>
   );
 }
@@ -47,22 +51,53 @@ export function discoverView(value: string | undefined): View {
   return views.some((item) => item.id === value) ? (value as View) : "posts";
 }
 
-function hrefFor(view: View) {
-  return view === "posts" ? "/discover" : `/discover?view=${view}`;
+export { readDiscoverFilters };
+
+function hrefFor(view: View, filters: DiscoverFilters, type: ProjectCategory | null = filters.type) {
+  const params = new URLSearchParams();
+  if (view !== "posts") params.set("view", view);
+  if (view === "people") {
+    if (filters.age) params.set("age", filters.age);
+    if (filters.place) params.set("place", filters.place);
+    if (filters.skill) params.set("skill", filters.skill);
+  } else if (type) {
+    params.set("type", type);
+  }
+  const query = params.toString();
+  return query ? `/discover?${query}` : "/discover";
 }
 
-async function PeopleList() {
+async function PeopleList({ filters }: { filters: DiscoverFilters }) {
   const supabase = await createClient();
   const member = await getMember();
-  const { data } = await supabase
+  let query = supabase
     .from("profiles")
-    .select("id, username, display_name, bio, avatar_url, banner_url, education, city, state")
+    .select("id, username, display_name, bio, avatar_url, banner_url, education, city, state, age_group")
     .eq("onboarding_complete", true)
     .not("username", "is", null)
     .order("display_name")
     .limit(30);
+  if (filters.age) query = query.eq("age_group", filters.age);
+  if (filters.place) {
+    const place = filters.place;
+    query = query.or(`city.ilike.%${place}%,state.ilike.%${place}%,education.ilike.%${place}%`);
+  }
+  if (filters.skill) {
+    const { data: skill } = await supabase.from("skills").select("id").eq("slug", filters.skill).maybeSingle();
+    const { data: links } = skill
+      ? await supabase.from("profile_skills").select("profile_id").eq("skill_id", skill.id)
+      : { data: [] };
+    const ids = (links ?? []).map((row) => row.profile_id);
+    if (ids.length === 0) {
+      return <p className="repo-empty">No people match that filter.</p>;
+    }
+    query = query.in("id", ids);
+  }
+  const { data } = await query;
   const people = (data ?? []).filter((person) => person.username);
-  if (people.length === 0) return <p className="repo-empty">No public profiles yet.</p>;
+  if (people.length === 0) {
+    return <p className="repo-empty">{peopleFilterActive(filters) ? "No people match that filter." : "No public profiles yet."}</p>;
+  }
   const ids = people.map((person) => person.id);
   const { data: followed } = member
     ? await supabase.from("follows").select("following_id").eq("follower_id", member.id).in("following_id", ids)
@@ -92,8 +127,12 @@ async function PeopleList() {
                 <strong>{person.display_name}</strong>
                 <p className="profile-meta">@{person.username}</p>
                 {person.bio ? <p className="discover-copy">{person.bio}</p> : null}
-                {person.education || place ? (
-                  <p className="profile-meta">{[person.education, place].filter(Boolean).join(" · ")}</p>
+                {person.education || place || person.age_group ? (
+                  <p className="profile-meta">
+                    {[ageGroups.find((group) => group.value === person.age_group)?.label, person.education, place]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
                 ) : null}
               </div>
             </Link>
@@ -113,17 +152,21 @@ function firstImage(urls: string[] | null | undefined) {
   return (urls ?? []).find((url) => url && !isVideoUrl(url));
 }
 
-async function ProjectList() {
+async function ProjectList({ filters }: { filters: DiscoverFilters }) {
   const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("projects")
     .select("id, name, slug, description, category, cover_image_url")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("updated_at", { ascending: false })
     .limit(30);
+  if (filters.type) query = query.eq("category", filters.type);
+  const { data } = await query;
   const projects = data ?? [];
-  if (projects.length === 0) return <p className="repo-empty">No public projects yet.</p>;
+  if (projects.length === 0) {
+    return <p className="repo-empty">{filters.type ? "No projects match that filter." : "No public projects yet."}</p>;
+  }
   const ids = projects.map((project) => project.id);
   const { data: mediaPosts } = await supabase
     .from("posts")
@@ -159,15 +202,28 @@ async function ProjectList() {
   );
 }
 
-async function loadPosts() {
+async function loadPosts(type: ProjectCategory | null) {
   const supabase = await createClient();
-  const { data } = await supabase
+  let projectIds: string[] | null = null;
+  if (type) {
+    const { data: typed } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("category", type)
+      .eq("visibility", "public")
+      .is("removed_at", null);
+    projectIds = (typed ?? []).map((project) => project.id);
+    if (projectIds.length === 0) return [];
+  }
+  let query = supabase
     .from("posts")
     .select("id, title, content, type, media_urls, author_id, created_at")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("created_at", { ascending: false })
     .limit(40);
+  if (projectIds) query = query.in("project_id", projectIds);
+  const { data } = await query;
   const posts = data ?? [];
   const authorIds = [...new Set(posts.map((post) => post.author_id))];
   const { data: authors } = authorIds.length
@@ -177,11 +233,22 @@ async function loadPosts() {
   return posts.map((post) => ({ ...post, author: names.get(post.author_id) }));
 }
 
-async function PostList({ kind }: { kind: "posts" | "ideas" }) {
+async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: DiscoverFilters }) {
   const member = await getMember();
-  const posts = (await loadPosts()).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
+  const posts = (await loadPosts(filters.type)).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
   if (posts.length === 0) {
-    return <p className="repo-empty">{kind === "ideas" ? "No ideas yet." : "No posts yet."}</p>;
+    const filtered = Boolean(filters.type);
+    return (
+      <p className="repo-empty">
+        {kind === "ideas"
+          ? filtered
+            ? "No ideas match that filter."
+            : "No ideas yet."
+          : filtered
+            ? "No posts match that filter."
+            : "No posts yet."}
+      </p>
+    );
   }
   const supabase = await createClient();
   const activity = await loadActivity(
@@ -220,9 +287,9 @@ async function PostList({ kind }: { kind: "posts" | "ideas" }) {
   );
 }
 
-async function ReelGrid() {
+async function ReelGrid({ filters }: { filters: DiscoverFilters }) {
   const member = await getMember();
-  const posts = (await loadPosts()).filter((post) => post.media_urls.length > 0);
+  const posts = (await loadPosts(filters.type)).filter((post) => post.media_urls.length > 0);
   const supabase = await createClient();
   const activity = await loadActivity(
     supabase,
@@ -239,7 +306,9 @@ async function ReelGrid() {
           <Link href="/profile?next=/discover?view=reels">Log in</Link> to post a photo or a reel.
         </p>
       )}
-      {posts.length === 0 ? <p className="repo-empty">No photos or reels yet.</p> : null}
+      {posts.length === 0 ? (
+        <p className="repo-empty">{filters.type ? "No photos or reels match that filter." : "No photos or reels yet."}</p>
+      ) : null}
       <ul className="reel-grid" role="list">
         {posts.map((post) => {
           const media = post.media_urls[0];
@@ -259,5 +328,76 @@ async function ReelGrid() {
         })}
       </ul>
     </>
+  );
+}
+
+async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
+  const supabase = await createClient();
+  const { data } = await supabase.from("skills").select("slug, name").order("name");
+  const skills = data ?? [];
+  return (
+    <form className="discover-filters" action="/discover">
+      <input type="hidden" name="view" value="people" />
+      <div className="field">
+        <label htmlFor="discover-age">Age band</label>
+        <select id="discover-age" name="age" className="field-select" defaultValue={filters.age ?? ""}>
+          <option value="">Any</option>
+          {ageGroups.map((group) => (
+            <option key={group.value} value={group.value}>
+              {group.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="discover-place">Location</label>
+        <input
+          id="discover-place"
+          name="place"
+          className="repo-search-input"
+          defaultValue={filters.place}
+          placeholder="City, state, or school"
+          maxLength={80}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="discover-skill">Skill</label>
+        <select id="discover-skill" name="skill" className="field-select" defaultValue={filters.skill}>
+          <option value="">Any</option>
+          {skills.map((skill) => (
+            <option key={skill.slug} value={skill.slug}>
+              {skill.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <button className="text-button" type="submit">
+        Apply
+      </button>
+      {peopleFilterActive(filters) ? (
+        <Link className="text-button" href="/discover?view=people">
+          Clear
+        </Link>
+      ) : null}
+    </form>
+  );
+}
+
+function TypeFilters({ view, filters }: { view: View; filters: DiscoverFilters }) {
+  return (
+    <nav className="repo-filters type-filters" aria-label="Project type">
+      <Link href={hrefFor(view, filters, null)} aria-current={filters.type ? undefined : "page"}>
+        All types
+      </Link>
+      {projectCategories.map((category) => (
+        <Link
+          key={category}
+          href={hrefFor(view, filters, category)}
+          aria-current={filters.type === category ? "page" : undefined}
+        >
+          {category}
+        </Link>
+      ))}
+    </nav>
   );
 }
