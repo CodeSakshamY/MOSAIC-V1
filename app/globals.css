@@ -874,6 +874,15 @@
   color: var(--primary-foreground);
 }
 
+.author-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
 .person-links {
   display: flex;
   flex-wrap: wrap;

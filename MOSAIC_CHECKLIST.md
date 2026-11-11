@@ -28,7 +28,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Save/bookmark posts
 - [x] Comment and threaded replies
 - [x] Repost/share with attribution
-- [ ] Follow authors directly from posts
+- [x] Follow authors directly from posts
 - [ ] Follow projects directly from posts
 - [ ] Report and hide content
 - [ ] Infinite scrolling with proper pagination

@@ -249,6 +249,14 @@ async function loadPosts(type: ProjectCategory | null) {
   return posts.map((post) => ({ ...post, author: names.get(post.author_id) }));
 }
 
+async function followedIds(memberId: string | null, authorIds: string[]) {
+  const unique = [...new Set(authorIds)];
+  if (!memberId || unique.length === 0) return new Set<string>();
+  const supabase = await createClient();
+  const { data } = await supabase.from("follows").select("following_id").eq("follower_id", memberId).in("following_id", unique);
+  return new Set((data ?? []).map((row) => row.following_id));
+}
+
 async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: DiscoverFilters }) {
   const member = await getMember();
   const posts = (await loadPosts(filters.type)).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
@@ -272,7 +280,9 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
     posts.map((post) => post.id),
     member?.id ?? null,
   );
-  const signedIn = Boolean(member?.onboardingComplete);
+  const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
+  const viewerId = signedIn && member ? member.id : null;
+  const following = await followedIds(viewerId, posts.map((post) => post.author_id));
   return (
     <ul className="repo-list" role="list">
       {posts.map((post) => (
@@ -292,9 +302,17 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
             </div>
           ) : null}
           {post.author?.username ? (
-            <p className="profile-meta">
+            <div className="author-row">
               <Link href={`/people/${post.author.username}`}>{post.author.display_name}</Link>
-            </p>
+              {member?.id === post.author_id ? null : (
+                <FollowButton
+                  username={post.author.username}
+                  following={following.has(post.author_id)}
+                  signedIn={signedIn}
+                  next={`/posts/${post.id}`}
+                />
+              )}
+            </div>
           ) : null}
           <PostActions postId={post.id} activity={activity.get(post.id) ?? emptyActivity()} signedIn={signedIn} />
         </li>
@@ -312,7 +330,9 @@ async function ReelGrid({ filters }: { filters: DiscoverFilters }) {
     posts.map((post) => post.id),
     member?.id ?? null,
   );
-  const signedIn = Boolean(member?.onboardingComplete);
+  const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
+  const viewerId = signedIn && member ? member.id : null;
+  const following = await followedIds(viewerId, posts.map((post) => post.author_id));
   return (
     <>
       {member?.onboardingComplete ? (
@@ -337,7 +357,17 @@ async function ReelGrid({ filters }: { filters: DiscoverFilters }) {
               ) : (
                 <img src={media} alt={label} />
               )}
-              <p>{label}</p>
+              <div className="author-row">
+                <p>{label}</p>
+                {post.author?.username && member?.id !== post.author_id ? (
+                  <FollowButton
+                    username={post.author.username}
+                    following={following.has(post.author_id)}
+                    signedIn={signedIn}
+                    next={`/posts/${post.id}`}
+                  />
+                ) : null}
+              </div>
               <PostActions postId={post.id} activity={activity.get(post.id) ?? emptyActivity()} signedIn={signedIn} />
             </li>
           );
