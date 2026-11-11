@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { imageContentType, imageKind, MAX_PROFILE_PHOTO_BYTES } from "@/lib/auth/images";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { isProjectCategory, isProjectSlug, projectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +32,13 @@ export async function createProject(_state: ActionState, formData: FormData): Pr
     return { error: "Choose a category." };
   }
 
+  const coverFile = formData.get("cover");
+  if (visibility === "private" && coverFile instanceof File && coverFile.size > 0) {
+    return { error: "A cover photo is only kept on a public project." };
+  }
   const supabase = await createClient();
+  const cover = await optionalPhoto(coverFile, member.id, "project-covers");
+  if (cover && !cover.ok) return { error: cover.error };
   const { error } = await supabase.from("projects").insert({
     owner_id: member.id,
     name,
@@ -40,10 +47,26 @@ export async function createProject(_state: ActionState, formData: FormData): Pr
     category,
     visibility,
     status: "idea",
+    cover_image_url: cover?.ok ? cover.url : null,
   });
   if (error?.code === "23505") return { error: "A project with that link already exists." };
   if (error) return { error: "The project was not created." };
   redirect(`/forge/${slug}`);
+}
+
+async function optionalPhoto(value: FormDataEntryValue | null, userId: string, bucket: "project-covers" | "post-media") {
+  if (!(value instanceof File) || value.size === 0) return null;
+  const bytes = new Uint8Array(await value.arrayBuffer());
+  const kind = imageKind(bytes, MAX_PROFILE_PHOTO_BYTES);
+  if (!kind) return { ok: false as const, error: "Use a JPEG, PNG, or WebP photo under 5 MB." };
+  const supabase = await createClient();
+  const path = `${userId}/${crypto.randomUUID()}.${kind === "jpg" ? "jpg" : kind}`;
+  const { error } = await supabase.storage.from(bucket).upload(path, bytes, {
+    contentType: imageContentType(kind),
+    upsert: false,
+  });
+  if (error) return { ok: false as const, error: "The photo was not uploaded." };
+  return { ok: true as const, url: supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl };
 }
 
 async function requireMember() {
@@ -175,12 +198,16 @@ export async function startThread(_state: ActionState, formData: FormData): Prom
     .maybeSingle();
   if (!project) return { error: "That project is not available." };
 
+  const photo = await optionalPhoto(formData.get("photo"), member.id, "post-media");
+  if (photo && !photo.ok) return { error: photo.error };
+
   const { error } = await supabase.from("posts").insert({
     author_id: member.id,
     type: "idea",
     project_id: projectId,
     title,
     content,
+    media_urls: photo?.ok ? [photo.url] : [],
     visibility: project.visibility,
     is_demo: false,
   });
