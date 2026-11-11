@@ -558,6 +558,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `016_seed_reference.sql` | Skills and interests. |
 | `028_feed_events.sql` | `feed_events` for impressions and dismiss. `feed_candidates` was not created. |
 | `029_project_follows.sql` | Watch a project. Build-log notifications include those followers. |
+| `030_hidden_posts.sql` | Posts a member hides from their own feeds. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

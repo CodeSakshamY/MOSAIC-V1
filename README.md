@@ -18,7 +18,7 @@ A signed-in builder can finish onboarding, edit a profile, and upload a photo or
 
 **Forge** is where your projects live. You can create one, keep it public or private, filter by type from a closed menu, write build logs and threads, and open a pull request from a fork. The old `/build` address redirects here.
 
-Builders can follow and unfollow each other. Notifications list follows, comments, replies, and project updates, and the bell shows the unread count. You can report a person, a post, or a project. You can block an account from their profile and unblock them in Settings. Someone you block drops out of your Discover people list.
+Builders can follow and unfollow each other. Notifications list follows, comments, replies, and project updates, and the bell shows the unread count. You can report a person, a post, or a project. Reporting a post also hides it from your own feeds. Hide on the post does the same without a report. Unhide is in Settings. You can block an account from their profile and unblock them in Settings. Someone you block drops out of your Discover people list. A report does not take the post down for everyone else.
 
 Settings has several colour schemes. Dark is the default. The sidebar stays dark in every scheme.
 

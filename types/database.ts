@@ -315,6 +315,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"hidden_posts": {
+                  Row: {
+                    "created_at": string,"post_id": string,"profile_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"post_id": string,"profile_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"post_id"?: string,"profile_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "hidden_posts_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "posts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "hidden_posts_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"interests": {
                   Row: {
                     "category": string,"id": string,"name": string,"slug": string

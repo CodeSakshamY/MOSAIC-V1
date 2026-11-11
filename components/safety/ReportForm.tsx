@@ -28,7 +28,12 @@ export function ReportForm({
   const field = kind === "profile" ? "username" : kind === "post" ? "postId" : "projectId";
   return (
     <div className="report-block">
-      {reported === "sent" ? <p className="form-note">Report sent. It stays open until someone reviews it.</p> : null}
+      {reported === "sent" ? (
+        <p className="form-note">
+          Report sent. It stays open until someone reviews it.
+          {kind === "post" ? " It is hidden from your feeds." : ""}
+        </p>
+      ) : null}
       {reported === "missing" ? <p className="form-error">Choose a reason. The report was not sent.</p> : null}
       <details className="filter-menu">
         <summary>Report</summary>

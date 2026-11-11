@@ -30,7 +30,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Repost/share with attribution
 - [x] Follow authors directly from posts
 - [x] Follow projects directly from posts
-- [ ] Report and hide content
+- [x] Report and hide content
 - [ ] Infinite scrolling with proper pagination
 - [ ] Content recommendation controls: show more, show less, not interested
 - [x] Feed ranking based on interests, followed users, project activity and quality signals
