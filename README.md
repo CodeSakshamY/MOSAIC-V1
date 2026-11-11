@@ -4,22 +4,40 @@ Social infrastructure for people who build things. A builder's identity on MOSAI
 
 The product name lives in `lib/brand.ts`. The name can change without a sweep through the interface.
 
-## Status
+What is finished, and what is not, is tracked in [MOSAIC_CHECKLIST.md](./MOSAIC_CHECKLIST.md). Only behaviour that works is ticked there. Update this README when that behaviour changes.
 
-Phase 3 adds email sign-up, confirmation, login, password reset, and onboarding. Google sign-in is visible and switched off. A local Supabase stack is required for those flows.
+## What works
 
-Accounts are for people aged 13 and older. Age is stored as a band (`13–15`, `16–17`, `18–24`, `25–34`, `35+`), never as a date of birth.
+Accounts are for people aged 13 and older. Age is stored as a band (`13–15`, `16–17`, `18–24`, `25–34`, `35+`), never as a date of birth. Sign-up uses email and password, with confirmation before the account can be used. Password reset works. Google sign-in is drawn on the form and stays switched off.
+
+A signed-in builder can finish onboarding, edit a profile, and upload a photo or banner. Large photos are reduced before they are stored. Short MP4 and WebM files can be uploaded. There are no direct messages.
+
+**Home** has four tabs. Your projects lists build-log updates and threads on projects you own or belong to. Following lists public posts from people you follow, newest first. For you scores the latest public posts from your interests, skills, follows, city, and how recent they are, and each card says why it is there. A new account with no skills and no interests gets a recency order and the line "Shown because you're new here." Nearby lists posts from your city, or from your state when the city has none. Dismissing a For you card hides it from you. Logged-out home lists recent public projects and does not say For you. There is no trending list.
+
+**Discover** lists people, projects, ideas, posts, and reels. People and projects can be searched. Filters stay in a closed menu: age band, location, and skill for people; project type for projects, ideas, posts, and reels. Posts can be liked, upvoted, downvoted, commented, reposted, shared, and saved. Those actions stay on Discover, not on Home. The author's Follow button sits on the post, including ideas, reels, and the post page.
+
+**Forge** is where your projects live. You can create one, keep it public or private, filter by type from a closed menu, write build logs and threads, and open a pull request from a fork. The old `/build` address redirects here.
+
+Builders can follow and unfollow each other. Notifications list follows, comments, replies, and project updates, and the bell shows the unread count. You can report a person, a post, or a project. You can block an account from their profile and unblock them in Settings. Someone you block drops out of your Discover people list.
+
+Settings has several colour schemes. Dark is the default. The sidebar stays dark in every scheme.
+
+## Not built yet
+
+Opportunities, communities, messaging, events, and the admin dashboard are not products yet. For you does not inject opportunities, and there is no trending rail. Mention notifications are not sent. Reporting a post does not hide it from everyone else. Reports stay open until a reviewer exists.
+
+The application is not deployed. There is no production URL yet.
 
 ## Run locally
 
-Requires Node.js 24.
+Requires Node.js 24 and a local Supabase stack. Copy `.env.example` to `.env.local`. Never commit `.env.local`.
 
 ```
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000. In development, `/dev/ui` reviews the interface primitives. That route returns a 404 in a production build.
+Open http://localhost:3000. Use that host for the session. A tab on `127.0.0.1` does not share the login cookie with `localhost`. In development, `/dev/ui` reviews the interface primitives. That route returns a 404 in a production build.
 
 ```
 npm run typecheck
@@ -28,7 +46,9 @@ npm run test
 npm run test:e2e
 ```
 
-Read these before implementation:
+Apply database changes with a migration up. Do not reset the database. That deletes local projects and accounts.
+
+## Read these before implementation
 
 - [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — audit, phase sequence, deviations, risks, open decisions
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — runtime shape, auth, feed ranking, caching, security boundaries
@@ -36,10 +56,8 @@ Read these before implementation:
 - [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) — tokens, typography, layout, component rules
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — local setup, Supabase, Vercel, production checklist
 
-The application is not deployed. There is no production URL yet.
-
 ## Stack
 
 Next.js 16 (App Router) on Vercel. Supabase Postgres, Auth, and Storage. TypeScript strict. Tailwind CSS. shadcn/ui primitives, themed with the MOSAIC tokens.
 
-Secrets stay in environment variables. Copy `.env.example` to `.env.local` when Phase 2 needs Supabase. Never commit `.env.local`.
+Secrets stay in environment variables. The Supabase secret is server-only.

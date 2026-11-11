@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommentForm } from "@/components/feed/CommentForm";
 import { PostActions } from "@/components/feed/PostActions";
+import { FollowButton } from "@/components/profile/FollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { getMember } from "@/lib/auth/session";
@@ -61,6 +62,14 @@ async function PostPageContent({
       .order("created_at", { ascending: true }),
     loadActivity(supabase, [post.id], member?.id ?? null),
   ]);
+  const { data: follow } = member
+    ? await supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("follower_id", member.id)
+        .eq("following_id", post.author_id)
+        .maybeSingle()
+    : { data: null };
   const rows = comments ?? [];
   const commenterIds = [...new Set(rows.map((comment) => comment.author_id))];
   const { data: commenters } = commenterIds.length
@@ -74,19 +83,24 @@ async function PostPageContent({
     list.push(comment);
     replies.set(comment.parent_comment_id, list);
   }
-  const signedIn = Boolean(member?.onboardingComplete);
+  const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
 
   return (
     <article className="post-page">
-      <p className="profile-meta">
+      <div className="author-row">
         {author?.username ? <Link href={`/people/${author.username}`}>{author.display_name}</Link> : "Builder"}
-        {project ? (
-          <>
-            {" · "}
-            <Link href={`/forge/${project.slug}`}>{project.name}</Link>
-          </>
+        {author?.username && member?.id !== post.author_id ? (
+          <FollowButton
+            username={author.username}
+            following={Boolean(follow)}
+            signedIn={signedIn}
+            next={`/posts/${post.id}`}
+          />
         ) : null}
-      </p>
+        {project ? (
+          <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+        ) : null}
+      </div>
       <h1>{post.title ?? "Post"}</h1>
       <p className="discover-copy">{post.content}</p>
       {member && post.author_id !== member.id ? (

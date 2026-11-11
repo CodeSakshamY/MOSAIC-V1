@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getMember } from "@/lib/auth/session";
 import { brand } from "@/lib/brand";
-import { createClient } from "@/lib/supabase/server";
+import { dismissPost } from "@/lib/feed/actions";
+import { loadHome, loadPublicProjects, parseCursor, parseHomeTab, type HomeTab } from "@/lib/feed/home";
 
 export const instant = false;
 
@@ -13,124 +15,146 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+const tabs: { id: HomeTab; label: string; lede: string }[] = [
+  { id: "projects", label: "Your projects", lede: "Updates and threads on your projects." },
+  { id: "following", label: "Following", lede: "Posts from people you follow, newest first." },
+  { id: "for-you", label: "For you", lede: "Public posts scored from your interests, skills, follows, and how recent they are." },
+  { id: "nearby", label: "Nearby", lede: "Public posts from your city, or your state when the city has none." },
+];
+
+export default function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; cursor?: string }>;
+}) {
   return (
     <Suspense fallback={null}>
-      <HomeFeed />
+      <HomeFeed searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function HomeFeed() {
+async function HomeFeed({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; cursor?: string }>;
+}) {
   const member = await getMember();
+  if (member?.deletedAt) redirect("/account/closed");
+  if (member?.suspended) redirect("/account/suspended");
+  const params = await searchParams;
   if (!member?.onboardingComplete) {
+    const projects = await loadPublicProjects();
     return (
       <div className="home-layout">
         <header className="page-header">
           <h1>Home</h1>
-          <p className="lede">Updates and threads on your projects.</p>
+          <p className="lede">Recent public projects.</p>
         </header>
-        <div className="empty-feed">
-          <h2>Nothing here yet</h2>
-          <p>
-            <Link href="/profile">Log in</Link> to see activity on projects you work on, or browse{" "}
-            <Link href="/discover">Discover</Link>.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const supabase = await createClient();
-  const [{ data: owned }, { data: memberships }] = await Promise.all([
-    supabase.from("projects").select("id, name, slug").eq("owner_id", member.id).is("removed_at", null),
-    supabase
-      .from("project_members")
-      .select("project_id")
-      .eq("profile_id", member.id)
-      .eq("status", "active"),
-  ]);
-  const projects = new Map((owned ?? []).map((project) => [project.id, project]));
-  const extraIds = [...new Set((memberships ?? []).map((row) => row.project_id))].filter((id) => !projects.has(id));
-  if (extraIds.length > 0) {
-    const { data: more } = await supabase
-      .from("projects")
-      .select("id, name, slug")
-      .in("id", extraIds)
-      .is("removed_at", null);
-    for (const project of more ?? []) projects.set(project.id, project);
-  }
-
-  const projectIds = [...projects.keys()];
-  const { data } = projectIds.length
-    ? await supabase
-        .from("posts")
-        .select("id, title, content, type, project_id, author_id, created_at")
-        .in("project_id", projectIds)
-        .in("type", ["build_log", "idea"])
-        .is("removed_at", null)
-        .order("created_at", { ascending: false })
-        .limit(30)
-    : { data: [] };
-  const posts = (data ?? []).filter((post) => post.project_id);
-  const authorIds = [...new Set(posts.map((post) => post.author_id))];
-  const { data: authors } = authorIds.length
-    ? await supabase.from("profiles").select("id, username, display_name").in("id", authorIds)
-    : { data: [] };
-  const authorName = new Map((authors ?? []).map((author) => [author.id, author]));
-
-  return (
-    <div className="home-layout">
-      <section aria-label="Your projects">
-        <header className="page-header">
-          <h1>Home</h1>
-          <p className="lede">Updates and threads on your projects.</p>
-        </header>
-        {posts.length === 0 ? (
+        {projects.length === 0 ? (
           <div className="empty-feed">
-            <h2>No updates yet</h2>
+            <h2>Nothing public yet</h2>
             <p>
-              Build logs and threads from projects you work on will show up here. Start one from{" "}
-              <Link href="/forge">Forge</Link>.
+              <Link href="/profile">Log in</Link> to see your own projects, or browse <Link href="/discover">Discover</Link>.
             </p>
           </div>
         ) : (
           <ul className="repo-list" role="list">
-            {posts.map((post) => {
-              const project = post.project_id ? projects.get(post.project_id) : undefined;
-              const author = authorName.get(post.author_id);
-              const tab = post.type === "build_log" ? "commits" : "threads";
-              return (
-                <li key={post.id} className="repo-row">
-                  <div className="repo-title">
-                    <strong>
-                      {project ? (
-                        <Link href={`/forge/${project.slug}?tab=${tab}`}>{post.title ?? "Update"}</Link>
-                      ) : (
-                        (post.title ?? "Update")
-                      )}
-                    </strong>
-                    <span className="repo-visibility">{post.type === "build_log" ? "Update" : "Thread"}</span>
-                  </div>
-                  <p className="discover-copy">{post.content}</p>
-                  <p className="profile-meta">
-                    {author?.username ? (
-                      <Link href={`/people/${author.username}`}>{author.display_name}</Link>
-                    ) : (
-                      "Builder"
-                    )}
-                    {project ? (
-                      <>
-                        {" · "}
-                        <Link href={`/forge/${project.slug}`}>{project.name}</Link>
-                      </>
-                    ) : null}
-                  </p>
-                </li>
-              );
-            })}
+            {projects.map((project) => (
+              <li key={project.id} className="repo-row">
+                <div className="repo-title">
+                  <strong>
+                    <Link href={project.href}>{project.title}</Link>
+                  </strong>
+                  <span className="repo-visibility">Project</span>
+                </div>
+                <p className="discover-copy">{project.content}</p>
+              </li>
+            ))}
           </ul>
         )}
+      </div>
+    );
+  }
+
+  const tab = parseHomeTab(params.tab);
+  const current = tabs.find((item) => item.id === tab) ?? tabs[0]!;
+  const feed = await loadHome(member.id, tab, parseCursor(params.cursor));
+  const profileHref = member.username ? `/people/${member.username}` : "/settings";
+
+  return (
+    <div className="home-layout">
+      <section aria-label={current.label}>
+        <header className="page-header">
+          <h1>Home</h1>
+          <p className="lede">{current.lede}</p>
+          <nav className="repo-filters" aria-label="Home">
+            {tabs.map((item) => (
+              <Link key={item.id} href={item.id === "projects" ? "/" : `/?tab=${item.id}`} aria-current={item.id === tab ? "page" : undefined}>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </header>
+        {feed.note ? <p className="feed-reason">{feed.note}</p> : null}
+        {feed.items.length === 0 ? (
+          <div className="empty-feed">
+            <h2>Nothing here yet</h2>
+            <p>
+              {feed.empty}{" "}
+              {tab === "projects" ? (
+                <Link href="/forge">Open Forge</Link>
+              ) : tab === "following" ? (
+                <Link href="/discover?view=people">Find people</Link>
+              ) : tab === "nearby" ? (
+                <Link href={profileHref}>Edit your profile</Link>
+              ) : (
+                <Link href="/discover">Browse Discover</Link>
+              )}
+            </p>
+          </div>
+        ) : (
+          <ul className="repo-list" role="list">
+            {feed.items.map((item) => (
+              <li key={item.id} className="repo-row">
+                <div className="repo-title">
+                  <strong>
+                    <Link href={item.href}>{item.title}</Link>
+                  </strong>
+                  <span className="repo-visibility">{item.label}</span>
+                </div>
+                {item.reason ? <p className="feed-reason">{item.reason}</p> : null}
+                <p className="discover-copy">{item.content}</p>
+                <p className="profile-meta">
+                  {item.authorUsername ? (
+                    <Link href={`/people/${item.authorUsername}`}>{item.authorName}</Link>
+                  ) : (
+                    item.authorName
+                  )}
+                  {item.projectSlug ? (
+                    <>
+                      {" · "}
+                      <Link href={`/forge/${item.projectSlug}`}>{item.projectName}</Link>
+                    </>
+                  ) : null}
+                </p>
+                {tab === "for-you" ? (
+                  <form action={dismissPost}>
+                    <input type="hidden" name="postId" value={item.id} />
+                    <button className="text-button" type="submit">
+                      Not interested
+                    </button>
+                  </form>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+        {feed.nextCursor ? (
+          <p className="profile-meta">
+            <Link href={`/?tab=${tab}&cursor=${encodeURIComponent(feed.nextCursor)}`}>Older</Link>
+          </p>
+        ) : null}
       </section>
     </div>
   );

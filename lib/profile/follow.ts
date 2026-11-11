@@ -37,5 +37,15 @@ export async function toggleFollow(formData: FormData) {
 
   revalidatePath(next);
   revalidatePath("/discover");
+  revalidatePath("/");
+  const back = safeReturn(String(formData.get("next") ?? ""));
+  if (back) revalidatePath(back);
   if (member.username) revalidatePath(`/people/${member.username}`);
+}
+
+function safeReturn(value: string) {
+  if (!value.startsWith("/") || value.startsWith("//") || value.includes("\\") || value.includes("..")) return null;
+  const path = value.split("?")[0];
+  if (!path || path === "/") return null;
+  return path;
 }
