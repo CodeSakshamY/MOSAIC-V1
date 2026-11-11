@@ -556,9 +556,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `014_storage_policies.sql` | Buckets and storage policies. |
 | `015_functions_and_triggers.sql` | Remaining functions: anonymize, staff helpers, admin-column guard. Helpers that policies need are created in 013 before the policies, or 013 is ordered after the helper section of 015. The implementer will put helper functions immediately before the policies that call them, and keep the filenames stable. |
 | `016_seed_reference.sql` | Skills and interests. |
-| `017_feed.sql` | Added in the feed phase, not before the queries exist. `feed_events` and `feed_candidates`. |
-
-`feed_events` may be created in `007` or in `017`. It will be created in `017` so Phase 2 does not ship an unused writer. Dismiss and impressions have no UI until the feed phase.
+| `028_feed_events.sql` | `feed_events` for impressions and dismiss. `feed_candidates` was not created. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

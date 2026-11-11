@@ -23,6 +23,31 @@ function refresh(postId: string) {
   revalidatePath(`/posts/${postId}`);
 }
 
+export async function dismissPost(formData: FormData) {
+  const postId = String(formData.get("postId") ?? "");
+  const member = await memberOrLogin("/?tab=for-you");
+  if (!idPattern.test(postId)) return;
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("feed_events")
+    .select("id")
+    .eq("user_id", member.id)
+    .eq("post_id", postId)
+    .eq("event_type", "dismiss")
+    .maybeSingle();
+  if (existing) {
+    revalidatePath("/");
+    return;
+  }
+  const { error } = await supabase.from("feed_events").insert({
+    user_id: member.id,
+    post_id: postId,
+    event_type: "dismiss",
+  });
+  if (error) return;
+  revalidatePath("/");
+}
+
 export async function toggleReaction(formData: FormData) {
   const postId = String(formData.get("postId") ?? "");
   const type = String(formData.get("type") ?? "");

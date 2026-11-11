@@ -4,8 +4,8 @@ Status is what a person can do in the app today. A database table with no screen
 
 ## 1. Home feed
 
-- [ ] Personalised For You feed
-- [ ] Following feed
+- [x] Personalised For You feed
+- [x] Following feed
 - [x] Updates and threads on your projects
 - [x] Latest posts feed, on Discover
 - [ ] Trending projects
@@ -33,7 +33,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Report and hide content
 - [ ] Infinite scrolling with proper pagination
 - [ ] Content recommendation controls: show more, show less, not interested
-- [ ] Feed ranking based on interests, followed users, project activity and quality signals
+- [x] Feed ranking based on interests, followed users, project activity and quality signals
 
 ## 2. Projects and portfolios
 
@@ -331,7 +331,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Authentication and onboarding
 - [x] Builder profiles, the first usable version
 - [x] Create and showcase a project, the first usable version
-- [ ] Home feed
+- [x] Home feed
 - [x] Posts, reactions and comments on the home feed
 - [x] Follow users
 - [x] Project build logs, as text commits
