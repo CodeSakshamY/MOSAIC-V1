@@ -148,11 +148,13 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `name` | 3–80. |
 | `slug` | Unique case-insensitively. Pattern `^[a-z0-9]+(-[a-z0-9]+)*$`, length 3–60. |
 | `description` | 1–200. The card line. |
+| `tagline` | Nullable, 1–80. One line under the project name. |
 | `detailed_description` | Nullable, max 8000. |
 | `problem` | Nullable, max 2000. |
 | `solution` | Nullable, max 2000. |
 | `cover_image_url` | Nullable. Public projects only. |
 | `category` | Text, max 60, matching an interest slug where possible. |
+| `subcategory` | Nullable. A closed list under `category`, checked by `is_project_subcategory`. |
 | `status` | `project_status`, default `idea`. |
 | `github_url`, `demo_url`, `documentation_url` | Nullable, `https` only. |
 | `visibility` | Default `public`. |
@@ -165,6 +167,10 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `created_at`, `updated_at` | |
 
 `ON DELETE RESTRICT` on the owner means a profile row cannot disappear while it still owns projects. Account removal anonymizes the profile and does not delete it. See deletion below.
+
+### project_gallery
+
+`id`, `project_id`, `image_url`, `created_at`. Up to 8 rows. `image_url` must be a storage URL. Inserts are limited to the owner of a public project. Deletes are limited to that owner. `ON DELETE CASCADE` with the project.
 
 ### project_skills
 
@@ -560,6 +566,10 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `029_project_follows.sql` | Watch a project. Build-log notifications include those followers. |
 | `030_hidden_posts.sql` | Posts a member hides from their own feeds. |
 | `031_feed_preferences.sql` | `more` and `less` values on `feed_event_type`. |
+| `032_project_tagline.sql` | Optional one-line tagline on a project. |
+| `033_project_gallery.sql` | Extra photos on a public project. |
+| `034_project_gallery_cap.sql` | Stop a project at 8 gallery photos. |
+| `035_project_subcategories.sql` | Closed subcategory under the project category. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

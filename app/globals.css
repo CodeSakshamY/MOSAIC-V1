@@ -902,6 +902,29 @@
   padding: 1rem 1.05rem;
 }
 
+.project-cover {
+  display: block;
+  inline-size: 100%;
+  max-block-size: 24rem;
+  object-fit: cover;
+}
+
+.project-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-photo {
+  display: block;
+  inline-size: 8rem;
+  block-size: 8rem;
+  object-fit: cover;
+}
+
 .discover-photo {
   display: block;
   inline-size: 100%;

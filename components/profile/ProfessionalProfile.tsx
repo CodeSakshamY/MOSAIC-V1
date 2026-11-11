@@ -68,7 +68,7 @@ export async function ProfessionalProfile({
       .order("created_at", { ascending: false }),
     supabase
       .from("projects")
-      .select("id, name, slug, description, category, visibility")
+      .select("id, name, slug, description, tagline, subcategory, category, visibility")
       .eq("owner_id", profileId)
       .is("removed_at", null)
       .order("updated_at", { ascending: false }),
@@ -103,7 +103,7 @@ export async function ProfessionalProfile({
         ? supabase.from("skills").select("id, name").in("id", skillIds)
         : Promise.resolve({ data: [] }),
       projectIds.length
-        ? supabase.from("projects").select("id, name, slug, description, category").in("id", projectIds).is("removed_at", null)
+        ? supabase.from("projects").select("id, name, slug, description, tagline, subcategory, category").in("id", projectIds).is("removed_at", null)
         : Promise.resolve({ data: [] }),
       targetIds.length
         ? supabase.from("projects").select("id, name, slug").in("id", targetIds)
@@ -361,7 +361,9 @@ export async function ProfessionalProfile({
                 <Link href={`/forge/${project.slug}`}>{project.name}</Link>
                 <span className="repo-visibility">{project.visibility === "private" ? "Private" : "Public"}</span>
                 <span className="repo-visibility">{project.category}</span>
+                {project.subcategory ? <span className="repo-visibility">{project.subcategory}</span> : null}
               </div>
+              {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
               <p>{project.description}</p>
             </li>
           ))}
@@ -370,6 +372,7 @@ export async function ProfessionalProfile({
           {(contributed.data ?? []).map((project) => (
             <li key={project.id} className="repo-row">
               <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+              {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
               <p>{project.description}</p>
             </li>
           ))}
