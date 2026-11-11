@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { HomeCard } from "@/components/feed/HomeCard";
+import { HomePager } from "@/components/feed/HomePager";
 import { getMember } from "@/lib/auth/session";
 import { brand } from "@/lib/brand";
-import { dismissPost } from "@/lib/feed/actions";
 import { loadHome, loadPublicProjects, parseCursor, parseHomeTab, type HomeTab } from "@/lib/feed/home";
 
 export const instant = false;
@@ -116,44 +117,12 @@ async function HomeFeed({
         ) : (
           <ul className="repo-list" role="list">
             {feed.items.map((item) => (
-              <li key={item.id} className="repo-row">
-                <div className="repo-title">
-                  <strong>
-                    <Link href={item.href}>{item.title}</Link>
-                  </strong>
-                  <span className="repo-visibility">{item.label}</span>
-                </div>
-                {item.reason ? <p className="feed-reason">{item.reason}</p> : null}
-                <p className="discover-copy">{item.content}</p>
-                <p className="profile-meta">
-                  {item.authorUsername ? (
-                    <Link href={`/people/${item.authorUsername}`}>{item.authorName}</Link>
-                  ) : (
-                    item.authorName
-                  )}
-                  {item.projectSlug ? (
-                    <>
-                      {" · "}
-                      <Link href={`/forge/${item.projectSlug}`}>{item.projectName}</Link>
-                    </>
-                  ) : null}
-                </p>
-                {tab === "for-you" ? (
-                  <form action={dismissPost}>
-                    <input type="hidden" name="postId" value={item.id} />
-                    <button className="text-button" type="submit">
-                      Not interested
-                    </button>
-                  </form>
-                ) : null}
-              </li>
+              <HomeCard key={item.id} item={item} dismiss={tab === "for-you"} />
             ))}
           </ul>
         )}
         {feed.nextCursor ? (
-          <p className="profile-meta">
-            <Link href={`/?tab=${tab}&cursor=${encodeURIComponent(feed.nextCursor)}`}>Older</Link>
-          </p>
+          <HomePager tab={tab} cursor={feed.nextCursor} dismiss={tab === "for-you"} />
         ) : null}
       </section>
     </div>

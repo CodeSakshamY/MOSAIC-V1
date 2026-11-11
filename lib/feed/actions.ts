@@ -23,29 +23,58 @@ function refresh(postId: string) {
   revalidatePath(`/posts/${postId}`);
 }
 
-export async function dismissPost(formData: FormData) {
+export async function tuneFeed(formData: FormData) {
   const postId = String(formData.get("postId") ?? "");
+  const signal = String(formData.get("signal") ?? "");
   const member = await memberOrLogin("/?tab=for-you");
   if (!idPattern.test(postId)) return;
+  if (signal === "dismiss") {
+    await insertDismiss(member.id, postId);
+    return;
+  }
+  if (signal !== "more" && signal !== "less") return;
+  const supabase = await createClient();
+  const { error: removed } = await supabase
+    .from("feed_events")
+    .delete()
+    .eq("user_id", member.id)
+    .eq("post_id", postId)
+    .in("event_type", ["more", "less"]);
+  if (removed) return;
+  const { error } = await supabase.from("feed_events").insert({
+    user_id: member.id,
+    post_id: postId,
+    event_type: signal,
+  });
+  if (error) return;
+  revalidatePath("/");
+}
+
+async function insertDismiss(userId: string, postId: string) {
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("feed_events")
     .select("id")
-    .eq("user_id", member.id)
+    .eq("user_id", userId)
     .eq("post_id", postId)
     .eq("event_type", "dismiss")
     .maybeSingle();
-  if (existing) {
-    revalidatePath("/");
-    return;
+  if (!existing) {
+    const { error } = await supabase.from("feed_events").insert({
+      user_id: userId,
+      post_id: postId,
+      event_type: "dismiss",
+    });
+    if (error) return;
   }
-  const { error } = await supabase.from("feed_events").insert({
-    user_id: member.id,
-    post_id: postId,
-    event_type: "dismiss",
-  });
-  if (error) return;
   revalidatePath("/");
+}
+
+export async function dismissPost(formData: FormData) {
+  const postId = String(formData.get("postId") ?? "");
+  const member = await memberOrLogin("/?tab=for-you");
+  if (!idPattern.test(postId)) return;
+  await insertDismiss(member.id, postId);
 }
 
 export async function toggleReaction(formData: FormData) {

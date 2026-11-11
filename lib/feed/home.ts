@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hiddenPostIds } from "@/lib/safety/hidden";
 import { rankFeed, type FeedCandidate } from "@/lib/feed/ranking";
 
 export type HomeTab = "projects" | "following" | "for-you" | "nearby";
@@ -14,6 +15,7 @@ export type HomeItem = {
   projectName: string | null;
   projectSlug: string | null;
   reason: string | null;
+  preference?: "more" | "less" | null;
 };
 
 export type HomeFeedResult = {
@@ -72,13 +74,13 @@ export async function loadPublicProjects(): Promise<HomeItem[]> {
 }
 
 export async function loadHome(memberId: string, tab: HomeTab, cursor: string | null): Promise<HomeFeedResult> {
-  if (tab === "projects") return loadProjectUpdates(memberId);
+  if (tab === "projects") return loadProjectUpdates(memberId, cursor);
   if (tab === "following") return loadFollowing(memberId, cursor);
   if (tab === "nearby") return loadNearby(memberId, cursor);
   return loadForYou(memberId, cursor);
 }
 
-async function loadProjectUpdates(memberId: string): Promise<HomeFeedResult> {
+async function loadProjectUpdates(memberId: string, cursor: string | null): Promise<HomeFeedResult> {
   const supabase = await createClient();
   const [{ data: owned }, { data: memberships }] = await Promise.all([
     supabase.from("projects").select("id, name, slug").eq("owner_id", memberId).is("removed_at", null),
@@ -92,19 +94,26 @@ async function loadProjectUpdates(memberId: string): Promise<HomeFeedResult> {
   }
   const projectIds = [...projects.keys()];
   const { data } = projectIds.length
-    ? await supabase
-        .from("posts")
-        .select("id, title, content, type, project_id, author_id, created_at, media_urls")
-        .in("project_id", projectIds)
-        .in("type", ["build_log", "idea"])
-        .is("removed_at", null)
-        .order("created_at", { ascending: false })
-        .limit(30)
+    ? await (() => {
+        let query = supabase
+          .from("posts")
+          .select("id, title, content, type, project_id, author_id, created_at, media_urls")
+          .in("project_id", projectIds)
+          .in("type", ["build_log", "idea"])
+          .is("removed_at", null)
+          .order("created_at", { ascending: false })
+          .limit(pageSize + 1);
+        if (cursor) query = query.lt("created_at", cursor);
+        return query;
+      })()
     : { data: [] as PostRow[] };
   const posts = (data ?? []).filter((post) => post.project_id);
-  const names = await authorNames(posts.map((post) => post.author_id));
+  const visible = await omitHidden(memberId, posts);
+  const page = visible.slice(0, pageSize);
+  const last = page.at(-1);
+  const names = await authorNames(page.map((post) => post.author_id));
   return {
-    items: posts.map((post) => {
+    items: page.map((post) => {
       const project = post.project_id ? projects.get(post.project_id) : undefined;
       const author = names.get(post.author_id);
       const tab = post.type === "build_log" ? "commits" : "threads";
@@ -123,7 +132,7 @@ async function loadProjectUpdates(memberId: string): Promise<HomeFeedResult> {
     }),
     empty: "Build logs and threads from projects you work on will show up here.",
     note: null,
-    nextCursor: null,
+    nextCursor: visible.length > pageSize && last ? last.created_at : null,
   };
 }
 
@@ -145,10 +154,11 @@ async function loadFollowing(memberId: string, cursor: string | null): Promise<H
     cursor,
     limit: pageSize + 1,
   });
-  return await listed(
+  const visible = await omitHidden(
+    memberId,
     posts.filter((post) => !blocked.has(post.author_id)),
-    "No public posts from people or projects you follow yet.",
   );
+  return await listed(visible, "No public posts from people or projects you follow yet.");
 }
 
 async function loadNearby(memberId: string, cursor: string | null): Promise<HomeFeedResult> {
@@ -167,14 +177,14 @@ async function loadNearby(memberId: string, cursor: string | null): Promise<Home
   const blocked = await blockedIds(memberId);
   const cityAuthors = city ? await authorsIn("city", city, memberId, blocked) : [];
   const cityPosts = cityAuthors.length
-    ? await publicPosts({ authorIds: cityAuthors, cursor, limit: pageSize + 1 })
+    ? await omitHidden(memberId, await publicPosts({ authorIds: cityAuthors, cursor, limit: pageSize + 1 }))
     : [];
   if (cityPosts.length > 0 || !state || cursor) {
     return await listed(cityPosts, "No public posts from your city yet.");
   }
   const stateAuthors = await authorsIn("state", state, memberId, blocked);
   const statePosts = stateAuthors.length
-    ? await publicPosts({ authorIds: stateAuthors, cursor, limit: pageSize + 1 })
+    ? await omitHidden(memberId, await publicPosts({ authorIds: stateAuthors, cursor, limit: pageSize + 1 }))
     : [];
   const result = await listed(statePosts, "No public posts from your state yet.");
   if (city) result.note = "Showing your state, because nothing new is from your city.";
@@ -208,16 +218,22 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
     .limit(forYouWindow);
   if (cursor) query = query.lt("created_at", cursor);
   const { data } = await query;
-  const posts = (data ?? []).filter((post) => !blocked.has(post.author_id));
+  const fetched = (data ?? []).filter((post) => !blocked.has(post.author_id));
+  const posts = await omitHidden(memberId, fetched);
   if (posts.length === 0) {
-    return { items: [], empty: "No public posts to show yet.", note: null, nextCursor: null };
+    return {
+      items: [],
+      empty: "No public posts to show yet.",
+      note: null,
+      nextCursor: fetched.length === forYouWindow ? (fetched.at(-1)?.created_at ?? null) : null,
+    };
   }
 
   const authorIds = [...new Set(posts.map((post) => post.author_id))];
   const projectIds = [...new Set(posts.flatMap((post) => (post.project_id ? [post.project_id] : [])))];
   const postIds = posts.map((post) => post.id);
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [{ data: authors }, { data: authorInterests }, { data: projectSkills }, { data: covers }, { data: events }, { data: reactions }, { data: watched }] =
+  const [{ data: authors }, { data: authorInterests }, { data: projectSkills }, { data: covers }, { data: events }, { data: reactions }, { data: watched }, { data: signals }] =
     await Promise.all([
       supabase.from("profiles").select("id, username, display_name, city, state").in("id", authorIds),
       supabase.from("profile_interests").select("profile_id, interest_id").in("profile_id", authorIds),
@@ -236,6 +252,13 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
       projectIds.length
         ? supabase.from("project_follows").select("project_id").eq("profile_id", memberId).in("project_id", projectIds)
         : Promise.resolve({ data: [] as { project_id: string }[] }),
+      supabase
+        .from("feed_events")
+        .select("post_id, event_type, created_at")
+        .eq("user_id", memberId)
+        .in("event_type", ["more", "less"])
+        .order("created_at", { ascending: false })
+        .limit(100),
     ]);
 
   const authorById = new Map((authors ?? []).map((author) => [author.id, author]));
@@ -252,6 +275,11 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
   );
   const projectById = new Map((covers ?? []).map((project) => [project.id, project]));
   const dismissed = new Set((events ?? []).filter((event) => event.event_type === "dismiss").map((event) => event.post_id));
+  const preferenceByPost = new Map<string, "more" | "less">();
+  for (const event of [...(events ?? [])].sort((left, right) => left.created_at.localeCompare(right.created_at))) {
+    if (event.event_type === "more" || event.event_type === "less") preferenceByPost.set(event.post_id, event.event_type);
+  }
+  const bias = await feedBias(posts, signals ?? []);
   const seen = new Set(
     (events ?? [])
       .filter((event) => event.event_type === "impression" && event.created_at >= since)
@@ -284,6 +312,10 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
       dismissed: dismissed.has(post.id),
       seenRecently: seen.has(post.id),
       reacted: reacted.has(post.id),
+      preferAuthor: bias.author.get(post.author_id) === "more",
+      avoidAuthor: bias.author.get(post.author_id) === "less",
+      preferProject: post.project_id ? bias.project.get(post.project_id) === "more" : false,
+      avoidProject: post.project_id ? bias.project.get(post.project_id) === "less" : false,
     };
   });
 
@@ -306,6 +338,7 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
         projectName: project?.name ?? null,
         projectSlug: project?.slug ?? null,
         reason: item.reason,
+        preference: preferenceByPost.get(post.id) ?? null,
       },
     ];
   });
@@ -313,12 +346,12 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
     memberId,
     items.map((item) => item.id),
   );
-  const oldest = posts.at(-1)?.created_at ?? null;
+  const oldest = fetched.at(-1)?.created_at ?? null;
   return {
     items,
     empty: "No public posts to show yet.",
     note: null,
-    nextCursor: posts.length === forYouWindow ? oldest : null,
+    nextCursor: fetched.length === forYouWindow ? oldest : null,
   };
 }
 
@@ -439,6 +472,37 @@ function labelFor(type: string) {
 
 function place(value: string | null) {
   return value?.trim().toLowerCase() ?? "";
+}
+
+async function feedBias(
+  posts: { id: string; author_id: string; project_id: string | null }[],
+  signals: { post_id: string; event_type: string }[],
+) {
+  const known = new Map(posts.map((post) => [post.id, { author_id: post.author_id, project_id: post.project_id }]));
+  const missing = [...new Set(signals.map((signal) => signal.post_id).filter((id) => !known.has(id)))];
+  if (missing.length > 0) {
+    const supabase = await createClient();
+    const { data } = await supabase.from("posts").select("id, author_id, project_id").in("id", missing);
+    for (const post of data ?? []) known.set(post.id, post);
+  }
+  const author = new Map<string, "more" | "less">();
+  const project = new Map<string, "more" | "less">();
+  for (const signal of signals) {
+    if (signal.event_type !== "more" && signal.event_type !== "less") continue;
+    const post = known.get(signal.post_id);
+    if (!post) continue;
+    if (!author.has(post.author_id)) author.set(post.author_id, signal.event_type);
+    if (post.project_id && !project.has(post.project_id)) project.set(post.project_id, signal.event_type);
+  }
+  return { author, project };
+}
+
+async function omitHidden<T extends { id: string }>(userId: string, posts: T[]) {
+  const hidden = await hiddenPostIds(
+    userId,
+    posts.map((post) => post.id),
+  );
+  return posts.filter((post) => !hidden.has(post.id));
 }
 
 function overlap(viewer: Set<string>, other: Set<string>) {

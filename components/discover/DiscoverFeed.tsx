@@ -8,6 +8,7 @@ import { isVideoUrl } from "@/lib/auth/images";
 import { getMember } from "@/lib/auth/session";
 import { type DiscoverFilters, peopleFilterActive, readDiscoverFilters } from "@/lib/discover/filters";
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
+import { hiddenPostIds } from "@/lib/safety/hidden";
 import { ageGroups } from "@/lib/profile/age-groups";
 import { projectCategories, type ProjectCategory } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
@@ -270,7 +271,9 @@ async function watchedProjects(memberId: string | null, projectIds: string[]) {
 
 async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: DiscoverFilters }) {
   const member = await getMember();
-  const posts = (await loadPosts(filters.type)).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
+  const loaded = (await loadPosts(filters.type)).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
+  const hidden = await hiddenPostIds(member?.id ?? null, loaded.map((post) => post.id));
+  const posts = loaded.filter((post) => !hidden.has(post.id));
   if (posts.length === 0) {
     const filtered = Boolean(filters.type);
     return (
@@ -346,7 +349,9 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
 
 async function ReelGrid({ filters }: { filters: DiscoverFilters }) {
   const member = await getMember();
-  const posts = (await loadPosts(filters.type)).filter((post) => post.media_urls.length > 0);
+  const loaded = (await loadPosts(filters.type)).filter((post) => post.media_urls.length > 0);
+  const hidden = await hiddenPostIds(member?.id ?? null, loaded.map((post) => post.id));
+  const posts = loaded.filter((post) => !hidden.has(post.id));
   const supabase = await createClient();
   const activity = await loadActivity(
     supabase,

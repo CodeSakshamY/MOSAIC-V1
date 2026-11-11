@@ -35,7 +35,7 @@ Enums are used for sets the product owns. Adding a value is a migration.
 | `report_reason` | `harassment`, `spam`, `inappropriate`, `impersonation`, `unsafe`, `copyright`, `other` |
 | `report_status` | `open`, `reviewing`, `removed`, `dismissed`, `restored` |
 | `staff_role` | `admin`, `moderator` |
-| `feed_event_type` | `impression`, `dismiss` |
+| `feed_event_type` | `impression`, `dismiss`, `more`, `less` |
 | `sanction_kind` | `suspension` |
 
 `relevant_opportunity` is intentionally absent from `notification_type` until a real job creates those rows.
@@ -392,7 +392,7 @@ A profile is suspended when a `suspension` row with `lifted_at is null` exists. 
 
 ### feed_events
 
-`id`, `user_id`, `post_id`, `event_type`, `created_at`. Index `(user_id, post_id, event_type, created_at desc)`. Not unique: impressions can repeat across days. Dismiss is treated as "any dismiss row exists". `ON DELETE CASCADE`.
+`id`, `user_id`, `post_id`, `event_type`, `created_at`. Index `(user_id, post_id, event_type, created_at desc)`. Not unique: impressions can repeat across days. Dismiss is treated as "any dismiss row exists". `more` and `less` are the For you controls, and the newest one for an author or project wins. `ON DELETE CASCADE`.
 
 ## Deletion strategy
 
@@ -558,6 +558,8 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `016_seed_reference.sql` | Skills and interests. |
 | `028_feed_events.sql` | `feed_events` for impressions and dismiss. `feed_candidates` was not created. |
 | `029_project_follows.sql` | Watch a project. Build-log notifications include those followers. |
+| `030_hidden_posts.sql` | Posts a member hides from their own feeds. |
+| `031_feed_preferences.sql` | `more` and `less` values on `feed_event_type`. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

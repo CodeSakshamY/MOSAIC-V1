@@ -20,6 +20,10 @@ function candidate(overrides: Partial<FeedCandidate> = {}): FeedCandidate {
     dismissed: false,
     seenRecently: false,
     reacted: false,
+    preferAuthor: false,
+    avoidAuthor: false,
+    preferProject: false,
+    avoidProject: false,
     ...overrides,
   };
 }
@@ -64,5 +68,28 @@ describe("rankFeed", () => {
     );
     expect(ranked.map((item) => item.id)).toEqual(["fresh", "seen"]);
     expect(ranked[0]!.score).toBeGreaterThan(ranked[1]!.score);
+  });
+
+  it("raises an older post when the viewer asked to see more from that author", () => {
+    const ranked = rankFeed(
+      [
+        candidate({ id: "new", createdAt: "2026-11-11T11:30:00.000Z" }),
+        candidate({ id: "more", authorId: "liked", createdAt: "2026-11-10T12:00:00.000Z", preferAuthor: true }),
+      ],
+      { now, coldStart: false },
+    );
+    expect(ranked[0]?.id).toBe("more");
+    expect(ranked[0]?.reason).toBe("You asked to see more like this.");
+  });
+
+  it("ranks an author the viewer asked to see less of below an otherwise equal post", () => {
+    const ranked = rankFeed(
+      [
+        candidate({ id: "less", avoidAuthor: true, followsAuthor: true }),
+        candidate({ id: "other", authorId: "b", followsAuthor: true }),
+      ],
+      { now, coldStart: false },
+    );
+    expect(ranked.map((item) => item.id)).toEqual(["other", "less"]);
   });
 });

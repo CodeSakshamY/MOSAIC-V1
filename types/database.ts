@@ -315,6 +315,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"hidden_posts": {
+                  Row: {
+                    "created_at": string,"post_id": string,"profile_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"post_id": string,"profile_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"post_id"?: string,"profile_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "hidden_posts_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "posts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "hidden_posts_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"interests": {
                   Row: {
                     "category": string,"id": string,"name": string,"slug": string
@@ -953,7 +979,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "age_group": "13_15"|"16_17"|"18_24"|"25_34"|"35_plus","collaboration_type": "remote"|"local"|"hybrid","community_category": "technology"|"discipline"|"city"|"institution"|"research"|"project","community_role": "owner"|"moderator"|"member","contribution_status": "pending"|"accepted"|"rejected"|"withdrawn","feed_event_type": "impression"|"dismiss","member_role": "owner"|"maintainer"|"contributor","member_status": "pending"|"active"|"rejected","notification_type": "new_follower"|"comment"|"reply"|"contribution_request"|"contribution_accepted"|"contribution_rejected"|"project_update"|"community_activity","opportunity_category": "hackathon"|"robotics_competition"|"science_fair"|"research_program"|"olympiad"|"scholarship"|"fellowship"|"internship"|"grant"|"maker_event"|"startup_competition"|"innovation_challenge"|"workshop","post_type": "project"|"build_log"|"idea"|"help"|"achievement"|"opportunity","project_status": "idea"|"planning"|"prototype"|"building"|"testing"|"working"|"shipped"|"abandoned","reaction_type": "interesting"|"inspired"|"build"|"contribute"|"like"|"upvote"|"downvote","report_reason": "harassment"|"spam"|"inappropriate"|"impersonation"|"unsafe"|"copyright"|"other","report_status": "open"|"reviewing"|"removed"|"dismissed"|"restored","sanction_kind": "suspension","skill_relation": "uses"|"seeking","staff_role": "admin"|"moderator","visibility": "public"|"private"
+            "age_group": "13_15"|"16_17"|"18_24"|"25_34"|"35_plus","collaboration_type": "remote"|"local"|"hybrid","community_category": "technology"|"discipline"|"city"|"institution"|"research"|"project","community_role": "owner"|"moderator"|"member","contribution_status": "pending"|"accepted"|"rejected"|"withdrawn","feed_event_type": "impression"|"dismiss"|"more"|"less","member_role": "owner"|"maintainer"|"contributor","member_status": "pending"|"active"|"rejected","notification_type": "new_follower"|"comment"|"reply"|"contribution_request"|"contribution_accepted"|"contribution_rejected"|"project_update"|"community_activity","opportunity_category": "hackathon"|"robotics_competition"|"science_fair"|"research_program"|"olympiad"|"scholarship"|"fellowship"|"internship"|"grant"|"maker_event"|"startup_competition"|"innovation_challenge"|"workshop","post_type": "project"|"build_log"|"idea"|"help"|"achievement"|"opportunity","project_status": "idea"|"planning"|"prototype"|"building"|"testing"|"working"|"shipped"|"abandoned","reaction_type": "interesting"|"inspired"|"build"|"contribute"|"like"|"upvote"|"downvote","report_reason": "harassment"|"spam"|"inappropriate"|"impersonation"|"unsafe"|"copyright"|"other","report_status": "open"|"reviewing"|"removed"|"dismissed"|"restored","sanction_kind": "suspension","skill_relation": "uses"|"seeking","staff_role": "admin"|"moderator","visibility": "public"|"private"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1073,7 +1099,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "age_group": ["13_15", "16_17", "18_24", "25_34", "35_plus"],"collaboration_type": ["remote", "local", "hybrid"],"community_category": ["technology", "discipline", "city", "institution", "research", "project"],"community_role": ["owner", "moderator", "member"],"contribution_status": ["pending", "accepted", "rejected", "withdrawn"],"feed_event_type": ["impression", "dismiss"],"member_role": ["owner", "maintainer", "contributor"],"member_status": ["pending", "active", "rejected"],"notification_type": ["new_follower", "comment", "reply", "contribution_request", "contribution_accepted", "contribution_rejected", "project_update", "community_activity"],"opportunity_category": ["hackathon", "robotics_competition", "science_fair", "research_program", "olympiad", "scholarship", "fellowship", "internship", "grant", "maker_event", "startup_competition", "innovation_challenge", "workshop"],"post_type": ["project", "build_log", "idea", "help", "achievement", "opportunity"],"project_status": ["idea", "planning", "prototype", "building", "testing", "working", "shipped", "abandoned"],"reaction_type": ["interesting", "inspired", "build", "contribute", "like", "upvote", "downvote"],"report_reason": ["harassment", "spam", "inappropriate", "impersonation", "unsafe", "copyright", "other"],"report_status": ["open", "reviewing", "removed", "dismissed", "restored"],"sanction_kind": ["suspension"],"skill_relation": ["uses", "seeking"],"staff_role": ["admin", "moderator"],"visibility": ["public", "private"]
+            "age_group": ["13_15", "16_17", "18_24", "25_34", "35_plus"],"collaboration_type": ["remote", "local", "hybrid"],"community_category": ["technology", "discipline", "city", "institution", "research", "project"],"community_role": ["owner", "moderator", "member"],"contribution_status": ["pending", "accepted", "rejected", "withdrawn"],"feed_event_type": ["impression", "dismiss", "more", "less"],"member_role": ["owner", "maintainer", "contributor"],"member_status": ["pending", "active", "rejected"],"notification_type": ["new_follower", "comment", "reply", "contribution_request", "contribution_accepted", "contribution_rejected", "project_update", "community_activity"],"opportunity_category": ["hackathon", "robotics_competition", "science_fair", "research_program", "olympiad", "scholarship", "fellowship", "internship", "grant", "maker_event", "startup_competition", "innovation_challenge", "workshop"],"post_type": ["project", "build_log", "idea", "help", "achievement", "opportunity"],"project_status": ["idea", "planning", "prototype", "building", "testing", "working", "shipped", "abandoned"],"reaction_type": ["interesting", "inspired", "build", "contribute", "like", "upvote", "downvote"],"report_reason": ["harassment", "spam", "inappropriate", "impersonation", "unsafe", "copyright", "other"],"report_status": ["open", "reviewing", "removed", "dismissed", "restored"],"sanction_kind": ["suspension"],"skill_relation": ["uses", "seeking"],"staff_role": ["admin", "moderator"],"visibility": ["public", "private"]
           }
         }
 } as const

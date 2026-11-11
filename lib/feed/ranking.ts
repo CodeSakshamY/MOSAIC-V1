@@ -14,6 +14,10 @@ export type FeedCandidate = {
   dismissed: boolean;
   seenRecently: boolean;
   reacted: boolean;
+  preferAuthor: boolean;
+  avoidAuthor: boolean;
+  preferProject: boolean;
+  avoidProject: boolean;
 };
 
 export type RankedPost = {
@@ -35,7 +39,7 @@ export function rankFeed(
     .map((candidate) => ({
       candidate,
       score: scoreCandidate(candidate, options.now, options.coldStart),
-      reason: options.coldStart ? coldReason : reasonFor(candidate, options.now),
+      reason: preferenceReason(candidate) ?? (options.coldStart ? coldReason : reasonFor(candidate, options.now)),
     }))
     .sort((left, right) => {
       const byScore = right.score - left.score;
@@ -73,13 +77,26 @@ function scoreCandidate(candidate: FeedCandidate, now: Date, coldStart: boolean)
     if (candidate.hasCover) score += 3;
     if (candidate.contentLength > 280) score += 2;
   }
+  if (candidate.preferAuthor) score += 22;
+  if (candidate.avoidAuthor) score -= 22;
+  if (candidate.preferProject) score += 16;
+  if (candidate.avoidProject) score -= 16;
   if (candidate.seenRecently) score -= 8;
   if (candidate.reacted) score -= 6;
   return score;
 }
 
+function preferenceReason(candidate: FeedCandidate) {
+  if (candidate.preferAuthor || candidate.preferProject) return "You asked to see more like this.";
+  return null;
+}
+
 function reasonFor(candidate: FeedCandidate, now: Date) {
   const terms = [
+    {
+      weight: (candidate.preferAuthor ? 22 : 0) + (candidate.preferProject ? 16 : 0),
+      text: "You asked to see more like this.",
+    },
     { weight: clamp01(candidate.interestOverlap) * 30, text: "Matches interests you added." },
     { weight: clamp01(candidate.skillOverlap) * 24, text: "Uses skills from your profile." },
     { weight: (candidate.followsAuthor ? 18 : 0) + (candidate.followsProject ? 14 : 0), text: "From someone you follow." },

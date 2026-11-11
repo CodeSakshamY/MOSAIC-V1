@@ -122,6 +122,14 @@ export async function reportPost(formData: FormData) {
     reason: why,
     description: note(formData),
   });
+  if (!error) {
+    await supabase.from("hidden_posts").upsert(
+      { profile_id: member.id, post_id: post.id },
+      { onConflict: "profile_id,post_id", ignoreDuplicates: true },
+    );
+  }
+  revalidatePath("/discover");
+  revalidatePath("/");
   redirect(error ? `${next}?reported=missing` : `${next}?reported=1`);
 }
 
@@ -147,6 +155,34 @@ export async function reportProject(formData: FormData) {
     description: note(formData),
   });
   redirect(error ? `${next}?reported=missing` : `${next}?reported=1`);
+}
+
+export async function hidePost(formData: FormData) {
+  const postId = String(formData.get("postId") ?? "");
+  if (!idPattern.test(postId)) return;
+  const member = await requireMember(`/posts/${postId}`);
+  const supabase = await createClient();
+  const { error } = await supabase.from("hidden_posts").upsert(
+    { profile_id: member.id, post_id: postId },
+    { onConflict: "profile_id,post_id", ignoreDuplicates: true },
+  );
+  if (error) return;
+  revalidatePath(`/posts/${postId}`);
+  revalidatePath("/discover");
+  revalidatePath("/");
+  revalidatePath("/settings");
+}
+
+export async function unhidePost(formData: FormData) {
+  const postId = String(formData.get("postId") ?? "");
+  if (!idPattern.test(postId)) return;
+  const member = await requireMember("/settings");
+  const supabase = await createClient();
+  await supabase.from("hidden_posts").delete().eq("profile_id", member.id).eq("post_id", postId);
+  revalidatePath(`/posts/${postId}`);
+  revalidatePath("/discover");
+  revalidatePath("/");
+  revalidatePath("/settings");
 }
 
 export async function unblock(formData: FormData) {

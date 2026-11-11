@@ -6,6 +6,7 @@ import { CommentForm } from "@/components/feed/CommentForm";
 import { PostActions } from "@/components/feed/PostActions";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
+import { HidePostButton } from "@/components/safety/HidePostButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { getMember } from "@/lib/auth/session";
@@ -92,6 +93,9 @@ async function PostPageContent({
     list.push(comment);
     replies.set(comment.parent_comment_id, list);
   }
+  const { data: hidden } = member
+    ? await supabase.from("hidden_posts").select("post_id").eq("profile_id", member.id).eq("post_id", post.id).maybeSingle()
+    : { data: null };
   const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
 
   return (
@@ -121,7 +125,10 @@ async function PostPageContent({
       <h1>{post.title ?? "Post"}</h1>
       <p className="discover-copy">{post.content}</p>
       {member && post.author_id !== member.id ? (
-        <ReportForm kind="post" target={post.id} reported={reportedState(query.reported)} />
+        <div className="author-row">
+          <ReportForm kind="post" target={post.id} reported={reportedState(query.reported)} />
+          <HidePostButton postId={post.id} hidden={Boolean(hidden)} />
+        </div>
       ) : null}
       <PostActions
         postId={post.id}
