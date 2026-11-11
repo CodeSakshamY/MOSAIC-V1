@@ -99,7 +99,7 @@ export function ThreadForm({ projectId, slug }: { projectId: string; slug: strin
       </div>
       <div className="field">
         <Label htmlFor="thread-photo">Photo</Label>
-        <Input id="thread-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" />
+        <Input id="thread-photo" name="photo" type="file" accept="image/*" />
       </div>
       <ErrorLine state={state} />
       <SubmitButton>Start thread</SubmitButton>

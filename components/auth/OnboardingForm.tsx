@@ -39,7 +39,7 @@ export function OnboardingForm({
       {step === 2 ? (
         <div className="field">
           <Label htmlFor="avatar">Profile picture</Label>
-          <Input id="avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" />
+          <Input id="avatar" name="avatar" type="file" accept="image/*" />
           <p className="form-note">JPEG, PNG, or WebP. 2 MB maximum. You can skip this.</p>
         </div>
       ) : null}

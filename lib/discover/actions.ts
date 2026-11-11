@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { reelMedia } from "@/lib/auth/images";
 import { getMember, memberGate } from "@/lib/auth/session";
+import { photoLimits, storeUserFile } from "@/lib/media/store";
 import { createClient } from "@/lib/supabase/server";
 
 export async function createReel(_state: { error?: string } | null, formData: FormData) {
@@ -15,23 +15,19 @@ export async function createReel(_state: { error?: string } | null, formData: Fo
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Choose a photo or a short video." };
   }
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const media = reelMedia(bytes);
-  if (!media) {
-    return { error: "Use a JPEG, PNG, or WebP photo under 5 MB, or an MP4 or WebM video under 32 MB." };
-  }
-
   const caption = String(formData.get("caption") ?? "").trim().slice(0, 160);
-  const title = caption || (media.contentType.startsWith("video/") ? "Reel" : "Photo");
   const supabase = await createClient();
-  const path = `${member.id}/${crypto.randomUUID()}.${media.extension}`;
-  const { error: uploadError } = await supabase.storage.from("post-media").upload(path, bytes, {
-    contentType: media.contentType,
-    upsert: false,
+  const stored = await storeUserFile(supabase, member.id, file, {
+    bucket: "post-media",
+    ...photoLimits.post,
+    allowVideo: true,
+    required: true,
   });
-  if (uploadError) return { error: "The file was not uploaded." };
-
-  const url = supabase.storage.from("post-media").getPublicUrl(path).data.publicUrl;
+  if (!stored.ok || !stored.url) {
+    return { error: stored.ok ? "Choose a photo or a short video." : stored.error };
+  }
+  const title = caption || (stored.url.match(/\.(mp4|webm)$/i) ? "Reel" : "Photo");
+  const url = stored.url;
   const { error } = await supabase.from("posts").insert({
     author_id: member.id,
     type: "idea",

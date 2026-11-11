@@ -30,12 +30,12 @@ export function ProfileEditForm({
     <form className="form-stack" action={action}>
       <div className="field">
         <Label htmlFor="edit-banner">Banner</Label>
-        <Input id="edit-banner" name="banner" type="file" accept="image/jpeg,image/png,image/webp" />
+        <Input id="edit-banner" name="banner" type="file" accept="image/*" />
         <p className="form-note">A wide photo across the top. JPEG, PNG, or WebP, up to 5 MB.</p>
       </div>
       <div className="field">
         <Label htmlFor="edit-avatar">Profile photo</Label>
-        <Input id="edit-avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" />
+        <Input id="edit-avatar" name="avatar" type="file" accept="image/*" />
         <p className="form-note">JPEG, PNG, or WebP, up to 2 MB. Leave it empty to keep the current photo.</p>
       </div>
       <div className="field">

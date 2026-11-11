@@ -1,8 +1,8 @@
-const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 export const MAX_PROFILE_PHOTO_BYTES = 5 * 1024 * 1024;
 
-export function imageKind(bytes: Uint8Array, maxBytes = MAX_AVATAR_BYTES): "jpg" | "png" | "webp" | null {
-  if (bytes.length > maxBytes) return null;
+export type ImageKind = "jpg" | "png" | "webp";
+
+export function imageKind(bytes: Uint8Array): ImageKind | null {
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
     return "jpg";
   }
@@ -31,7 +31,7 @@ export function imageKind(bytes: Uint8Array, maxBytes = MAX_AVATAR_BYTES): "jpg"
   return null;
 }
 
-export function imageContentType(kind: "jpg" | "png" | "webp") {
+export function imageContentType(kind: ImageKind) {
   if (kind === "jpg") return "image/jpeg";
   if (kind === "png") return "image/png";
   return "image/webp";
@@ -39,16 +39,23 @@ export function imageContentType(kind: "jpg" | "png" | "webp") {
 
 const MAX_REEL_BYTES = 32 * 1024 * 1024;
 
-export function reelMedia(bytes: Uint8Array): { extension: string; contentType: string } | null {
-  const image = imageKind(bytes, MAX_PROFILE_PHOTO_BYTES);
-  if (image) return { extension: image, contentType: imageContentType(image) };
+export function videoKind(bytes: Uint8Array) {
   if (bytes.length > MAX_REEL_BYTES) return null;
   if (bytes.length >= 12 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
-    return { extension: "mp4", contentType: "video/mp4" };
+    return "mp4" as const;
   }
   if (bytes.length >= 4 && bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) {
-    return { extension: "webm", contentType: "video/webm" };
+    return "webm" as const;
   }
+  return null;
+}
+
+export function reelMedia(bytes: Uint8Array): { extension: string; contentType: string } | null {
+  const image = imageKind(bytes);
+  if (image) return { extension: image, contentType: imageContentType(image) };
+  const video = videoKind(bytes);
+  if (video === "mp4") return { extension: "mp4", contentType: "video/mp4" };
+  if (video === "webm") return { extension: "webm", contentType: "video/webm" };
   return null;
 }
 

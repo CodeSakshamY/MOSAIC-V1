@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
       { source: "/build/:path*", destination: "/forge/:path*", permanent: false },
     ];
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "40mb",
+    },
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
