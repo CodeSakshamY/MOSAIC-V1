@@ -1,5 +1,6 @@
 import { Children, type ReactNode } from "react";
 import Link from "next/link";
+import { FollowButton } from "@/components/profile/FollowButton";
 import { removeProfileItem } from "@/lib/profile/actions";
 import {
   AchievementForm,
@@ -9,6 +10,7 @@ import {
   ExperienceForm,
 } from "@/components/profile/RecordForms";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
+import { getMember, memberGate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
 type RecordItem = {
@@ -82,20 +84,69 @@ export async function ProfessionalProfile({
   const profile = profileResult.data;
   if (!profile?.username) return null;
 
+  const viewer = await getMember();
+  const signedIn = Boolean(viewer && !memberGate(viewer));
   const skillIds = (skillsResult.data ?? []).map((row) => row.skill_id);
   const projectIds = (memberResult.data ?? []).map((row) => row.project_id);
   const targetIds = (mergedResult.data ?? []).map((row) => row.target_project_id);
-  const [skillRows, contributed, targets] = await Promise.all([
-    skillIds.length
-      ? supabase.from("skills").select("id, name").in("id", skillIds)
-      : Promise.resolve({ data: [] }),
-    projectIds.length
-      ? supabase.from("projects").select("id, name, slug, description, category").in("id", projectIds).is("removed_at", null)
-      : Promise.resolve({ data: [] }),
-    targetIds.length
-      ? supabase.from("projects").select("id, name, slug").in("id", targetIds)
-      : Promise.resolve({ data: [] }),
-  ]);
+  const [skillRows, contributed, targets, followerCount, followingCount, followerRows, followingRows, mine] =
+    await Promise.all([
+      skillIds.length
+        ? supabase.from("skills").select("id, name").in("id", skillIds)
+        : Promise.resolve({ data: [] }),
+      projectIds.length
+        ? supabase.from("projects").select("id, name, slug, description, category").in("id", projectIds).is("removed_at", null)
+        : Promise.resolve({ data: [] }),
+      targetIds.length
+        ? supabase.from("projects").select("id, name, slug").in("id", targetIds)
+        : Promise.resolve({ data: [] }),
+      supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", profileId),
+      supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", profileId),
+      supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("following_id", profileId)
+        .order("created_at", { ascending: false })
+        .limit(8),
+      supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", profileId)
+        .order("created_at", { ascending: false })
+        .limit(8),
+      viewer
+        ? supabase
+            .from("follows")
+            .select("follower_id")
+            .eq("follower_id", viewer.id)
+            .eq("following_id", profileId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+  const relatedIds = [
+    ...(followerRows.data ?? []).map((row) => row.follower_id),
+    ...(followingRows.data ?? []).map((row) => row.following_id),
+  ];
+  const { data: relatedProfiles } = relatedIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, username, display_name")
+        .in("id", relatedIds)
+        .is("deleted_at", null)
+    : { data: [] };
+  const related = new Map(
+    (relatedProfiles ?? [])
+      .filter((person) => person.username)
+      .map((person) => [person.id, { username: person.username as string, displayName: person.display_name }]),
+  );
+  const followers = (followerRows.data ?? []).flatMap((row) => {
+    const person = related.get(row.follower_id);
+    return person ? [person] : [];
+  });
+  const following = (followingRows.data ?? []).flatMap((row) => {
+    const person = related.get(row.following_id);
+    return person ? [person] : [];
+  });
 
   const place = [profile.city, profile.state].filter(Boolean).join(", ");
   const education = [...(educationResult.data ?? [])].sort(byYears);
@@ -134,7 +185,25 @@ export async function ProfessionalProfile({
             ) : null}
           </p>
         ) : null}
+        <div className="follow-row">
+          <p>
+            <strong>{followerCount.count ?? 0}</strong> {followerCount.count === 1 ? "follower" : "followers"}
+            {" · "}
+            <strong>{followingCount.count ?? 0}</strong> following
+          </p>
+          {viewer?.id === profileId ? null : (
+            <FollowButton username={profile.username} following={Boolean(mine.data)} signedIn={signedIn} />
+          )}
+        </div>
       </header>
+
+      <section className="profile-section" aria-labelledby="network-heading">
+        <h2 id="network-heading">Network</h2>
+        <h3>Followers</h3>
+        <PersonLinks people={followers} empty="No followers yet." />
+        <h3>Following</h3>
+        <PersonLinks people={following} empty="Not following anyone yet." />
+      </section>
 
       {profile.bio || editable ? (
         <section className="profile-section" aria-labelledby="about-heading">
@@ -357,6 +426,25 @@ function ProjectGroup({
       <h3>{title}</h3>
       {filled ? <ul className="repo-list" role="list">{children}</ul> : <p>{empty}</p>}
     </div>
+  );
+}
+
+function PersonLinks({
+  people,
+  empty,
+}: {
+  people: { username: string; displayName: string }[];
+  empty: string;
+}) {
+  if (people.length === 0) return <p>{empty}</p>;
+  return (
+    <ul className="person-links" role="list">
+      {people.map((person) => (
+        <li key={person.username}>
+          <Link href={`/people/${person.username}`}>{person.displayName}</Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
