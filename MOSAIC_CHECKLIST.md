@@ -155,7 +155,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Create team pages
 - [x] Team activity feed
 - [x] Project-specific discussion space beyond the current threads
-- [ ] Invite people to collaborate
+- [x] Invite people to collaborate
 - [ ] Collaboration request status tracking
 
 ## 7. Discover

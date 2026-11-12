@@ -931,6 +931,18 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_invites": {
+                  Row: {
+                    "created_at": string,"id": string,"invited_by": string,"invitee_id": string,"project_id": string,"status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"invited_by": string,"invitee_id": string,"project_id": string,"status"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"invited_by"?: string,"invitee_id"?: string,"project_id"?: string,"status"?: string
+                  }
+                  Relationships: []
                 },"project_members": {
                   Row: {
                     "created_at": string,"id": string,"joined_at": string | null,"profile_id": string,"project_id": string,"role": Database["public"]['Enums']["member_role"],"status": Database["public"]['Enums']["member_status"],"updated_at": string

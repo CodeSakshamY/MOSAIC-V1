@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { HomeCard } from "@/components/feed/HomeCard";
 import { HomePager } from "@/components/feed/HomePager";
 import { IncomingRequests } from "@/components/profile/IncomingRequests";
+import { ProjectInvites } from "@/components/profile/ProjectInvites";
 import { RecommendedCommunities } from "@/components/profile/RecommendedCommunities";
 import { SharedPeople } from "@/components/profile/SharedPeople";
 import { TrendingProjects } from "@/components/discover/TrendingProjects";
@@ -131,6 +132,7 @@ async function HomeFeed({
         ) : null}
         <SharedPeople memberId={member.id} />
         <IncomingRequests memberId={member.id} />
+        <ProjectInvites memberId={member.id} />
         <RecommendedCommunities memberId={member.id} />
         <TrendingProjects />
       </section>

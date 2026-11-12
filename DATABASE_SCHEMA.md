@@ -640,6 +640,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `066_teammate_responsibilities.sql` | The owner can say what contribution they expect. |
 | `067_time_commitment.sql` | The owner can say how much time a teammate would give. |
 | `068_project_discussion.sql` | A flat project discussion, separate from titled threads. |
+| `069_project_invites.sql` | An owner can invite a builder onto a project. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

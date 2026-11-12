@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
+import { parseUsername } from "@/lib/auth/validation";
 import { isCollaborationPreference } from "@/lib/profile/collaboration";
 import { parseProjectDay } from "@/lib/projects/timeline";
 import { isReactionType } from "@/lib/feed/reactions";
@@ -359,6 +360,59 @@ export async function addProjectDiscussion(formData: FormData) {
   });
   if (error) return;
   revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function inviteToProject(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const parsed = parseUsername(String(formData.get("username") ?? ""));
+  if (!projectIdPattern.test(projectId) || !parsed.ok) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { data: invitee } = await supabase
+    .from("profile_directory")
+    .select("id")
+    .eq("username", parsed.username)
+    .maybeSingle();
+  if (!invitee || invitee.id === member.id) return;
+  const { error } = await supabase.from("project_invites").insert({
+    project_id: projectId,
+    invitee_id: invitee.id,
+    invited_by: member.id,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function respondToInvite(formData: FormData) {
+  const member = await requireMember();
+  const inviteId = String(formData.get("inviteId") ?? "");
+  const accept = formData.get("accept") === "1";
+  if (!projectIdPattern.test(inviteId)) return;
+  const supabase = await createClient();
+  const { data: invite } = await supabase
+    .from("project_invites")
+    .select("id, project_id")
+    .eq("id", inviteId)
+    .eq("invitee_id", member.id)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (!invite) return;
+  const { error } = await supabase
+    .from("project_invites")
+    .update({ status: accept ? "accepted" : "declined" })
+    .eq("id", inviteId)
+    .eq("invitee_id", member.id);
+  if (error) return;
+  revalidatePath("/");
+  const { data: project } = await supabase.from("projects").select("slug").eq("id", invite.project_id).maybeSingle();
+  if (project) revalidatePath(`/forge/${project.slug}`);
 }
 
 export async function updateTimeline(formData: FormData) {

@@ -15,6 +15,7 @@ import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
+import { InviteForm } from "@/components/build/InviteForm";
 import { ProjectDiscussion } from "@/components/build/ProjectDiscussion";
 import { ProjectCollaborationForm } from "@/components/build/ProjectCollaborationForm";
 import { TimeCommitmentForm } from "@/components/build/TimeCommitmentForm";
@@ -440,6 +441,7 @@ async function ProjectView({
       {isOwner ? <SkillsForm projectId={project.id} skills={skills} selected={[...neededIds]} /> : null}
       {isOwner && isProjectStatus(project.status) ? <StatusForm projectId={project.id} status={project.status} /> : null}
       {isOwner ? <OpenCollaboratorsForm projectId={project.id} open={project.looking_for_contributors} /> : null}
+      {isOwner ? <InviteForm projectId={project.id} /> : null}
       {project.teammate_requirement ? <p className="repo-meta">{project.teammate_requirement}</p> : null}
       {isOwner ? <TeammateRequirementForm projectId={project.id} requirement={project.teammate_requirement} /> : null}
       {project.teammate_responsibilities ? <p className="repo-meta">{project.teammate_responsibilities}</p> : null}
