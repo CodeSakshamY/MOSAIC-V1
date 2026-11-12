@@ -192,6 +192,16 @@ export async function createFeedPost(_state: { error?: string } | null, formData
     .eq("author_id", member.id)
     .gte("created_at", since);
   if ((count ?? 0) >= 5) return { error: "Too many posts in a short time. Wait and try again." };
+  const { data: duplicate } = await supabase
+    .from("posts")
+    .select("id")
+    .eq("author_id", member.id)
+    .eq("title", title)
+    .eq("content", content)
+    .is("removed_at", null)
+    .limit(1)
+    .maybeSingle();
+  if (duplicate) return { error: "You already published that post." };
   let projectId: string | null = null;
   if (type === "project") {
     projectId = String(formData.get("projectId") ?? "");

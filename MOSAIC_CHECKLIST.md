@@ -324,7 +324,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [ ] SEO for public projects and profiles
 - [x] Skip link and dark colour scheme
 - [x] Secure file uploads that check the file bytes
-- [ ] Spam and abuse prevention beyond the report tables
+- [x] Spam and abuse prevention beyond the report tables
 
 ## Launch phase 1, the functional core
 
