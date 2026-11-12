@@ -236,7 +236,7 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 
 - [x] New followers, reactions, comments, replies, mentions
 - [ ] Collaboration requests and updates
-- [ ] Project invitations, updates and new contributors
+- [x] Project invitations, updates and new contributors
 - [ ] Community announcements and invitations
 - [ ] Opportunity and event reminders
 - [ ] Saved project updates

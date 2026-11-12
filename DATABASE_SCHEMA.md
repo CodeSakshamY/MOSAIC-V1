@@ -660,6 +660,8 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `082_notice_kinds.sql` | Notifications can record a reaction or a project invitation. |
 | `083_reaction_notices.sql` | A like, upvote, interesting, or inspired reaction notifies the author. |
 | `084_comments_open.sql` | A person can close comments on their posts. |
+| `085_invite_notices.sql` | A project invitation notifies the invited builder. |
+| `086_join_notices.sql` | Joining a project notifies the owner. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
