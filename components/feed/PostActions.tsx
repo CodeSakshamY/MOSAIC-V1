@@ -20,7 +20,7 @@ export function PostActions({
   signedIn: boolean;
 }) {
   const login = `/profile?next=${encodeURIComponent(`/posts/${postId}`)}`;
-  const vote = (type: "like" | "upvote" | "downvote", label: string, icon: ReactNode) => {
+  const vote = (type: "like" | "upvote" | "downvote" | "interesting" | "inspired", label: string, icon: ReactNode) => {
     if (!signedIn) {
       return (
         <Link className="reaction-button" href={login} aria-label={label}>
@@ -46,6 +46,8 @@ export function PostActions({
       {vote("like", "Like", <Heart aria-hidden="true" fill={activity.mine.has("like") ? "currentColor" : "none"} />)}
       {vote("upvote", "Upvote", <ArrowBigUp aria-hidden="true" fill={activity.mine.has("upvote") ? "currentColor" : "none"} />)}
       {vote("downvote", "Downvote", <ArrowBigDown aria-hidden="true" fill={activity.mine.has("downvote") ? "currentColor" : "none"} />)}
+      {vote("interesting", "Interesting", <span>Interesting</span>)}
+      {vote("inspired", "Inspired", <span>Inspired</span>)}
       <Link className="reaction-button" href={`/posts/${postId}#comments`} aria-label="Comment">
         <MessageCircle aria-hidden="true" />
         <Count value={activity.counts.comment} />

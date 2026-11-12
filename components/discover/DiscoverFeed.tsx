@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { FeedPostForm } from "@/components/discover/FeedPostForm";
 import { ReelComposer } from "@/components/discover/ReelComposer";
 import { FilterMenu } from "@/components/filters/FilterMenu";
 import { PostActions } from "@/components/feed/PostActions";
+import { SharedPeople } from "@/components/profile/SharedPeople";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { isVideoUrl } from "@/lib/auth/images";
@@ -10,6 +12,7 @@ import { type DiscoverFilters, interestCategories, peopleFilterActive, readDisco
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { hiddenPostIds } from "@/lib/safety/hidden";
 import { ageGroups } from "@/lib/profile/age-groups";
+import { collaborationPreferences } from "@/lib/profile/collaboration";
 import { projectCategories, type ProjectCategory } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 
@@ -130,6 +133,30 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
     }
     query = query.in("id", ids);
   }
+  if (filters.experience) {
+    const { data: projects } = await supabase
+      .from("projects")
+      .select("id, owner_id")
+      .eq("category", filters.experience)
+      .eq("visibility", "public")
+      .is("removed_at", null)
+      .limit(200);
+    const projectIds = (projects ?? []).map((project) => project.id);
+    const { data: members } = projectIds.length
+      ? await supabase.from("project_members").select("profile_id").in("project_id", projectIds).eq("status", "active")
+      : { data: [] };
+    const ids = [
+      ...new Set([
+        ...(projects ?? []).map((project) => project.owner_id),
+        ...(members ?? []).map((member) => member.profile_id),
+      ]),
+    ];
+    if (ids.length === 0) {
+      return <p className="repo-empty">No people match that filter.</p>;
+    }
+    query = query.in("id", ids);
+  }
+  if (filters.availability) query = query.eq("collaboration_preference", filters.availability);
   const { data } = await query;
   const people = (data ?? []).filter((person) => person.username);
   if (people.length === 0) {
@@ -142,7 +169,9 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
   const following = new Set((followed ?? []).map((row) => row.following_id));
   const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
   return (
-    <ul className="repo-list" role="list">
+    <>
+      {member?.onboardingComplete ? <SharedPeople memberId={member.id} /> : null}
+      <ul className="repo-list" role="list">
       {people.map((person) => {
         const place = [person.city, person.state].filter(Boolean).join(", ");
         const initial = person.display_name.trim().charAt(0).toUpperCase() || "?";
@@ -182,6 +211,7 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
         );
       })}
     </ul>
+    </>
   );
 }
 
@@ -261,7 +291,7 @@ async function loadPosts(type: ProjectCategory | null) {
   }
   let query = supabase
     .from("posts")
-    .select("id, title, content, type, media_urls, author_id, project_id, created_at")
+    .select("id, title, content, type, media_urls, link_url, author_id, project_id, build_log_id, opportunity_id, created_at")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("created_at", { ascending: false })
@@ -274,7 +304,28 @@ async function loadPosts(type: ProjectCategory | null) {
     ? await supabase.from("profile_directory").select("id, username, display_name").in("id", authorIds)
     : { data: [] };
   const names = new Map((authors ?? []).map((author) => [author.id, author]));
-  return posts.map((post) => ({ ...post, author: names.get(post.author_id) }));
+  const logIds = posts.map((post) => post.build_log_id).filter((id): id is string => Boolean(id));
+  const { data: logs } = logIds.length
+    ? await supabase.from("build_logs").select("id, kind").in("id", logIds)
+    : { data: [] };
+  const kinds = new Map((logs ?? []).map((log) => [log.id, log.kind]));
+  const opportunityIds = posts.map((post) => post.opportunity_id).filter((id): id is string => Boolean(id));
+  const { data: opportunities } = opportunityIds.length
+    ? await supabase.from("opportunities").select("id, category").in("id", opportunityIds)
+    : { data: [] };
+  const opportunityCategories = new Map((opportunities ?? []).map((item) => [item.id, item.category]));
+  const previewIds = [...new Set(posts.map((post) => post.project_id).filter((id): id is string => Boolean(id)))];
+  const { data: projects } = previewIds.length
+    ? await supabase.from("projects").select("id, name, slug").in("id", previewIds).is("removed_at", null)
+    : { data: [] };
+  const projectById = new Map((projects ?? []).map((project) => [project.id, project]));
+  return posts.map((post) => ({
+    ...post,
+    author: names.get(post.author_id),
+    logKind: post.build_log_id ? kinds.get(post.build_log_id) : null,
+    opportunityCategory: post.opportunity_id ? opportunityCategories.get(post.opportunity_id) : null,
+    project: post.project_id ? projectById.get(post.project_id) ?? null : null,
+  }));
 }
 
 async function followedIds(memberId: string | null, authorIds: string[]) {
@@ -295,23 +346,53 @@ async function watchedProjects(memberId: string | null, projectIds: string[]) {
   return new Set((data ?? []).map((row) => row.project_id));
 }
 
+async function ownedPublicProjects(memberId: string | undefined, signedIn: boolean) {
+  if (!signedIn || !memberId) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("projects")
+    .select("id, name")
+    .eq("owner_id", memberId)
+    .eq("visibility", "public")
+    .is("removed_at", null)
+    .order("name");
+  return data ?? [];
+}
+
+function postKindLabel(type: string, logKind?: string | null, opportunityCategory?: string | null) {
+  if (type === "build_log" && logKind === "experiment") return "Experiment";
+  if (type === "build_log") return "Build in public";
+  if (type === "help") return "Question";
+  if (type === "project") return "Showcase";
+  if (type === "achievement") return "Achievement";
+  if (type === "idea") return "Idea";
+  if (type === "opportunity" && (opportunityCategory === "workshop" || opportunityCategory === "maker_event")) return "Event";
+  if (type === "opportunity") return "Opportunity";
+  return type.replaceAll("_", " ");
+}
+
 async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: DiscoverFilters }) {
   const member = await getMember();
   const loaded = (await loadPosts(filters.type)).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
   const hidden = await hiddenPostIds(member?.id ?? null, loaded.map((post) => post.id));
   const posts = loaded.filter((post) => !hidden.has(post.id));
+  const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
+  const projects = kind === "posts" ? await ownedPublicProjects(member?.id, signedIn) : [];
   if (posts.length === 0) {
     const filtered = Boolean(filters.type);
     return (
-      <p className="repo-empty">
-        {kind === "ideas"
-          ? filtered
-            ? "No ideas match that filter."
-            : "No ideas yet."
-          : filtered
-            ? "No posts match that filter."
-            : "No posts yet."}
-      </p>
+      <>
+        {signedIn && kind === "posts" ? <FeedPostForm projects={projects} /> : null}
+        <p className="repo-empty">
+          {kind === "ideas"
+            ? filtered
+              ? "No ideas match that filter."
+              : "No ideas yet."
+            : filtered
+              ? "No posts match that filter."
+              : "No posts yet."}
+        </p>
+      </>
     );
   }
   const supabase = await createClient();
@@ -320,7 +401,6 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
     posts.map((post) => post.id),
     member?.id ?? null,
   );
-  const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
   const viewerId = signedIn && member ? member.id : null;
   const following = await followedIds(viewerId, posts.map((post) => post.author_id));
   const watched = await watchedProjects(
@@ -328,16 +408,33 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
     posts.flatMap((post) => (post.project_id ? [post.project_id] : [])),
   );
   return (
-    <ul className="repo-list" role="list">
+    <>
+      {signedIn && kind === "posts" ? <FeedPostForm projects={projects} /> : null}
+      <ul className="repo-list" role="list">
       {posts.map((post) => (
         <li key={post.id} className="repo-row">
           <div className="repo-title">
             <strong>
               <Link href={`/posts/${post.id}`}>{post.title ?? "Post"}</Link>
             </strong>
-            <span className="repo-visibility">{post.type.replace("_", " ")}</span>
+            <span className="repo-visibility">{postKindLabel(post.type, post.logKind, post.opportunityCategory)}</span>
           </div>
           <p className="discover-copy">{post.content}</p>
+          {post.project ? (
+            <p className="repo-meta">
+              <Link href={`/forge/${post.project.slug}`}>{post.project.name}</Link>
+            </p>
+          ) : null}
+          {(post.media_urls ?? []).map((url) => (
+            <p key={url}>
+              <a href={url}>Attachment</a>
+            </p>
+          ))}
+          {post.link_url ? (
+            <p>
+              <a href={post.link_url}>Attachment</a>
+            </p>
+          ) : null}
           {kind === "ideas" ? (
             <div className="idea-photos">
               {(post.media_urls ?? []).filter((url) => url && !isVideoUrl(url)).slice(0, 4).map((url) => (
@@ -370,6 +467,7 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
         </li>
       ))}
     </ul>
+    </>
   );
 }
 
@@ -475,7 +573,9 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
     Number(Boolean(filters.place)) +
     Number(Boolean(filters.skill)) +
     Number(Boolean(filters.discipline)) +
-    Number(Boolean(filters.interest));
+    Number(Boolean(filters.interest)) +
+    Number(Boolean(filters.experience)) +
+    Number(Boolean(filters.availability));
   return (
     <FilterMenu active={active}>
     <form className="discover-filters" action="/discover">
@@ -532,6 +632,28 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
           {interests.map((interest) => (
             <option key={interest.slug} value={interest.slug}>
               {interest.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="discover-experience">Project experience</label>
+        <select id="discover-experience" name="experience" className="field-select" defaultValue={filters.experience ?? ""}>
+          <option value="">Any</option>
+          {projectCategories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="discover-availability">Collaboration</label>
+        <select id="discover-availability" name="availability" className="field-select" defaultValue={filters.availability}>
+          <option value="">Any</option>
+          {collaborationPreferences.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
             </option>
           ))}
         </select>

@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { SharedPeople } from "@/components/profile/SharedPeople";
+import { getMember } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
 export async function PublicPeople() {
   const supabase = await createClient();
+  const member = await getMember();
   const { data } = await supabase
     .from("profile_directory")
     .select("username, display_name, education, city, state")
@@ -14,7 +17,9 @@ export async function PublicPeople() {
   const people = (data ?? []).filter((person) => person.username);
 
   return (
-    <section className="profile-section" aria-labelledby="discover-people">
+    <>
+      {member?.onboardingComplete ? <SharedPeople memberId={member.id} /> : null}
+      <section className="profile-section" aria-labelledby="discover-people">
       <h2 id="discover-people">People</h2>
       {people.length === 0 ? <p>No public profiles yet.</p> : null}
       <ul className="repo-list" role="list">
@@ -32,5 +37,6 @@ export async function PublicPeople() {
         })}
       </ul>
     </section>
+    </>
   );
 }

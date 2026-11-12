@@ -8,23 +8,23 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Following feed
 - [x] Updates and threads on your projects
 - [x] Latest posts feed, on Discover
-- [ ] Trending projects
-- [ ] Recommended builders
-- [ ] Recommended communities
-- [ ] Project showcase posts
-- [ ] Build-in-public updates
-- [ ] Research findings and experiments
-- [ ] Ideas and concepts
-- [ ] Questions and help requests
-- [ ] Collaboration requests
-- [ ] Competition and achievement posts
-- [ ] Opportunity announcements
-- [ ] Event announcements
-- [ ] Image, video, document and link attachments
-- [ ] Rich project previews embedded in posts
+- [x] Trending projects
+- [x] Recommended builders
+- [x] Recommended communities
+- [x] Project showcase posts
+- [x] Build-in-public updates
+- [x] Research findings and experiments
+- [x] Ideas and concepts
+- [x] Questions and help requests
+- [x] Collaboration requests
+- [x] Competition and achievement posts
+- [x] Opportunity announcements
+- [x] Event announcements
+- [x] Image, video, document and link attachments
+- [x] Rich project previews embedded in posts
 - [x] Like or appreciation reactions
-- [ ] Interesting reaction
-- [ ] Inspired reaction
+- [x] Interesting reaction
+- [x] Inspired reaction
 - [x] Save/bookmark posts
 - [x] Comment and threaded replies
 - [x] Repost/share with attribution
@@ -118,11 +118,11 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Filter by discipline
 - [x] Filter by skills and technologies
 - [x] Filter by interests
-- [ ] Filter by project experience
-- [ ] Filter by availability for collaboration
+- [x] Filter by project experience
+- [x] Filter by availability for collaboration
 - [x] Filter by broad location or institution
-- [ ] Recommended builders
-- [ ] Similar-interest discovery
+- [x] Recommended builders
+- [x] Similar-interest discovery
 - [ ] People working on related projects
 - [x] Follow builders
 - [ ] View shared interests

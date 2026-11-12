@@ -4,6 +4,10 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { HomeCard } from "@/components/feed/HomeCard";
 import { HomePager } from "@/components/feed/HomePager";
+import { IncomingRequests } from "@/components/profile/IncomingRequests";
+import { RecommendedCommunities } from "@/components/profile/RecommendedCommunities";
+import { SharedPeople } from "@/components/profile/SharedPeople";
+import { TrendingProjects } from "@/components/discover/TrendingProjects";
 import { getMember } from "@/lib/auth/session";
 import { brand } from "@/lib/brand";
 import { loadHome, loadPublicProjects, parseCursor, parseHomeTab, type HomeTab } from "@/lib/feed/home";
@@ -74,6 +78,7 @@ async function HomeFeed({
             ))}
           </ul>
         )}
+        <TrendingProjects />
       </div>
     );
   }
@@ -124,6 +129,10 @@ async function HomeFeed({
         {feed.nextCursor ? (
           <HomePager tab={tab} cursor={feed.nextCursor} dismiss={tab === "for-you"} />
         ) : null}
+        <SharedPeople memberId={member.id} />
+        <IncomingRequests memberId={member.id} />
+        <RecommendedCommunities memberId={member.id} />
+        <TrendingProjects />
       </section>
     </div>
   );

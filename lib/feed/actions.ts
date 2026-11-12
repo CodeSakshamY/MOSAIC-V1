@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
+import { parseWebsite } from "@/lib/auth/validation";
 import { isReactionType } from "@/lib/feed/reactions";
 import { createClient } from "@/lib/supabase/server";
 
@@ -169,4 +170,46 @@ export async function addComment(formData: FormData) {
   });
   if (error) return;
   refresh(postId);
+}
+
+const feedPostTypes = ["idea", "help", "achievement", "project"] as const;
+
+export async function createFeedPost(_state: { error?: string } | null, formData: FormData) {
+  const member = await memberOrLogin("/discover?view=posts");
+  const type = String(formData.get("type") ?? "");
+  const title = String(formData.get("title") ?? "").trim().slice(0, 160);
+  const content = String(formData.get("content") ?? "").trim().slice(0, 8000);
+  if (!feedPostTypes.some((item) => item === type)) return { error: "Choose a kind of post." };
+  if (!title) return { error: "Add a title." };
+  if (!content) return { error: "Write the post." };
+  const attachment = parseWebsite(String(formData.get("attachment") ?? ""));
+  if (!attachment.ok) return { error: attachment.error };
+  const supabase = await createClient();
+  let projectId: string | null = null;
+  if (type === "project") {
+    projectId = String(formData.get("projectId") ?? "");
+    if (!idPattern.test(projectId)) return { error: "Choose one of your public projects." };
+    const { data: project } = await supabase
+      .from("projects")
+      .select("id, owner_id, visibility")
+      .eq("id", projectId)
+      .is("removed_at", null)
+      .maybeSingle();
+    if (!project || project.owner_id !== member.id || project.visibility !== "public") {
+      return { error: "Choose one of your public projects." };
+    }
+  }
+  const { error } = await supabase.from("posts").insert({
+    author_id: member.id,
+    type: type as (typeof feedPostTypes)[number],
+    title,
+    content,
+    project_id: projectId,
+    link_url: attachment.website,
+    visibility: "public",
+    is_demo: false,
+  });
+  if (error) return { error: "The post was not saved." };
+  revalidatePath("/discover");
+  redirect("/discover?view=posts");
 }

@@ -10,6 +10,8 @@ describe("readDiscoverFilters", () => {
         skill: "machine-learning",
         discipline: "technology",
         interest: "robotics",
+        experience: "Software",
+        availability: "hybrid",
         type: "Software",
         q: " Sensor% ",
       }),
@@ -20,6 +22,8 @@ describe("readDiscoverFilters", () => {
       skill: "machine-learning",
       discipline: "technology",
       interest: "robotics",
+      experience: "Software",
+      availability: "hybrid",
       type: "Software",
     });
   });
@@ -32,6 +36,8 @@ describe("readDiscoverFilters", () => {
         skill: "Not A Skill",
         discipline: "magic",
         interest: "Not An Interest",
+        experience: "spaceship",
+        availability: "anywhere",
         type: "robotics",
       }),
     ).toEqual({
@@ -41,6 +47,8 @@ describe("readDiscoverFilters", () => {
       skill: "",
       discipline: "",
       interest: "",
+      experience: null,
+      availability: "",
       type: null,
     });
   });
