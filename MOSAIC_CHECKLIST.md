@@ -16,7 +16,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Research findings and experiments
 - [x] Ideas and concepts
 - [x] Questions and help requests
-- [ ] Collaboration requests
+- [x] Collaboration requests
 - [x] Competition and achievement posts
 - [ ] Opportunity announcements
 - [ ] Event announcements
