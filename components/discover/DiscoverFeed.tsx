@@ -906,7 +906,12 @@ async function loadPosts(type: ProjectCategory | null) {
     .limit(40);
   if (projectIds) query = query.in("project_id", projectIds);
   const { data } = await query;
-  const posts = data ?? [];
+  const member = await getMember();
+  const { data: mutedRows } = member
+    ? await supabase.from("mutes").select("muted_id").eq("profile_id", member.id)
+    : { data: [] };
+  const mutedIds = new Set((mutedRows ?? []).map((row) => row.muted_id));
+  const posts = (data ?? []).filter((post) => !mutedIds.has(post.author_id));
   const authorIds = [...new Set(posts.map((post) => post.author_id))];
   const { data: authors } = authorIds.length
     ? await supabase.from("profile_directory").select("id, username, display_name").in("id", authorIds)

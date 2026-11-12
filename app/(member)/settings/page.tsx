@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { BlockedAccounts } from "@/components/safety/BlockedAccounts";
+import { MutedAccounts } from "@/components/safety/MutedAccounts";
 import { HiddenPosts } from "@/components/safety/HiddenPosts";
 import { DeleteAccount } from "@/components/settings/DeleteAccount";
 import { ThemePicker } from "@/components/settings/ThemePicker";
@@ -29,6 +30,7 @@ export default async function SettingsPage({
     <SectionPage title="Settings" lede="The colour scheme stays on this device. Blocked accounts and hidden posts are listed below.">
       <ThemePicker current={theme.id} />
       {member ? <BlockedAccounts userId={member.id} /> : null}
+      {member ? <MutedAccounts userId={member.id} /> : null}
       {member ? <HiddenPosts userId={member.id} /> : null}
       {member?.username ? <DeleteAccount /> : null}
       {member ? (

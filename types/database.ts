@@ -955,6 +955,18 @@ isOneToOne: false
                     "collection_id"?: string,"created_at"?: string,"project_id"?: string
                   }
                   Relationships: []
+                },"mutes": {
+                  Row: {
+                    "created_at": string,"muted_id": string,"profile_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"muted_id": string,"profile_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"muted_id"?: string,"profile_id"?: string
+                  }
+                  Relationships: []
                 },"profile_session_floor": {
                   Row: {
                     "profile_id": string,"valid_after": string

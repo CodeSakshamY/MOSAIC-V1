@@ -82,6 +82,33 @@ export async function toggleBlock(formData: FormData) {
   revalidatePath("/settings");
 }
 
+export async function toggleMute(formData: FormData) {
+  const parsed = parseUsername(String(formData.get("username") ?? ""));
+  if (!parsed.ok) return;
+  const next = `/people/${parsed.username}`;
+  const member = await requireMember(next);
+  const supabase = await createClient();
+  const { data: target } = await supabase
+    .from("profile_directory")
+    .select("id, username, deleted_at")
+    .eq("username", parsed.username)
+    .maybeSingle();
+  if (!target?.username || target.deleted_at || target.id === member.id) return;
+  const { data: existing } = await supabase
+    .from("mutes")
+    .select("profile_id")
+    .eq("profile_id", member.id)
+    .eq("muted_id", target.id)
+    .maybeSingle();
+  const { error } = existing
+    ? await supabase.from("mutes").delete().eq("profile_id", member.id).eq("muted_id", target.id)
+    : await supabase.from("mutes").insert({ profile_id: member.id, muted_id: target.id });
+  if (error) return;
+  revalidatePath(next);
+  revalidatePath("/discover");
+  revalidatePath("/settings");
+}
+
 export async function reportProfile(formData: FormData) {
   const parsed = parseUsername(String(formData.get("username") ?? ""));
   if (!parsed.ok) return;

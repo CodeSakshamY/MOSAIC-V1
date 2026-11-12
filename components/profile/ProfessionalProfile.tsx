@@ -22,7 +22,7 @@ import { LookingForForm } from "@/components/profile/LookingForForm";
 import { collaborationLabel } from "@/lib/profile/collaboration";
 import { lookingForOptions } from "@/lib/auth/looking-for";
 import { getMember, memberGate } from "@/lib/auth/session";
-import { toggleBlock } from "@/lib/safety/actions";
+import { toggleBlock, toggleMute } from "@/lib/safety/actions";
 import { createClient } from "@/lib/supabase/server";
 
 type RecordItem = {
@@ -141,6 +141,10 @@ export async function ProfessionalProfile({
     ? await supabase.from("blocks").select("blocked_id").eq("blocker_id", viewer.id).eq("blocked_id", profileId).maybeSingle()
     : { data: null };
   const blocked = Boolean(blockRow);
+  const { data: muteRow } = viewer && viewer.id !== profileId
+    ? await supabase.from("mutes").select("muted_id").eq("profile_id", viewer.id).eq("muted_id", profileId).maybeSingle()
+    : { data: null };
+  const muted = Boolean(muteRow);
   const savedRows =
     editable && viewer?.id === profileId
       ? (
@@ -364,6 +368,14 @@ export async function ProfessionalProfile({
                   <input type="hidden" name="username" value={profile.username} />
                   <button className="text-button follow-button" type="submit">
                     Block
+                  </button>
+                </form>
+              ) : null}
+              {signedIn ? (
+                <form action={toggleMute}>
+                  <input type="hidden" name="username" value={profile.username} />
+                  <button className="text-button follow-button" type="submit" aria-pressed={muted}>
+                    {muted ? "Unmute" : "Mute"}
                   </button>
                 </form>
               ) : null}

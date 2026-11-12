@@ -290,7 +290,7 @@ Not started. Future phase.
 - [ ] Follow and interaction controls
 - [ ] Feed and interest preferences
 - [ ] Notification preferences
-- [ ] Blocked and muted accounts
+- [x] Blocked and muted accounts
 - [x] Download account data
 - [x] Delete account
 - [x] Session management
