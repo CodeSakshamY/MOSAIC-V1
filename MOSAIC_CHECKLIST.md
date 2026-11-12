@@ -24,7 +24,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Rich project previews embedded in posts
 - [x] Like or appreciation reactions
 - [x] Interesting reaction
-- [ ] Inspired reaction
+- [x] Inspired reaction
 - [x] Save/bookmark posts
 - [x] Comment and threaded replies
 - [x] Repost/share with attribution
