@@ -121,7 +121,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Filter by project experience
 - [x] Filter by availability for collaboration
 - [x] Filter by broad location or institution
-- [ ] Recommended builders
+- [x] Recommended builders
 - [ ] Similar-interest discovery
 - [ ] People working on related projects
 - [x] Follow builders
