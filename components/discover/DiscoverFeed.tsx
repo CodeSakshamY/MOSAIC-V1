@@ -6,7 +6,7 @@ import { FollowButton } from "@/components/profile/FollowButton";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { isVideoUrl } from "@/lib/auth/images";
 import { getMember } from "@/lib/auth/session";
-import { type DiscoverFilters, peopleFilterActive, readDiscoverFilters } from "@/lib/discover/filters";
+import { type DiscoverFilters, interestCategories, peopleFilterActive, readDiscoverFilters } from "@/lib/discover/filters";
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { hiddenPostIds } from "@/lib/safety/hidden";
 import { ageGroups } from "@/lib/profile/age-groups";
@@ -102,6 +102,18 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
       ? await supabase.from("profile_skills").select("profile_id").eq("skill_id", skill.id)
       : { data: [] };
     const ids = (links ?? []).map((row) => row.profile_id);
+    if (ids.length === 0) {
+      return <p className="repo-empty">No people match that filter.</p>;
+    }
+    query = query.in("id", ids);
+  }
+  if (filters.discipline) {
+    const { data: interests } = await supabase.from("interests").select("id").eq("category", filters.discipline);
+    const interestIds = (interests ?? []).map((interest) => interest.id);
+    const { data: links } = interestIds.length
+      ? await supabase.from("profile_interests").select("profile_id").in("interest_id", interestIds)
+      : { data: [] };
+    const ids = [...new Set((links ?? []).map((row) => row.profile_id))];
     if (ids.length === 0) {
       return <p className="repo-empty">No people match that filter.</p>;
     }
@@ -445,11 +457,12 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
   const supabase = await createClient();
   const { data } = await supabase.from("skills").select("slug, name").order("name");
   const skills = data ?? [];
-  const active = Number(Boolean(filters.age)) + Number(Boolean(filters.place)) + Number(Boolean(filters.skill));
+  const active = Number(Boolean(filters.age)) + Number(Boolean(filters.place)) + Number(Boolean(filters.skill)) + Number(Boolean(filters.discipline));
   return (
     <FilterMenu active={active}>
     <form className="discover-filters" action="/discover">
       <input type="hidden" name="view" value="people" />
+      {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
       <div className="field">
         <label htmlFor="discover-age">Age band</label>
         <select id="discover-age" name="age" className="field-select" defaultValue={filters.age ?? ""}>
@@ -479,6 +492,17 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
           {skills.map((skill) => (
             <option key={skill.slug} value={skill.slug}>
               {skill.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="discover-discipline">Discipline</label>
+        <select id="discover-discipline" name="discipline" className="field-select" defaultValue={filters.discipline}>
+          <option value="">Any</option>
+          {interestCategories.map((category) => (
+            <option key={category.value} value={category.value}>
+              {category.label}
             </option>
           ))}
         </select>

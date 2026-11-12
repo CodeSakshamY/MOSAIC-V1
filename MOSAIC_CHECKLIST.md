@@ -115,7 +115,7 @@ Status is what a person can do in the app today. A database table with no screen
 ## 5. People and networking
 
 - [x] Search builders by name or username
-- [ ] Filter by discipline
+- [x] Filter by discipline
 - [x] Filter by skills and technologies
 - [ ] Filter by interests
 - [ ] Filter by project experience
