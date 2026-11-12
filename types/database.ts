@@ -727,6 +727,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_milestones": {
+                  Row: {
+                    "created_at": string,"happens_on": string,"id": string,"project_id": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"happens_on": string,"id"?: string,"project_id": string,"title": string
+                  }
+                  Update: {
+                    "created_at"?: string,"happens_on"?: string,"id"?: string,"project_id"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_milestones_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project_members": {
                   Row: {
                     "created_at": string,"id": string,"joined_at": string | null,"profile_id": string,"project_id": string,"role": Database["public"]['Enums']["member_role"],"status": Database["public"]['Enums']["member_status"],"updated_at": string

@@ -230,6 +230,51 @@ export async function updateTimeline(formData: FormData) {
   revalidatePath("/forge");
 }
 
+export async function addMilestone(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const happensOn = parseProjectDay(String(formData.get("happensOn") ?? ""));
+  if (!projectIdPattern.test(projectId) || title.length < 1 || title.length > 80 || !happensOn) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { count } = await supabase
+    .from("project_milestones")
+    .select("id", { count: "exact", head: true })
+    .eq("project_id", projectId);
+  if ((count ?? 0) >= 12) return;
+  const { error } = await supabase.from("project_milestones").insert({
+    project_id: projectId,
+    title,
+    happens_on: happensOn,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function removeMilestone(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const milestoneId = String(formData.get("milestoneId") ?? "");
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(milestoneId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  await supabase.from("project_milestones").delete().eq("id", milestoneId).eq("project_id", projectId);
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function updateCover(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");

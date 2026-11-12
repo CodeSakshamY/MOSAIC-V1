@@ -173,6 +173,10 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 
 `id`, `project_id`, `image_url`, `created_at`. Up to 8 rows. `image_url` must be a storage URL. Inserts are limited to the owner of a public project. Deletes are limited to that owner. `ON DELETE CASCADE` with the project.
 
+### project_milestones
+
+`id`, `project_id`, `title`, `happens_on`, `created_at`. Up to 12 rows. `title` is 1–80. `happens_on` is a date from 2000-01-01 through 2100-12-31. The same title cannot repeat on the same day. Inserts and deletes are limited to the owner. `ON DELETE CASCADE` with the project.
+
 ### project_skills
 
 PK `(project_id, skill_id, relation)`. A project can both use Python and be seeking Python. Index on `skill_id`. The project page writes `uses` for tools and `seeking` for skills required. A trigger stops each relation at 8 rows.
@@ -575,6 +579,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `037_project_skills_required.sql` | Stop a project at 8 skills it is seeking. |
 | `038_project_status.sql` | Seven project statuses a builder can set. |
 | `039_project_timeline.sql` | Optional start and end dates on a project. |
+| `040_project_milestones.sql` | Up to 12 named dates on a project. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

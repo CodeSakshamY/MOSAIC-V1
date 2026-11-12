@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { Milestones } from "@/components/build/Milestones";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
 import { StatusForm } from "@/components/build/StatusForm";
@@ -74,7 +75,7 @@ async function ProjectView({
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -100,6 +101,12 @@ async function ProjectView({
     supabase.from("project_gallery").select("id, image_url").eq("project_id", project.id).order("created_at", { ascending: true }),
     supabase.from("skills").select("id, name").order("name"),
     supabase.from("project_skills").select("skill_id, relation").eq("project_id", project.id).in("relation", ["uses", "seeking"]),
+    supabase
+      .from("project_milestones")
+      .select("id, title, happens_on")
+      .eq("project_id", project.id)
+      .order("happens_on", { ascending: true })
+      .order("created_at", { ascending: true }),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
@@ -190,6 +197,11 @@ async function ProjectView({
                 isPublic={project.visibility === "public"}
               />
               <Overview description={project.description} forks={forksResult.data ?? []} />
+              <Milestones
+                projectId={project.id}
+                milestones={milestoneResult.data ?? []}
+                isOwner={isOwner}
+              />
             </>
           ) : null}
           {tab === "commits" ? (
