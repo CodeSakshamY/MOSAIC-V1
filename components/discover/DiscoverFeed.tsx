@@ -159,7 +159,20 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
     query = query.in("id", ids);
   }
   if (filters.availability) query = query.eq("collaboration_preference", filters.availability);
-  if (filters.looking) query = query.contains("looking_for", [filters.looking]);
+  if (filters.looking === "mentors") {
+    const { data: experienced } = await supabase.from("profile_experience").select("profile_id").limit(200);
+    const { data: seeking } = await supabase
+      .from("profile_directory")
+      .select("id")
+      .contains("looking_for", ["mentors"])
+      .eq("visibility", "public")
+      .eq("onboarding_complete", true);
+    const ids = [...new Set([...(experienced ?? []).map((row) => row.profile_id), ...(seeking ?? []).map((row) => row.id)])];
+    if (ids.length === 0) return <p className="repo-empty">No people match that filter.</p>;
+    query = query.in("id", ids);
+  } else if (filters.looking) {
+    query = query.contains("looking_for", [filters.looking]);
+  }
   const { data } = await query;
   const people = (data ?? []).filter((person) => person.username);
   if (people.length === 0) {
