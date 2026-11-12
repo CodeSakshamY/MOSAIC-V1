@@ -27,6 +27,7 @@ import { StatusForm } from "@/components/build/StatusForm";
 import { TimelineForm } from "@/components/build/TimelineForm";
 import { ProjectTeam } from "@/components/build/ProjectTeam";
 import { RelatedProjects } from "@/components/build/RelatedProjects";
+import { RelatedUpdates } from "@/components/build/RelatedUpdates";
 import { UpdateHistory } from "@/components/build/UpdateHistory";
 import { Versions } from "@/components/build/Versions";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
@@ -202,6 +203,19 @@ async function ProjectView({
       skillIds: (relatedSkillRows ?? []).filter((skill) => skill.project_id === row.id).map((skill) => skill.skill_id),
     })),
   );
+  const { data: relatedLogs } = relatedIds.length
+    ? await supabase
+        .from("build_logs")
+        .select("id, title, project_id")
+        .in("project_id", relatedIds)
+        .is("removed_at", null)
+        .order("created_at", { ascending: false })
+        .limit(8)
+    : { data: [] };
+  const relatedUpdates = (relatedLogs ?? []).flatMap((log) => {
+    const source = (relatedRows ?? []).find((row) => row.id === log.project_id);
+    return source ? [{ id: log.id, title: log.title, projectName: source.name, slug: source.slug }] : [];
+  });
   const tools = skills.filter((skill) => usedIds.has(skill.id));
   const needed = skills.filter((skill) => neededIds.has(skill.id));
   const timeline = projectTimelineText(project.starts_on, project.ends_on);
@@ -516,6 +530,7 @@ async function ProjectView({
               <UpdateHistory slug={project.slug} signedIn={Boolean(member)} updates={updates} />
               <ProjectTeam projectId={project.id} slug={project.slug} editable={isOwner} members={team} />
               <RelatedProjects projects={related} />
+              <RelatedUpdates updates={relatedUpdates} />
               <ProjectLineage entries={lineage} />
               <ContributionHistory entries={contributions} />
               <ProjectDiscussion projectId={project.id} />
