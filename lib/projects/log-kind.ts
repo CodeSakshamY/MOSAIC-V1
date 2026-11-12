@@ -1,4 +1,4 @@
-export const buildLogKinds = ["update", "milestone", "problem", "experiment"] as const;
+export const buildLogKinds = ["update", "milestone", "problem", "experiment", "lesson"] as const;
 
 export type BuildLogKind = (typeof buildLogKinds)[number];
 
@@ -7,6 +7,7 @@ const labels: Record<BuildLogKind, string> = {
   milestone: "Milestone",
   problem: "Problem",
   experiment: "Experiment",
+  lesson: "Failed attempt",
 };
 
 export function isBuildLogKind(value: string): value is BuildLogKind {
