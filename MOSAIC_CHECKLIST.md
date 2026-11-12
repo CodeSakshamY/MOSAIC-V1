@@ -286,7 +286,7 @@ Not started. Future phase.
 - [ ] Email settings
 - [ ] Two-factor authentication
 - [ ] Connected accounts
-- [ ] Privacy controls and profile visibility
+- [x] Privacy controls and profile visibility
 - [ ] Follow and interaction controls
 - [ ] Feed and interest preferences
 - [ ] Notification preferences

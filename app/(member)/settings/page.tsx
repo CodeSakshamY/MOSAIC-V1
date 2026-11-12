@@ -8,7 +8,7 @@ import { ThemePicker } from "@/components/settings/ThemePicker";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember } from "@/lib/auth/session";
 import { signOutOtherSessions } from "@/lib/auth/actions";
-import { saveNotifyFollows } from "@/lib/profile/actions";
+import { saveNotifyFollows, saveProfileVisibility } from "@/lib/profile/actions";
 import { createClient } from "@/lib/supabase/server";
 import { themeFromId } from "@/lib/theme/themes";
 
@@ -29,7 +29,7 @@ export default async function SettingsPage({
   const params = await searchParams;
   const supabase = await createClient();
   const { data: prefs } = member
-    ? await supabase.from("profiles").select("notify_follows").eq("id", member.id).maybeSingle()
+    ? await supabase.from("profiles").select("notify_follows, visibility").eq("id", member.id).maybeSingle()
     : { data: null };
 
   return (
@@ -37,6 +37,19 @@ export default async function SettingsPage({
       <ThemePicker current={theme.id} />
       {member ? <BlockedAccounts userId={member.id} /> : null}
       {member ? <MutedAccounts userId={member.id} /> : null}
+      {member ? (
+        <form action={saveProfileVisibility}>
+          <h2 id="privacy-heading">Privacy</h2>
+          <label htmlFor="settings-visibility">Who can see your profile</label>
+          <select id="settings-visibility" name="visibility" className="field-select" defaultValue={prefs?.visibility ?? "public"}>
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+          </select>
+          <button className="text-button" type="submit">
+            Save privacy
+          </button>
+        </form>
+      ) : null}
       {member ? (
         <form action={saveNotifyFollows}>
           <h2 id="notifications-heading">Notifications</h2>
