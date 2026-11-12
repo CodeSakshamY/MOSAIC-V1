@@ -3,6 +3,7 @@ import { FeedPostForm } from "@/components/discover/FeedPostForm";
 import { ReelComposer } from "@/components/discover/ReelComposer";
 import { FilterMenu } from "@/components/filters/FilterMenu";
 import { PostActions } from "@/components/feed/PostActions";
+import { SharedPeople } from "@/components/profile/SharedPeople";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { isVideoUrl } from "@/lib/auth/images";
@@ -168,7 +169,9 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
   const following = new Set((followed ?? []).map((row) => row.following_id));
   const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
   return (
-    <ul className="repo-list" role="list">
+    <>
+      {member?.onboardingComplete ? <SharedPeople memberId={member.id} /> : null}
+      <ul className="repo-list" role="list">
       {people.map((person) => {
         const place = [person.city, person.state].filter(Boolean).join(", ");
         const initial = person.display_name.trim().charAt(0).toUpperCase() || "?";
@@ -208,6 +211,7 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
         );
       })}
     </ul>
+    </>
   );
 }
 
