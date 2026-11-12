@@ -130,6 +130,29 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
     }
     query = query.in("id", ids);
   }
+  if (filters.experience) {
+    const { data: projects } = await supabase
+      .from("projects")
+      .select("id, owner_id")
+      .eq("category", filters.experience)
+      .eq("visibility", "public")
+      .is("removed_at", null)
+      .limit(200);
+    const projectIds = (projects ?? []).map((project) => project.id);
+    const { data: members } = projectIds.length
+      ? await supabase.from("project_members").select("profile_id").in("project_id", projectIds).eq("status", "active")
+      : { data: [] };
+    const ids = [
+      ...new Set([
+        ...(projects ?? []).map((project) => project.owner_id),
+        ...(members ?? []).map((member) => member.profile_id),
+      ]),
+    ];
+    if (ids.length === 0) {
+      return <p className="repo-empty">No people match that filter.</p>;
+    }
+    query = query.in("id", ids);
+  }
   const { data } = await query;
   const people = (data ?? []).filter((person) => person.username);
   if (people.length === 0) {
@@ -475,7 +498,8 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
     Number(Boolean(filters.place)) +
     Number(Boolean(filters.skill)) +
     Number(Boolean(filters.discipline)) +
-    Number(Boolean(filters.interest));
+    Number(Boolean(filters.interest)) +
+    Number(Boolean(filters.experience));
   return (
     <FilterMenu active={active}>
     <form className="discover-filters" action="/discover">
@@ -532,6 +556,17 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
           {interests.map((interest) => (
             <option key={interest.slug} value={interest.slug}>
               {interest.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="discover-experience">Project experience</label>
+        <select id="discover-experience" name="experience" className="field-select" defaultValue={filters.experience ?? ""}>
+          <option value="">Any</option>
+          {projectCategories.map((category) => (
+            <option key={category} value={category}>
+              {category}
             </option>
           ))}
         </select>
