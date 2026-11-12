@@ -15,6 +15,7 @@ export function Collaboration({
 }) {
   const pendingMine = requests.find((request) => request.mine && request.status === "pending");
   const pending = requests.filter((request) => request.status === "pending" && !request.mine);
+  const decided = requests.filter((request) => request.status === "accepted" || request.status === "rejected");
   if (!isOwner && !canRequest && !pendingMine) return null;
   return (
     <section className="project-requests" aria-labelledby="project-requests-heading">
@@ -44,6 +45,11 @@ export function Collaboration({
             </button>
           </form>
         </article>
+      ))}
+      {decided.map((request) => (
+        <p key={request.id}>
+          {request.name}: {request.status === "accepted" ? "Accepted" : "Declined"}
+        </p>
       ))}
       {pendingMine ? (
         <form action={withdrawContribution}>
