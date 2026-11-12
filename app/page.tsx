@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { HomeCard } from "@/components/feed/HomeCard";
 import { HomePager } from "@/components/feed/HomePager";
+import { SharedPeople } from "@/components/profile/SharedPeople";
 import { getMember } from "@/lib/auth/session";
 import { brand } from "@/lib/brand";
 import { loadHome, loadPublicProjects, parseCursor, parseHomeTab, type HomeTab } from "@/lib/feed/home";
@@ -124,6 +125,7 @@ async function HomeFeed({
         {feed.nextCursor ? (
           <HomePager tab={tab} cursor={feed.nextCursor} dismiss={tab === "for-you"} />
         ) : null}
+        <SharedPeople memberId={member.id} />
       </section>
     </div>
   );

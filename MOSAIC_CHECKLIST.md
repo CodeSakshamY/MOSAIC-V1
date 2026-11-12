@@ -9,7 +9,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Updates and threads on your projects
 - [x] Latest posts feed, on Discover
 - [ ] Trending projects
-- [ ] Recommended builders
+- [x] Recommended builders
 - [ ] Recommended communities
 - [ ] Project showcase posts
 - [ ] Build-in-public updates
