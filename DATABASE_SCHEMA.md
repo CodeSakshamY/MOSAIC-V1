@@ -590,6 +590,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `047_build_log_problem.sql` | A build log can record a problem. |
 | `048_build_log_experiment.sql` | A build log can record an experiment. |
 | `049_build_log_lesson.sql` | A build log can record a failed attempt. |
+| `050_build_log_explanation.sql` | A build log can be a technical explanation. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

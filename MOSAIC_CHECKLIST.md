@@ -75,7 +75,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Share problems encountered
 - [x] Document experiments
 - [x] Share failed attempts and lessons learned
-- [ ] Add technical explanations as a distinct log type
+- [x] Add technical explanations as a distinct log type
 - [x] Link updates to a specific project
 - [x] Display those updates in chronological order on the project
 - [ ] Comment on an individual update
