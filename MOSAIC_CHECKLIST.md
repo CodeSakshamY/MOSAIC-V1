@@ -98,7 +98,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Achievements and awards, including photos
 - [x] Competitions participated in
 - [x] Communities joined
-- [ ] Collaboration interests
+- [x] Collaboration interests
 - [ ] Looking-for status
 - [x] GitHub and personal website
 - [ ] LinkedIn and other external links

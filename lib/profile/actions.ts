@@ -13,6 +13,7 @@ import {
   parseWebsite,
 } from "@/lib/auth/validation";
 import { createClient } from "@/lib/supabase/server";
+import { isCollaborationPreference } from "@/lib/profile/collaboration";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 
@@ -43,6 +44,22 @@ export async function saveInterests(formData: FormData) {
       .insert(valid.map((interest_id) => ({ profile_id: member.id, interest_id })));
     if (error) return;
   }
+  revalidatePath("/profile");
+  if (member.username) revalidatePath(`/people/${member.username}`);
+  redirect("/profile");
+}
+
+export async function saveCollaboration(formData: FormData) {
+  const member = await requireOwner();
+  const value = String(formData.get("collaboration") ?? "");
+  const preference = value && isCollaborationPreference(value) ? value : null;
+  if (value && !preference) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ collaboration_preference: preference })
+    .eq("id", member.id);
+  if (error) return;
   revalidatePath("/profile");
   if (member.username) revalidatePath(`/people/${member.username}`);
   redirect("/profile");

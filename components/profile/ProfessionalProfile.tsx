@@ -14,7 +14,9 @@ import {
   PublicationForm,
 } from "@/components/profile/RecordForms";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
+import { CollaborationForm } from "@/components/profile/CollaborationForm";
 import { InterestsForm } from "@/components/profile/InterestsForm";
+import { collaborationLabel } from "@/lib/profile/collaboration";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { toggleBlock } from "@/lib/safety/actions";
 import { createClient } from "@/lib/supabase/server";
@@ -56,7 +58,7 @@ export async function ProfessionalProfile({
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("username, display_name, bio, avatar_url, banner_url, education, city, state, github_username, website_url")
+      .select("username, display_name, bio, avatar_url, banner_url, education, city, state, github_username, website_url, collaboration_preference")
       .eq("id", profileId)
       .maybeSingle(),
     supabase.from("profile_skills").select("skill_id").eq("profile_id", profileId),
@@ -339,6 +341,14 @@ export async function ProfessionalProfile({
               selected={interestIds}
             />
           ) : null}
+        </section>
+      ) : null}
+
+      {profile.collaboration_preference || editable ? (
+        <section className="profile-section" aria-labelledby="collaboration-heading">
+          <h2 id="collaboration-heading">Collaboration</h2>
+          <p>{collaborationLabel(profile.collaboration_preference) ?? "No collaboration preference yet."}</p>
+          {editable ? <CollaborationForm value={profile.collaboration_preference} /> : null}
         </section>
       ) : null}
 
