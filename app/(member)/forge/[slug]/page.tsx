@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
 import { ContributionHistory } from "@/components/build/ContributionHistory";
+import { CreditsForm } from "@/components/build/CreditsForm";
 import { DocumentationForm } from "@/components/build/DocumentationForm";
 import { Milestones } from "@/components/build/Milestones";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
@@ -73,7 +74,7 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, detailed_description, tagline, subcategory, cover_image_url, visibility, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
@@ -271,6 +272,11 @@ async function ProjectView({
                 {isOwner ? (
                   <DocumentationForm projectId={project.id} documentation={project.detailed_description} />
                 ) : null}
+              </section>
+              <section aria-labelledby="project-credits-heading">
+                <h2 id="project-credits-heading">Credits</h2>
+                {project.credits ? <p className="project-credits">{project.credits}</p> : <p className="form-note">No credits yet.</p>}
+                {isOwner ? <CreditsForm projectId={project.id} credits={project.credits} /> : null}
               </section>
               <UpdateHistory updates={updates} />
               <ProjectTeam members={team} />

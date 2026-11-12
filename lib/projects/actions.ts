@@ -252,6 +252,28 @@ export async function updateDocumentation(formData: FormData) {
   revalidatePath(`/forge/${project.slug}`);
 }
 
+export async function updateCredits(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const credits = String(formData.get("credits") ?? "").trim();
+  if (!projectIdPattern.test(projectId) || credits.length > 2000) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ credits: credits || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function addMilestone(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");

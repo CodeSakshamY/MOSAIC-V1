@@ -1583,7 +1583,8 @@
   font-size: 0.8125rem;
 }
 
-.project-docs {
+.project-docs,
+.project-credits {
   white-space: pre-wrap;
 }
 

@@ -54,7 +54,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Project updates and build logs shown on the project as a public history beyond the commit form
 - [x] Project contributors and team members shown as a team
 - [x] Contribution history
-- [ ] Credits and acknowledgements
+- [x] Credits and acknowledgements
 - [x] Project discussions (threads and replies)
 - [ ] Collaboration requests on the project
 - [x] Follow/watch a project

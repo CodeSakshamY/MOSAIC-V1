@@ -150,6 +150,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `description` | 1–200. The card line. |
 | `tagline` | Nullable, 1–80. One line under the project name. |
 | `detailed_description` | Nullable, max 8000. The project page writes this as the documentation. |
+| `credits` | Nullable, max 2000. Credits and acknowledgements. |
 | `problem` | Nullable, max 2000. |
 | `solution` | Nullable, max 2000. |
 | `cover_image_url` | Nullable. Public projects only. |
@@ -580,6 +581,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `038_project_status.sql` | Seven project statuses a builder can set. |
 | `039_project_timeline.sql` | Optional start and end dates on a project. |
 | `040_project_milestones.sql` | Up to 12 named dates on a project. |
+| `041_project_credits.sql` | Optional credits on a project. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
