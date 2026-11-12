@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FeedPostForm } from "@/components/discover/FeedPostForm";
 import { ReelComposer } from "@/components/discover/ReelComposer";
 import { FilterMenu } from "@/components/filters/FilterMenu";
 import { PostActions } from "@/components/feed/PostActions";
@@ -325,18 +326,22 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
   const loaded = (await loadPosts(filters.type)).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
   const hidden = await hiddenPostIds(member?.id ?? null, loaded.map((post) => post.id));
   const posts = loaded.filter((post) => !hidden.has(post.id));
+  const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
   if (posts.length === 0) {
     const filtered = Boolean(filters.type);
     return (
-      <p className="repo-empty">
-        {kind === "ideas"
-          ? filtered
-            ? "No ideas match that filter."
-            : "No ideas yet."
-          : filtered
-            ? "No posts match that filter."
-            : "No posts yet."}
-      </p>
+      <>
+        {signedIn && kind === "posts" ? <FeedPostForm /> : null}
+        <p className="repo-empty">
+          {kind === "ideas"
+            ? filtered
+              ? "No ideas match that filter."
+              : "No ideas yet."
+            : filtered
+              ? "No posts match that filter."
+              : "No posts yet."}
+        </p>
+      </>
     );
   }
   const supabase = await createClient();
@@ -345,7 +350,6 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
     posts.map((post) => post.id),
     member?.id ?? null,
   );
-  const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
   const viewerId = signedIn && member ? member.id : null;
   const following = await followedIds(viewerId, posts.map((post) => post.author_id));
   const watched = await watchedProjects(
@@ -353,7 +357,9 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
     posts.flatMap((post) => (post.project_id ? [post.project_id] : [])),
   );
   return (
-    <ul className="repo-list" role="list">
+    <>
+      {signedIn && kind === "posts" ? <FeedPostForm /> : null}
+      <ul className="repo-list" role="list">
       {posts.map((post) => (
         <li key={post.id} className="repo-row">
           <div className="repo-title">
@@ -395,6 +401,7 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
         </li>
       ))}
     </ul>
+    </>
   );
 }
 

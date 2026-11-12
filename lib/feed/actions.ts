@@ -170,3 +170,27 @@ export async function addComment(formData: FormData) {
   if (error) return;
   refresh(postId);
 }
+
+const feedPostTypes = ["idea", "help", "achievement"] as const;
+
+export async function createFeedPost(_state: { error?: string } | null, formData: FormData) {
+  const member = await memberOrLogin("/discover?view=posts");
+  const type = String(formData.get("type") ?? "");
+  const title = String(formData.get("title") ?? "").trim().slice(0, 160);
+  const content = String(formData.get("content") ?? "").trim().slice(0, 8000);
+  if (!feedPostTypes.some((item) => item === type)) return { error: "Choose a kind of post." };
+  if (!title) return { error: "Add a title." };
+  if (!content) return { error: "Write the post." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("posts").insert({
+    author_id: member.id,
+    type: type as (typeof feedPostTypes)[number],
+    title,
+    content,
+    visibility: "public",
+    is_demo: false,
+  });
+  if (error) return { error: "The post was not saved." };
+  revalidatePath("/discover");
+  redirect("/discover?view=posts");
+}

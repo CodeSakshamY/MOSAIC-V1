@@ -14,10 +14,10 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Project showcase posts
 - [ ] Build-in-public updates
 - [ ] Research findings and experiments
-- [ ] Ideas and concepts
-- [ ] Questions and help requests
+- [x] Ideas and concepts
+- [x] Questions and help requests
 - [ ] Collaboration requests
-- [ ] Competition and achievement posts
+- [x] Competition and achievement posts
 - [ ] Opportunity announcements
 - [ ] Event announcements
 - [ ] Image, video, document and link attachments
