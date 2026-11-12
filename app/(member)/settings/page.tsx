@@ -40,7 +40,7 @@ export default async function SettingsPage({
       {member ? <BlockedAccounts userId={member.id} /> : null}
       {member ? <MutedAccounts userId={member.id} /> : null}
       {member ? (
-        <form action={saveProfileVisibility}>
+        <form className="settings-block" action={saveProfileVisibility}>
           <h2 id="privacy-heading">Privacy</h2>
           <label htmlFor="settings-visibility">Who can see your profile</label>
           <select id="settings-visibility" name="visibility" className="field-select" defaultValue={prefs?.visibility ?? "public"}>
@@ -53,7 +53,7 @@ export default async function SettingsPage({
         </form>
       ) : null}
       {member ? (
-        <form action={saveNotifyFollows}>
+        <form className="settings-block" action={saveNotifyFollows}>
           <h2 id="notifications-heading">Notifications</h2>
           <label>
             <input id="notify-follows" type="checkbox" name="notify" value="1" defaultChecked={prefs?.notify_follows !== false} /> Tell me when someone follows me
@@ -70,7 +70,7 @@ export default async function SettingsPage({
         </form>
       ) : null}
       {member ? (
-        <form action={saveCommentsOpen}>
+        <form className="settings-block" action={saveCommentsOpen}>
           <h2 id="comments-heading">Comments</h2>
           <label>
             <input id="comments-open" type="checkbox" name="comments" value="1" defaultChecked={prefs?.comments_open !== false} /> Let people comment on my posts
@@ -81,7 +81,7 @@ export default async function SettingsPage({
         </form>
       ) : null}
       {member ? (
-        <form action={saveHiddenProjectType}>
+        <form className="settings-block" action={saveHiddenProjectType}>
           <h2 id="feed-heading">Feed</h2>
           <label htmlFor="hidden-project-type">Hide a project type</label>
           <select id="hidden-project-type" name="hidden" className="field-select" defaultValue={prefs?.hidden_project_type ?? ""}>
@@ -101,12 +101,12 @@ export default async function SettingsPage({
       {member?.username ? <DeleteAccount /> : null}
       {member ? <EmailChange email={member.email} /> : null}
       {member ? (
-        <p>
+        <p className="settings-block">
           <a href="/account/export">Download account data</a>
         </p>
       ) : null}
       {member ? (
-        <form action={changePassword}>
+        <form className="settings-block" action={changePassword}>
           <h2 id="password-heading">Password</h2>
           <label htmlFor="new-password">New password</label>
           <input id="new-password" name="password" type="password" required minLength={8} autoComplete="new-password" className="repo-search-input" />
@@ -116,7 +116,7 @@ export default async function SettingsPage({
         </form>
       ) : null}
       {member ? (
-        <form action={signOutOtherSessions}>
+        <form className="settings-block" action={signOutOtherSessions}>
           <h2 id="sessions-heading">Sessions</h2>
           <p className="form-note">This browser stays signed in. Every other session for this account is signed out.</p>
           {params.sessions === "closed" ? <p>Other sessions were signed out.</p> : null}

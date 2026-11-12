@@ -4,18 +4,11 @@ This file is the handoff. Read it before editing MOSAIC. The product name is MOS
 
 ## Git
 
-- Feature branch: `cursor/auth-onboarding-public-browse`
-- `origin/main` was pushed at `099e261` (merge of the branch through the password-change notice).
-- Commits after that merge are local only. They are not on `origin/main`. Newest first at the time of this handoff:
-  - `8a1af85` Staff moderation queue: remove a report, suspend, restore
-  - `ce33a94` Search by project discipline
-  - `113a43c` Hide one project type on Discover
-  - `e92b8fe` Search also covers opportunities, events, skills, tags, and typed community names
-  - `3e09003` Separate notice switches for follows, comments, and reactions
-  - `cf74228` Collaboration request and decision notices
+- Feature branch: `cursor/auth-onboarding-public-browse`. It stays ahead of its own remote. Do not push that branch unless asked.
+- `origin/main` includes the Discover section menu, this file, the README corrections, `deploy.md`, the moderation queue, and the phone menu (`2bc8299`, merged as `baac31d`). The settings spacing change is committed with this handoff update and merged to `main` in the same push.
 - Do not push unless asked. Do not force-push `main`. Do not change git config.
 - Leave `test-results/` and `.env.local` untracked.
-- Discover’s section menu, this file, the README corrections, and `deploy.md` belong in the commit that adds the section menu. `origin/main` before that push was `099e261`. Check `git log origin/main -1` before assuming those files are on main.
+- Check `git log origin/main -1` before assuming a later local commit is on main.
 
 ## How to run commands
 
@@ -53,6 +46,12 @@ Filters are separate and only where they change the list:
 - Communities, opportunities, events, competitions, hackathons, open source, technologies, collections, editor's picks, and new: no project-type filter.
 
 `e2e/discover-section.spec.ts` checks that split.
+
+## Phone menu and settings spacing
+
+Below 760px the left sidebar is hidden. The top bar shows a Show more button that opens a left panel with Home, Discover, Forge, People, Opportunities, Communities, Profile, Notifications, Settings, and Sign in or Sign out. The bottom bar stays the five short links. From 760px up the button stays hidden and the sidebar is unchanged. `e2e/mobile-menu.spec.ts` checks the phone panel and the hidden desktop button.
+
+Settings groups use `.settings-block`: a top border, space above the next group, and stacked labels. That covers privacy, notifications, comments, feed, the download link, password, and sessions. Muted accounts, blocked accounts, and hidden posts stay in `.profile-section`.
 
 ## Moderation
 
