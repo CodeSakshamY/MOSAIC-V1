@@ -119,7 +119,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Filter by skills and technologies
 - [x] Filter by interests
 - [x] Filter by project experience
-- [ ] Filter by availability for collaboration
+- [x] Filter by availability for collaboration
 - [x] Filter by broad location or institution
 - [ ] Recommended builders
 - [ ] Similar-interest discovery

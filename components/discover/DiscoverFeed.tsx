@@ -10,6 +10,7 @@ import { type DiscoverFilters, interestCategories, peopleFilterActive, readDisco
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { hiddenPostIds } from "@/lib/safety/hidden";
 import { ageGroups } from "@/lib/profile/age-groups";
+import { collaborationPreferences } from "@/lib/profile/collaboration";
 import { projectCategories, type ProjectCategory } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 
@@ -153,6 +154,7 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
     }
     query = query.in("id", ids);
   }
+  if (filters.availability) query = query.eq("collaboration_preference", filters.availability);
   const { data } = await query;
   const people = (data ?? []).filter((person) => person.username);
   if (people.length === 0) {
@@ -499,7 +501,8 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
     Number(Boolean(filters.skill)) +
     Number(Boolean(filters.discipline)) +
     Number(Boolean(filters.interest)) +
-    Number(Boolean(filters.experience));
+    Number(Boolean(filters.experience)) +
+    Number(Boolean(filters.availability));
   return (
     <FilterMenu active={active}>
     <form className="discover-filters" action="/discover">
@@ -567,6 +570,17 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
           {projectCategories.map((category) => (
             <option key={category} value={category}>
               {category}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="discover-availability">Collaboration</label>
+        <select id="discover-availability" name="availability" className="field-select" defaultValue={filters.availability}>
+          <option value="">Any</option>
+          {collaborationPreferences.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
             </option>
           ))}
         </select>

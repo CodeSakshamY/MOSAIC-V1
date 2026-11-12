@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; q?: string; age?: string; place?: string; skill?: string; discipline?: string; interest?: string; experience?: string; type?: string }>;
+  searchParams: Promise<{ view?: string; q?: string; age?: string; place?: string; skill?: string; discipline?: string; interest?: string; experience?: string; availability?: string; type?: string }>;
 }) {
   return (
     <Suspense fallback={null}>
@@ -22,7 +22,7 @@ export default function DiscoverPage({
 async function DiscoverPageContent({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; q?: string; age?: string; place?: string; skill?: string; discipline?: string; interest?: string; experience?: string; type?: string }>;
+  searchParams: Promise<{ view?: string; q?: string; age?: string; place?: string; skill?: string; discipline?: string; interest?: string; experience?: string; availability?: string; type?: string }>;
 }) {
   const params = await searchParams;
   return (
