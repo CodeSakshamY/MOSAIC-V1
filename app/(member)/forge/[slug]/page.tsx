@@ -6,6 +6,7 @@ import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
 import { StatusForm } from "@/components/build/StatusForm";
+import { TimelineForm } from "@/components/build/TimelineForm";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { ToolsForm } from "@/components/build/ToolsForm";
@@ -14,6 +15,7 @@ import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
 import { isProjectCategory, isProjectStatus, projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
+import { projectTimelineText } from "@/lib/projects/timeline";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -66,7 +68,7 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, tagline, subcategory, cover_image_url, visibility, status, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, tagline, subcategory, cover_image_url, visibility, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
@@ -108,6 +110,7 @@ async function ProjectView({
   const neededIds = new Set(links.filter((row) => row.relation === "seeking").map((row) => row.skill_id));
   const tools = skills.filter((skill) => usedIds.has(skill.id));
   const needed = skills.filter((skill) => neededIds.has(skill.id));
+  const timeline = projectTimelineText(project.starts_on, project.ends_on);
   const onProject = Boolean(membershipResult.data);
   const typeNote = projectTypeNotes[project.category as ProjectCategory];
 
@@ -149,6 +152,7 @@ async function ProjectView({
       </header>
       {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
       {needed.length ? <p className="repo-meta project-needs">Needs {needed.map((skill) => skill.name).join(", ")}</p> : null}
+      {timeline ? <p className="repo-meta project-timeline">{timeline}</p> : null}
       {isOwner ? <TaglineForm projectId={project.id} tagline={project.tagline} /> : null}
       {isOwner && isProjectCategory(project.category) ? (
         <SubcategoryForm projectId={project.id} category={project.category} subcategory={project.subcategory} />
@@ -156,6 +160,9 @@ async function ProjectView({
       {isOwner ? <ToolsForm projectId={project.id} skills={skills} selected={[...usedIds]} /> : null}
       {isOwner ? <SkillsForm projectId={project.id} skills={skills} selected={[...neededIds]} /> : null}
       {isOwner && isProjectStatus(project.status) ? <StatusForm projectId={project.id} status={project.status} /> : null}
+      {isOwner ? (
+        <TimelineForm projectId={project.id} startsOn={project.starts_on} endsOn={project.ends_on} />
+      ) : null}
       {!isOwner && member ? (
         <ReportForm kind="project" target={project.id} reported={reportedState(query.reported)} />
       ) : null}

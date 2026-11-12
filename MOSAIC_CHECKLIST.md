@@ -47,7 +47,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Skills required
 - [x] Project status: Idea, Researching, In development, Prototype, Testing, Completed, On hold
 - [x] Public or private visibility
-- [ ] Project timeline
+- [x] Project timeline
 - [ ] Project milestones
 - [ ] Project documentation
 - [x] Demo, GitHub, website, paper and video links as first-class fields

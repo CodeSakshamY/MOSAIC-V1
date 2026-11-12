@@ -156,6 +156,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `category` | Text, max 60, matching an interest slug where possible. |
 | `subcategory` | Nullable. A closed list under `category`, checked by `is_project_subcategory`. |
 | `status` | `project_status`, default `idea`. The owner can set Idea, Researching, In development, Prototype, Testing, Completed, or On hold. |
+| `starts_on`, `ends_on` | Nullable dates from 2000-01-01 through 2100-12-31. The end is on or after the start when both are set. |
 | `github_url`, `demo_url`, `documentation_url` | Nullable, `https` only. |
 | `visibility` | Default `public`. |
 | `looking_for_contributors` | Boolean, default false. |
@@ -573,6 +574,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `036_project_tools.sql` | Stop a project at 8 tools it uses. |
 | `037_project_skills_required.sql` | Stop a project at 8 skills it is seeking. |
 | `038_project_status.sql` | Seven project statuses a builder can set. |
+| `039_project_timeline.sql` | Optional start and end dates on a project. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
