@@ -14,6 +14,7 @@ import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
+import { TeammateResponsibilitiesForm } from "@/components/build/TeammateResponsibilitiesForm";
 import { TeammateRequirementForm } from "@/components/build/TeammateRequirementForm";
 import { OpenCollaboratorsForm } from "@/components/build/OpenCollaboratorsForm";
 import { StatusForm } from "@/components/build/StatusForm";
@@ -86,7 +87,7 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, teammate_requirement, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, teammate_requirement, teammate_responsibilities, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
@@ -420,6 +421,10 @@ async function ProjectView({
       {isOwner ? <OpenCollaboratorsForm projectId={project.id} open={project.looking_for_contributors} /> : null}
       {project.teammate_requirement ? <p className="repo-meta">{project.teammate_requirement}</p> : null}
       {isOwner ? <TeammateRequirementForm projectId={project.id} requirement={project.teammate_requirement} /> : null}
+      {project.teammate_responsibilities ? <p className="repo-meta">{project.teammate_responsibilities}</p> : null}
+      {isOwner ? (
+        <TeammateResponsibilitiesForm projectId={project.id} responsibilities={project.teammate_responsibilities} />
+      ) : null}
       {isOwner ? (
         <TimelineForm projectId={project.id} startsOn={project.starts_on} endsOn={project.ends_on} />
       ) : null}
