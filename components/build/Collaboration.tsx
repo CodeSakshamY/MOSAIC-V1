@@ -26,7 +26,8 @@ export function Collaboration({
   const pendingMine = requests.find((request) => request.mine && request.status === "pending");
   const pending = requests.filter((request) => request.status === "pending" && !request.mine);
   const decided = requests.filter((request) => request.status === "accepted" || request.status === "rejected");
-  if (!isOwner && !canRequest && !pendingMine) return null;
+  const own = requests.filter((request) => request.mine);
+  if (!isOwner && !canRequest && own.length === 0) return null;
   return (
     <section className="project-requests" aria-labelledby="project-requests-heading">
       <h2 id="project-requests-heading">Collaboration</h2>
@@ -71,7 +72,7 @@ export function Collaboration({
         <form action={withdrawContribution}>
           <input type="hidden" name="projectId" value={projectId} />
           <input type="hidden" name="requestId" value={pendingMine.id} />
-          <p>Request sent. {pendingMine.message}</p>
+          <p>Request sent. Status: pending. {pendingMine.message}</p>
           <button className="text-button" type="submit">
             Withdraw request
           </button>
