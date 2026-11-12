@@ -79,7 +79,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Link updates to a specific project
 - [x] Display those updates in chronological order on the project
 - [x] Comment on an individual update
-- [ ] React to build logs
+- [x] React to build logs
 - [ ] Follow build-log updates
 - [ ] Highlight major milestones on project pages
 

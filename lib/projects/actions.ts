@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
 import { parseProjectDay } from "@/lib/projects/timeline";
+import { isReactionType } from "@/lib/feed/reactions";
 import { isBuildLogKind } from "@/lib/projects/log-kind";
 import { isProjectCategory, isProjectSlug, isProjectStatus, isProjectSubcategory, projectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
@@ -613,6 +614,53 @@ export async function commentOnUpdate(formData: FormData) {
   });
   if (error) return;
   revalidatePath(`/forge/${slug}`);
+}
+
+export async function reactToUpdate(formData: FormData) {
+  const member = await requireMember();
+  const postId = String(formData.get("postId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  const type = String(formData.get("type") ?? "");
+  if (!projectIdPattern.test(postId) || !isProjectSlug(slug) || !isReactionType(type)) return;
+  const supabase = await createClient();
+  const { data: post } = await supabase
+    .from("posts")
+    .select("id")
+    .eq("id", postId)
+    .eq("type", "build_log")
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!post) return;
+  const { data: existing } = await supabase
+    .from("reactions")
+    .select("id")
+    .eq("user_id", member.id)
+    .eq("post_id", postId)
+    .eq("type", type)
+    .maybeSingle();
+  if (existing) {
+    const { error } = await supabase.from("reactions").delete().eq("id", existing.id).eq("user_id", member.id);
+    if (error) return;
+  } else {
+    if (type === "upvote" || type === "downvote") {
+      await supabase
+        .from("reactions")
+        .delete()
+        .eq("user_id", member.id)
+        .eq("post_id", postId)
+        .eq("type", type === "upvote" ? "downvote" : "upvote");
+    }
+    const { error } = await supabase.from("reactions").insert({
+      user_id: member.id,
+      post_id: postId,
+      type,
+    });
+    if (error) return;
+  }
+  revalidatePath(`/forge/${slug}`);
+  revalidatePath("/");
+  revalidatePath("/discover");
+  revalidatePath(`/posts/${postId}`);
 }
 
 export async function openPullRequest(_state: ActionState, formData: FormData): Promise<ActionState> {

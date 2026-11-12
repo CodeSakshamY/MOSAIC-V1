@@ -233,6 +233,13 @@ async function ProjectView({
     ? await supabase.from("posts").select("id, build_log_id").in("build_log_id", logIds).eq("type", "build_log").is("removed_at", null)
     : { data: [] };
   const postIds = (logPosts ?? []).map((post) => post.id);
+  const { data: reactionRows } = postIds.length
+    ? await supabase
+        .from("reactions")
+        .select("post_id, user_id, type")
+        .in("post_id", postIds)
+        .in("type", ["like", "upvote", "downvote"])
+    : { data: [] };
   const { data: commentRows } = postIds.length
     ? await supabase
         .from("comments")
@@ -265,6 +272,16 @@ async function ProjectView({
     media: log.media_urls,
     kind: log.kind,
     postId: (logPosts ?? []).find((post) => post.build_log_id === log.id)?.id ?? null,
+    reactions: (["like", "upvote", "downvote"] as const).map((type) => ({
+      type,
+      count: (reactionRows ?? []).filter((row) => row.post_id === (logPosts ?? []).find((post) => post.build_log_id === log.id)?.id && row.type === type).length,
+      pressed: (reactionRows ?? []).some(
+        (row) =>
+          row.user_id === member?.id &&
+          row.type === type &&
+          row.post_id === (logPosts ?? []).find((post) => post.build_log_id === log.id)?.id,
+      ),
+    })),
     comments: (commentRows ?? [])
       .filter((comment) => (logPosts ?? []).some((post) => post.id === comment.post_id && post.build_log_id === log.id))
       .map((comment) => ({
@@ -439,7 +456,7 @@ async function ProjectView({
                 {project.credits ? <p className="project-credits">{project.credits}</p> : <p className="form-note">No credits yet.</p>}
                 {isOwner ? <CreditsForm projectId={project.id} credits={project.credits} /> : null}
               </section>
-              <UpdateHistory slug={project.slug} updates={updates} />
+              <UpdateHistory slug={project.slug} signedIn={Boolean(member)} updates={updates} />
               <ProjectTeam members={team} />
               <RelatedProjects projects={related} />
               <ProjectLineage entries={lineage} />
