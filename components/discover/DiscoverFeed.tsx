@@ -35,6 +35,7 @@ const views = [
   { id: "hackathons", label: "Hackathons" },
   { id: "opensource", label: "Open source" },
   { id: "technologies", label: "Technologies" },
+  { id: "everything", label: "Search" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -75,6 +76,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("technologies", filters)} aria-current={view === "technologies" ? "page" : undefined}>
           Technologies
         </Link>
+        <Link href={hrefFor("everything", filters)} aria-current={view === "everything" ? "page" : undefined}>
+          Search
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -84,8 +88,8 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         ))}
       </nav>
       <div className="discover-tools">
-        {view === "people" || view === "projects" ? <DiscoverSearch view={view} filters={filters} /> : null}
-        {view === "people" ? <PeopleFilters filters={filters} /> : <TypeFilters view={view} filters={filters} />}
+        {view === "people" || view === "projects" || view === "everything" ? <DiscoverSearch view={view} filters={filters} /> : null}
+        {view === "people" ? <PeopleFilters filters={filters} /> : view === "everything" ? null : <TypeFilters view={view} filters={filters} />}
       </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
@@ -98,6 +102,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "hackathons" ? <HackathonList /> : null}
       {view === "opensource" ? <OpenSourceList /> : null}
       {view === "technologies" ? <TechnologyList /> : null}
+      {view === "everything" ? <SearchEverything filters={filters} /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -114,12 +119,12 @@ export { readDiscoverFilters };
 function hrefFor(view: View, filters: DiscoverFilters, type: ProjectCategory | null = filters.type) {
   const params = new URLSearchParams();
   if (view !== "posts") params.set("view", view);
-  if ((view === "people" || view === "projects") && filters.q) params.set("q", filters.q);
+  if ((view === "people" || view === "projects" || view === "everything") && filters.q) params.set("q", filters.q);
   if (view === "people") {
     if (filters.age) params.set("age", filters.age);
     if (filters.place) params.set("place", filters.place);
     if (filters.skill) params.set("skill", filters.skill);
-  } else if (type) {
+  } else if (view !== "everything" && type) {
     params.set("type", type);
   }
   const query = params.toString();
@@ -583,6 +588,93 @@ async function TechnologyList() {
   );
 }
 
+async function SearchEverything({ filters }: { filters: DiscoverFilters }) {
+  const term = filters.q.replace(/[,.()]/g, "");
+  const supabase = await createClient();
+  const people = term
+    ? (
+        await supabase
+          .from("profile_directory")
+          .select("id, username, display_name")
+          .eq("onboarding_complete", true)
+          .eq("visibility", "public")
+          .not("username", "is", null)
+          .or(`display_name.ilike.%${term}%,username.ilike.%${term}%`)
+          .order("display_name")
+          .limit(8)
+      ).data ?? []
+    : [];
+  const projects = term
+    ? (
+        await supabase
+          .from("projects")
+          .select("id, name, slug")
+          .eq("visibility", "public")
+          .is("removed_at", null)
+          .ilike("name", `%${term}%`)
+          .order("updated_at", { ascending: false })
+          .limit(8)
+      ).data ?? []
+    : [];
+  const posts = term
+    ? (
+        await supabase
+          .from("posts")
+          .select("id, title")
+          .is("removed_at", null)
+          .ilike("title", `%${term}%`)
+          .order("created_at", { ascending: false })
+          .limit(8)
+      ).data ?? []
+    : [];
+  return (
+    <section aria-labelledby="discover-search-heading">
+      <h2 id="discover-search-heading">Search</h2>
+      <p className="form-note">People, projects, and posts whose names match the words you type.</p>
+      {!term ? <p>Type a search above.</p> : null}
+      {term && people.length + projects.length + posts.length === 0 ? <p>Nothing matched.</p> : null}
+      {people.length ? (
+        <>
+          <h3>People</h3>
+          <ul className="repo-list" role="list">
+            {people.flatMap((person) =>
+              person.username ? (
+                <li key={person.id} className="repo-row">
+                  <Link href={`/people/${person.username}`}>{person.display_name}</Link>
+                </li>
+              ) : [],
+            )}
+          </ul>
+        </>
+      ) : null}
+      {projects.length ? (
+        <>
+          <h3>Projects</h3>
+          <ul className="repo-list" role="list">
+            {projects.map((project) => (
+              <li key={project.id} className="repo-row">
+                <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {posts.length ? (
+        <>
+          <h3>Posts</h3>
+          <ul className="repo-list" role="list">
+            {posts.map((post) => (
+              <li key={post.id} className="repo-row">
+                <Link href={`/posts/${post.id}`}>{post.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
 async function ProjectList({ filters }: { filters: DiscoverFilters }) {
   const supabase = await createClient();
   let query = supabase
@@ -905,7 +997,7 @@ async function ReelGrid({ filters }: { filters: DiscoverFilters }) {
   );
 }
 
-function DiscoverSearch({ view, filters }: { view: "people" | "projects"; filters: DiscoverFilters }) {
+function DiscoverSearch({ view, filters }: { view: "people" | "projects" | "everything"; filters: DiscoverFilters }) {
   return (
     <form className="repo-search discover-search" action="/discover">
       <input type="hidden" name="view" value={view} />
@@ -918,7 +1010,7 @@ function DiscoverSearch({ view, filters }: { view: "people" | "projects"; filter
         id="discover-search"
         name="q"
         defaultValue={filters.q}
-        placeholder={view === "people" ? "Name or username" : "Project name"}
+        placeholder={view === "people" ? "Name or username" : view === "projects" ? "Project name" : "People, projects, or posts"}
         maxLength={80}
         className="repo-search-input"
       />
