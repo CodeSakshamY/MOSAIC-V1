@@ -229,6 +229,19 @@ export async function ProfessionalProfile({
     .sort((left, right) => (right.profile_featured_at ?? "").localeCompare(left.profile_featured_at ?? ""));
   const completed = owned.filter((project) => project.status === "completed");
   const current = owned.filter((project) => project.status !== "completed");
+  const profileParts = [
+    { label: "Username", done: Boolean(profile.username) },
+    { label: "Name", done: profile.display_name.trim().length > 0 },
+    { label: "Photo", done: Boolean(profile.avatar_url) },
+    { label: "Bio", done: Boolean(profile.bio?.trim()) },
+    { label: "City", done: Boolean(profile.city?.trim()) },
+    { label: "Skills", done: (skillRows.data ?? []).length > 0 },
+    { label: "Interests", done: (interestsResult.data ?? []).length > 0 },
+    { label: "Looking for", done: profile.looking_for.length > 0 },
+    { label: "Project or education", done: owned.length > 0 || education.length > 0 },
+  ];
+  const profileDone = profileParts.filter((part) => part.done).length;
+  const profileOpen = profileParts.filter((part) => !part.done).map((part) => part.label);
   const activity: Array<{ id: string; at: string; text: string; href?: string }> = [
     ...owned.map((project) => ({
       id: `project-${project.id}`,
@@ -332,6 +345,14 @@ export async function ProfessionalProfile({
           )}
         </div>
       </header>
+
+      <section className="profile-section" aria-labelledby="completion-heading">
+        <h2 id="completion-heading">Profile details</h2>
+        <p>
+          {profileDone} of {profileParts.length}
+        </p>
+        {profileOpen.length > 0 ? <p>Still open: {profileOpen.join(", ")}.</p> : <p>Every part is filled in.</p>}
+      </section>
 
       {viewer?.id === profileId ? null : (
         <ReportForm kind="profile" target={profile.username} reported={reported} />
