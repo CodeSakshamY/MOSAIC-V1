@@ -53,7 +53,7 @@ export async function toggleBlock(formData: FormData) {
   const member = await requireMember(next);
   const supabase = await createClient();
   const { data: target } = await supabase
-    .from("profiles")
+    .from("profile_directory")
     .select("id, username, deleted_at")
     .eq("username", parsed.username)
     .maybeSingle();
@@ -87,7 +87,7 @@ export async function reportProfile(formData: FormData) {
   if (!why) redirect(`${next}?reported=missing`);
   const supabase = await createClient();
   const { data: target } = await supabase
-    .from("profiles")
+    .from("profile_directory")
     .select("id, deleted_at")
     .eq("username", parsed.username)
     .maybeSingle();
@@ -191,7 +191,7 @@ export async function unblock(formData: FormData) {
   const member = await requireMember("/settings");
   const supabase = await createClient();
   const { data: target } = await supabase
-    .from("profiles")
+    .from("profile_directory")
     .select("id")
     .eq("username", parsed.username)
     .maybeSingle();

@@ -104,6 +104,7 @@ Public builder identity. Created by a trigger when `auth.users` gains a row.
 | `website_url` | Nullable, `https` only. |
 | `looking_for` | `text[]`, default `'{}'`, closed set above. |
 | `collaboration_preference` | Nullable `collaboration_type`. Used by people filters. |
+| `visibility` | `public` or `private`, default `public`. |
 | `onboarding_complete` | Boolean, default false. |
 | `is_demo` | Boolean, default false. |
 | `deleted_at` | Nullable. Set by the anonymize function. |
@@ -111,7 +112,7 @@ Public builder identity. Created by a trigger when `auth.users` gains a row.
 
 Email, phone, date of birth, street address, and coordinates are not columns.
 
-Public read excludes rows with `deleted_at` set, except the owner may still read their own row. Search excludes deleted and suspended profiles. Suspension itself lives in `account_sanctions`, so a public profile read does not need a reason column.
+Public reads of a profile row are the owner, or a public profile that is not deleted. `profile_directory` is what the app reads. It keeps the name and username when a profile is private, and it returns the other columns only to the owner or when `visibility` is public. Discover lists public profiles. Education, skills, interests, experience, certificates, awards, research, competitions, communities, and extra links are readable only for a public profile or by the owner. Public projects and posts stay readable at their own addresses.
 
 ### profile_private
 
@@ -628,6 +629,8 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `055_profile_competitions.sql` | A builder can list competitions they took part in. |
 | `056_profile_communities.sql` | A builder can list communities they have taken part in. |
 | `057_profile_links.sql` | Extra https links on a profile, including LinkedIn. |
+| `058_profile_visibility.sql` | Public or private profiles. The API reads `profile_directory`. |
+| `059_profile_select.sql` | A profile row is readable by its owner, or by anyone when the profile is public. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

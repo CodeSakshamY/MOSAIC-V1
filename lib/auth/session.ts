@@ -27,7 +27,7 @@ export async function getMember(existing?: Client): Promise<Member | null> {
   const email = typeof data.claims.email === "string" ? data.claims.email : null;
   const [profileResult, privateResult, statusResult] = await Promise.all([
     supabase
-      .from("profiles")
+      .from("profile_directory")
       .select("username, display_name, onboarding_complete, deleted_at")
       .eq("id", id)
       .maybeSingle(),

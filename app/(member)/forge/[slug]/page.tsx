@@ -91,7 +91,7 @@ async function ProjectView({
   if (!project) notFound();
 
   const [ownerResult, parentResult, forksResult, membershipResult, watchResult, saveResult, galleryResult, skillsResult, skillLinks, milestoneResult, versionResult, logResult, memberResult, requestResult, followCount, threadCount, saveCount] = await Promise.all([
-    supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
+    supabase.from("profile_directory").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -261,7 +261,7 @@ async function ProjectView({
     ]),
   ];
   const { data: authorRows } = authorIds.length
-    ? await supabase.from("profiles").select("id, display_name, username").in("id", authorIds)
+    ? await supabase.from("profile_directory").select("id, display_name, username").in("id", authorIds)
     : { data: [] };
   const authorNames = new Map(
     (authorRows ?? []).map((person) => [person.id, person.display_name || person.username]),

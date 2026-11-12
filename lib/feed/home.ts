@@ -163,7 +163,7 @@ async function loadFollowing(memberId: string, cursor: string | null): Promise<H
 
 async function loadNearby(memberId: string, cursor: string | null): Promise<HomeFeedResult> {
   const supabase = await createClient();
-  const { data: profile } = await supabase.from("profiles").select("city, state").eq("id", memberId).maybeSingle();
+  const { data: profile } = await supabase.from("profile_directory").select("city, state").eq("id", memberId).maybeSingle();
   const city = profile?.city?.trim() ?? "";
   const state = profile?.state?.trim() ?? "";
   if (!city && !state) {
@@ -194,7 +194,7 @@ async function loadNearby(memberId: string, cursor: string | null): Promise<Home
 async function loadForYou(memberId: string, cursor: string | null): Promise<HomeFeedResult> {
   const supabase = await createClient();
   const [{ data: profile }, { data: skillRows }, { data: interestRows }, { data: follows }] = await Promise.all([
-    supabase.from("profiles").select("city, state, looking_for").eq("id", memberId).maybeSingle(),
+    supabase.from("profile_directory").select("city, state, looking_for").eq("id", memberId).maybeSingle(),
     supabase.from("profile_skills").select("skill_id").eq("profile_id", memberId),
     supabase.from("profile_interests").select("interest_id").eq("profile_id", memberId),
     supabase.from("follows").select("following_id").eq("follower_id", memberId),
@@ -235,7 +235,7 @@ async function loadForYou(memberId: string, cursor: string | null): Promise<Home
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const [{ data: authors }, { data: authorInterests }, { data: projectSkills }, { data: covers }, { data: events }, { data: reactions }, { data: watched }, { data: signals }] =
     await Promise.all([
-      supabase.from("profiles").select("id, username, display_name, city, state").in("id", authorIds),
+      supabase.from("profile_directory").select("id, username, display_name, city, state").in("id", authorIds),
       supabase.from("profile_interests").select("profile_id, interest_id").in("profile_id", authorIds),
       projectIds.length
         ? supabase.from("project_skills").select("project_id, skill_id, relation").in("project_id", projectIds)
@@ -412,7 +412,7 @@ async function listed(posts: PostRow[], empty: string): Promise<HomeFeedResult> 
 async function authorsIn(column: "city" | "state", value: string, memberId: string, blocked: Set<string>) {
   const supabase = await createClient();
   const { data } = await supabase
-    .from("profiles")
+    .from("profile_directory")
     .select("id")
     .ilike(column, value.replaceAll("%", "").replaceAll("_", ""))
     .neq("id", memberId)
@@ -431,7 +431,7 @@ async function authorNames(ids: string[]) {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return new Map<string, { display_name: string; username: string | null }>();
   const supabase = await createClient();
-  const { data } = await supabase.from("profiles").select("id, username, display_name").in("id", unique);
+  const { data } = await supabase.from("profile_directory").select("id, username, display_name").in("id", unique);
   return new Map((data ?? []).map((author) => [author.id, author]));
 }
 

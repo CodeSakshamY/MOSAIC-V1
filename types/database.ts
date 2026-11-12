@@ -775,14 +775,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "age_group": Database["public"]['Enums']["age_group"] | null,"avatar_url": string | null,"banner_url": string | null,"bio": string | null,"city": string | null,"collaboration_preference": Database["public"]['Enums']["collaboration_type"] | null,"country": string,"created_at": string,"deleted_at": string | null,"display_name": string,"education": string | null,"github_username": string | null,"id": string,"is_demo": boolean,"looking_for": (string)[],"onboarding_complete": boolean,"state": string | null,"updated_at": string,"username": string | null,"website_url": string | null
+                    "age_group": Database["public"]['Enums']["age_group"] | null,"avatar_url": string | null,"banner_url": string | null,"bio": string | null,"city": string | null,"collaboration_preference": Database["public"]['Enums']["collaboration_type"] | null,"country": string,"created_at": string,"deleted_at": string | null,"display_name": string,"education": string | null,"github_username": string | null,"id": string,"is_demo": boolean,"looking_for": (string)[],"onboarding_complete": boolean,"state": string | null,"updated_at": string,"username": string | null,"visibility": Database["public"]['Enums']["visibility"],"website_url": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name": string,"education"?: string | null,"github_username"?: string | null,"id": string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"website_url"?: string | null
+                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name": string,"education"?: string | null,"github_username"?: string | null,"id": string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"visibility"?: Database["public"]['Enums']["visibility"],"website_url"?: string | null
                   }
                   Update: {
-                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name"?: string,"education"?: string | null,"github_username"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"website_url"?: string | null
+                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name"?: string,"education"?: string | null,"github_username"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"visibility"?: Database["public"]['Enums']["visibility"],"website_url"?: string | null
                   }
                   Relationships: [
                     
@@ -1154,7 +1154,28 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "profile_directory": {
+              Row: {
+                "age_group": Database["public"]['Enums']["age_group"] | null
+                "avatar_url": string | null
+                "banner_url": string | null
+                "bio": string | null
+                "city": string | null
+                "collaboration_preference": Database["public"]['Enums']["collaboration_type"] | null
+                "deleted_at": string | null
+                "display_name": string
+                "education": string | null
+                "github_username": string | null
+                "id": string
+                "looking_for": string[]
+                "onboarding_complete": boolean
+                "state": string | null
+                "username": string | null
+                "visibility": Database["public"]['Enums']["visibility"]
+                "website_url": string | null
+              }
+              Relationships: []
+            }
           }
           Functions: {
             "anonymize_profile":

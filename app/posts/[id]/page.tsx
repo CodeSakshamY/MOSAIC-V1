@@ -52,7 +52,7 @@ async function PostPageContent({
   if (!post) notFound();
 
   const [{ data: author }, { data: project }, { data: comments }, activity] = await Promise.all([
-    supabase.from("profiles").select("username, display_name").eq("id", post.author_id).maybeSingle(),
+    supabase.from("profile_directory").select("username, display_name").eq("id", post.author_id).maybeSingle(),
     post.project_id
       ? supabase.from("projects").select("name, slug").eq("id", post.project_id).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -83,7 +83,7 @@ async function PostPageContent({
   const rows = comments ?? [];
   const commenterIds = [...new Set(rows.map((comment) => comment.author_id))];
   const { data: commenters } = commenterIds.length
-    ? await supabase.from("profiles").select("id, username, display_name").in("id", commenterIds)
+    ? await supabase.from("profile_directory").select("id, username, display_name").in("id", commenterIds)
     : { data: [] };
   const commenterName = new Map((commenters ?? []).map((person) => [person.id, person]));
   const replies = new Map<string, typeof rows>();

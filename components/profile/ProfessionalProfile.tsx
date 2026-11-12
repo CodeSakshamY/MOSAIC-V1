@@ -2,7 +2,7 @@ import { Children, type ReactNode } from "react";
 import Link from "next/link";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ReportForm, type reportedState } from "@/components/safety/ReportForm";
-import { removeProfileItem, featureProject } from "@/lib/profile/actions";
+import { removeProfileItem, featureProject, saveProfileVisibility } from "@/lib/profile/actions";
 import {
   AchievementForm,
   AwardForm,
@@ -62,8 +62,8 @@ export async function ProfessionalProfile({
     buildLogResult,
   ] = await Promise.all([
     supabase
-      .from("profiles")
-      .select("username, display_name, bio, avatar_url, banner_url, education, city, state, github_username, website_url, collaboration_preference, looking_for")
+      .from("profile_directory")
+      .select("username, display_name, bio, avatar_url, banner_url, education, city, state, github_username, website_url, collaboration_preference, looking_for, visibility")
       .eq("id", profileId)
       .maybeSingle(),
     supabase.from("profile_skills").select("skill_id").eq("profile_id", profileId),
@@ -197,7 +197,7 @@ export async function ProfessionalProfile({
   ];
   const { data: relatedProfiles } = relatedIds.length
     ? await supabase
-        .from("profiles")
+        .from("profile_directory")
         .select("id, username, display_name")
         .in("id", relatedIds)
         .is("deleted_at", null)
@@ -363,6 +363,19 @@ export async function ProfessionalProfile({
             github={profile.github_username}
             website={profile.website_url}
           />
+          <form className="form-stack" action={saveProfileVisibility}>
+            <div className="field">
+              <label htmlFor="profile-visibility">Who can see this profile</label>
+              <select id="profile-visibility" name="visibility" defaultValue={profile.visibility}>
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+            <p className="form-note">A private profile shows your name and username. Public projects and posts stay at their own addresses.</p>
+            <button className="text-button" type="submit">
+              Save visibility
+            </button>
+          </form>
         </section>
       ) : null}
 

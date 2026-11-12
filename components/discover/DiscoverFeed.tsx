@@ -78,9 +78,10 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
   const supabase = await createClient();
   const member = await getMember();
   let query = supabase
-    .from("profiles")
+    .from("profile_directory")
     .select("id, username, display_name, bio, avatar_url, banner_url, education, city, state, age_group")
     .eq("onboarding_complete", true)
+    .eq("visibility", "public")
     .not("username", "is", null)
     .order("display_name")
     .limit(30);
@@ -247,7 +248,7 @@ async function loadPosts(type: ProjectCategory | null) {
   const posts = data ?? [];
   const authorIds = [...new Set(posts.map((post) => post.author_id))];
   const { data: authors } = authorIds.length
-    ? await supabase.from("profiles").select("id, username, display_name").in("id", authorIds)
+    ? await supabase.from("profile_directory").select("id, username, display_name").in("id", authorIds)
     : { data: [] };
   const names = new Map((authors ?? []).map((author) => [author.id, author]));
   return posts.map((post) => ({ ...post, author: names.get(post.author_id) }));

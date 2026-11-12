@@ -28,11 +28,22 @@ export default async function PublicProfilePage({
   const supabase = await createClient();
   const member = await getMember();
   const { data } = await supabase
-    .from("profiles")
-    .select("id, display_name, deleted_at")
+    .from("profile_directory")
+    .select("id, display_name, username, visibility, deleted_at")
     .eq("username", username)
     .maybeSingle();
-  if (!data || data.deleted_at) notFound();
+  if (!data || data.deleted_at || !data.username) notFound();
+  if (data.visibility === "private" && member?.id !== data.id) {
+    return (
+      <article className="profile-page">
+        <header className="profile-header">
+          <h1>{data.display_name}</h1>
+          <p>@{data.username}</p>
+          <p>This profile is private.</p>
+        </header>
+      </article>
+    );
+  }
 
   return (
     <ProfessionalProfile

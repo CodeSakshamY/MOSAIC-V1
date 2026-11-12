@@ -11,7 +11,7 @@ export async function BlockedAccounts({ userId }: { userId: string }) {
     .order("created_at", { ascending: false });
   const ids = (blocks ?? []).map((row) => row.blocked_id);
   const { data: profiles } = ids.length
-    ? await supabase.from("profiles").select("id, username, display_name").in("id", ids).is("deleted_at", null)
+    ? await supabase.from("profile_directory").select("id, username, display_name").in("id", ids).is("deleted_at", null)
     : { data: [] };
   const people = (profiles ?? []).filter((person) => person.username);
 

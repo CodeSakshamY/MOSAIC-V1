@@ -102,6 +102,18 @@ export async function addProfileLink(_state: { error?: string } | null, formData
   redirect("/profile");
 }
 
+export async function saveProfileVisibility(formData: FormData) {
+  const member = await requireOwner();
+  const value = String(formData.get("visibility") ?? "");
+  if (value !== "public" && value !== "private") return;
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update({ visibility: value }).eq("id", member.id);
+  if (error) return;
+  revalidatePath("/profile");
+  if (member.username) revalidatePath(`/people/${member.username}`);
+  redirect("/profile");
+}
+
 export async function featureProject(formData: FormData) {
   const member = await requireOwner();
   const projectId = String(formData.get("projectId") ?? "");
