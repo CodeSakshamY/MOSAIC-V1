@@ -663,6 +663,32 @@ export async function reactToUpdate(formData: FormData) {
   revalidatePath(`/posts/${postId}`);
 }
 
+export async function toggleFollowUpdate(formData: FormData) {
+  const member = await requireMember();
+  const buildLogId = String(formData.get("buildLogId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  if (!projectIdPattern.test(buildLogId) || !isProjectSlug(slug)) return;
+  const supabase = await createClient();
+  const { data: log } = await supabase
+    .from("build_logs")
+    .select("id")
+    .eq("id", buildLogId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!log) return;
+  const { data: existing } = await supabase
+    .from("build_log_follows")
+    .select("profile_id")
+    .eq("profile_id", member.id)
+    .eq("build_log_id", buildLogId)
+    .maybeSingle();
+  const { error } = existing
+    ? await supabase.from("build_log_follows").delete().eq("profile_id", member.id).eq("build_log_id", buildLogId)
+    : await supabase.from("build_log_follows").insert({ profile_id: member.id, build_log_id: buildLogId });
+  if (error) return;
+  revalidatePath(`/forge/${slug}`);
+}
+
 export async function openPullRequest(_state: ActionState, formData: FormData): Promise<ActionState> {
   const member = await requireMember();
   const sourceId = String(formData.get("projectId") ?? "");

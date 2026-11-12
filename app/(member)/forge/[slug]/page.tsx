@@ -233,6 +233,9 @@ async function ProjectView({
     ? await supabase.from("posts").select("id, build_log_id").in("build_log_id", logIds).eq("type", "build_log").is("removed_at", null)
     : { data: [] };
   const postIds = (logPosts ?? []).map((post) => post.id);
+  const { data: followRows } = logIds.length && member
+    ? await supabase.from("build_log_follows").select("build_log_id").eq("profile_id", member.id).in("build_log_id", logIds)
+    : { data: [] };
   const { data: reactionRows } = postIds.length
     ? await supabase
         .from("reactions")
@@ -271,6 +274,7 @@ async function ProjectView({
     author: authorNames.get(log.author_id) ?? "builder",
     media: log.media_urls,
     kind: log.kind,
+    following: (followRows ?? []).some((row) => row.build_log_id === log.id),
     postId: (logPosts ?? []).find((post) => post.build_log_id === log.id)?.id ?? null,
     reactions: (["like", "upvote", "downvote"] as const).map((type) => ({
       type,

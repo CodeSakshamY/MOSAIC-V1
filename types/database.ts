@@ -107,6 +107,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"build_log_follows": {
+                  Row: {
+                    "build_log_id": string,"created_at": string,"profile_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "build_log_id": string,"created_at"?: string,"profile_id": string
+                  }
+                  Update: {
+                    "build_log_id"?: string,"created_at"?: string,"profile_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "build_log_follows_build_log_id_fkey"
+      columns: ["build_log_id"]
+isOneToOne: false
+      referencedRelation: "build_logs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "build_log_follows_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"build_logs": {
                   Row: {
                     "author_id": string,"content": string,"created_at": string,"id": string,"kind": Database["public"]['Enums']["build_log_kind"],"media_urls": (string)[],"project_id": string,"removed_at": string | null,"title": string,"updated_at": string

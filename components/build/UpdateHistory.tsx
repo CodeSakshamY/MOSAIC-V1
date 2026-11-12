@@ -1,5 +1,5 @@
 import { ArrowBigDown, ArrowBigUp, Heart } from "lucide-react";
-import { commentOnUpdate, reactToUpdate } from "@/lib/projects/actions";
+import { commentOnUpdate, reactToUpdate, toggleFollowUpdate } from "@/lib/projects/actions";
 import { buildLogKindLabel } from "@/lib/projects/log-kind";
 import { LogMedia } from "@/components/build/LogMedia";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,7 @@ export function UpdateHistory({
     author: string;
     media: string[];
     kind: string;
+    following: boolean;
     postId: string | null;
     reactions: { type: "like" | "upvote" | "downvote"; count: number; pressed: boolean }[];
     comments: { id: string; author: string; content: string }[];
@@ -76,6 +77,15 @@ export function UpdateHistory({
                   );
                 })}
               </div>
+            ) : null}
+            {signedIn ? (
+              <form action={toggleFollowUpdate}>
+                <input type="hidden" name="buildLogId" value={update.id} />
+                <input type="hidden" name="slug" value={slug} />
+                <button className="text-button" type="submit" aria-pressed={update.following}>
+                  {update.following ? "Following update" : "Follow update"}
+                </button>
+              </form>
             ) : null}
             {update.comments.length ? (
               <ul className="repo-list">

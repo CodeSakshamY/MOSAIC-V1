@@ -222,7 +222,20 @@ Accepting a request, in one transaction, sets status `accepted` and inserts `pro
 | `content` | 1–8000. |
 | `media_urls` | `text[]`, default `'{}'`, max 4 elements, each an `https` URL on our storage host. |
 | `removed_at` | Nullable. |
+| `kind` | `update`, `milestone`, `problem`, `experiment`, `lesson`, or `explanation`. |
 | `created_at`, `updated_at` | |
+
+### build_log_follows
+
+A member follows one build log. A later comment on that update notifies them, unless they wrote the comment or already receive it as the post author.
+
+| Column | Notes |
+| --- | --- |
+| `profile_id` | FK → `profiles` `ON DELETE CASCADE`. Part of the primary key. |
+| `build_log_id` | FK → `build_logs` `ON DELETE CASCADE`. Part of the primary key. |
+| `created_at` | |
+
+Select is the follower, or anyone who can view the project. Insert and delete stay with the follower, and insert also requires the log to be visible.
 
 ### posts
 
@@ -591,6 +604,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `048_build_log_experiment.sql` | A build log can record an experiment. |
 | `049_build_log_lesson.sql` | A build log can record a failed attempt. |
 | `050_build_log_explanation.sql` | A build log can be a technical explanation. |
+| `051_build_log_follows.sql` | Follow one build log. Comments on it notify the follower. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
