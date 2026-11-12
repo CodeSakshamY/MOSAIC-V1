@@ -176,7 +176,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Advanced filters
 - [x] Sort by relevance, latest and popularity
 - [x] Related content recommendations
-- [ ] Curated collections
+- [x] Curated collections
 - [ ] Editor's picks
 - [ ] New and emerging projects
 - [x] Ideas as their own Discover section

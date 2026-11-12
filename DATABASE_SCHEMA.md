@@ -544,6 +544,10 @@ A builder can list up to 20 groups they have taken part in. `name` is 1–80. `r
 
 Up to 8 extra https links. `label` is 1–40. `url` is at most 300 characters. The same URL cannot be saved twice on one profile. GitHub and the website stay on `profiles`. Select, insert, and delete follow the publication rules.
 
+### collections
+
+A builder can name up to 5 collections and put up to 12 public projects in each one. Anyone can read a collection. The projects inside it stay subject to project visibility. Deleting an account removes the collections that account created.
+
 ## Storage
 
 `014_storage_policies.sql` creates the buckets.
@@ -641,6 +645,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `067_time_commitment.sql` | The owner can say how much time a teammate would give. |
 | `068_project_discussion.sql` | A flat project discussion, separate from titled threads. |
 | `069_project_invites.sql` | An owner can invite a builder onto a project. |
+| `070_collections.sql` | A builder can name a collection and put public projects in it. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

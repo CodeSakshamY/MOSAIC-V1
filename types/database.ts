@@ -931,6 +931,30 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"collections": {
+                  Row: {
+                    "created_at": string,"id": string,"owner_id": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"owner_id": string,"title": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"owner_id"?: string,"title"?: string
+                  }
+                  Relationships: []
+                },"collection_projects": {
+                  Row: {
+                    "collection_id": string,"created_at": string,"project_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "collection_id": string,"created_at"?: string,"project_id": string
+                  }
+                  Update: {
+                    "collection_id"?: string,"created_at"?: string,"project_id"?: string
+                  }
+                  Relationships: []
                 },"project_invites": {
                   Row: {
                     "created_at": string,"id": string,"invited_by": string,"invitee_id": string,"project_id": string,"status": string

@@ -3,6 +3,7 @@ import { FeedPostForm } from "@/components/discover/FeedPostForm";
 import { ReelComposer } from "@/components/discover/ReelComposer";
 import { FilterMenu } from "@/components/filters/FilterMenu";
 import { PostActions } from "@/components/feed/PostActions";
+import { createCollection } from "@/lib/collections/actions";
 import { FoundingTeams } from "@/components/profile/FoundingTeams";
 import { RelatedProjectPeople } from "@/components/profile/RelatedProjectPeople";
 import { ResearchCollaborators } from "@/components/profile/ResearchCollaborators";
@@ -36,6 +37,7 @@ const views = [
   { id: "opensource", label: "Open source" },
   { id: "technologies", label: "Technologies" },
   { id: "everything", label: "Search" },
+  { id: "collections", label: "Collections" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -79,6 +81,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("everything", filters)} aria-current={view === "everything" ? "page" : undefined}>
           Search
         </Link>
+        <Link href={hrefFor("collections", filters)} aria-current={view === "collections" ? "page" : undefined}>
+          Collections
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -90,7 +95,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       <div className="discover-tools">
         {view === "people" || view === "projects" || view === "everything" ? <DiscoverSearch view={view} filters={filters} /> : null}
         {view === "projects" ? <ProjectSort filters={filters} /> : null}
-        {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" ? null : <TypeFilters view={view} filters={filters} />}
+        {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" || view === "collections" ? null : <TypeFilters view={view} filters={filters} />}
       </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
@@ -104,6 +109,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "opensource" ? <OpenSourceList /> : null}
       {view === "technologies" ? <TechnologyList /> : null}
       {view === "everything" ? <SearchEverything filters={filters} /> : null}
+      {view === "collections" ? <CollectionList /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -125,7 +131,7 @@ function hrefFor(view: View, filters: DiscoverFilters, type: ProjectCategory | n
     if (filters.age) params.set("age", filters.age);
     if (filters.place) params.set("place", filters.place);
     if (filters.skill) params.set("skill", filters.skill);
-  } else if (view !== "everything" && type) {
+  } else if (view !== "everything" && view !== "collections" && type) {
     params.set("type", type);
   }
   if (view === "projects" && filters.status) params.set("status", filters.status);
@@ -674,6 +680,69 @@ async function SearchEverything({ filters }: { filters: DiscoverFilters }) {
           </ul>
         </>
       ) : null}
+    </section>
+  );
+}
+
+async function CollectionList() {
+  const supabase = await createClient();
+  const member = await getMember();
+  const { data } = await supabase.from("collections").select("id, title, created_at").order("created_at", { ascending: false }).limit(20);
+  const collections = data ?? [];
+  const ids = collections.map((collection) => collection.id);
+  const { data: links } = ids.length
+    ? await supabase.from("collection_projects").select("collection_id, project_id").in("collection_id", ids)
+    : { data: [] };
+  const projectIds = [...new Set((links ?? []).map((link) => link.project_id))];
+  const { data: projects } = projectIds.length
+    ? await supabase.from("projects").select("id, name, slug").in("id", projectIds).eq("visibility", "public").is("removed_at", null)
+    : { data: [] };
+  const byId = new Map((projects ?? []).map((project) => [project.id, project]));
+  return (
+    <section aria-labelledby="discover-collections-heading">
+      <h2 id="discover-collections-heading">Collections</h2>
+      <p className="form-note">Named lists a builder made from public projects.</p>
+      {member ? (
+        <form className="form-stack" action={createCollection}>
+          <div className="field">
+            <label htmlFor="collection-title">Collection name</label>
+            <input id="collection-title" name="title" required maxLength={80} className="repo-search-input" />
+          </div>
+          <div className="field">
+            <label htmlFor="collection-slug">Project link name</label>
+            <input id="collection-slug" name="slug" required maxLength={80} className="repo-search-input" />
+            <p className="form-note">The last part of a public project URL.</p>
+          </div>
+          <button className="text-button" type="submit">
+            Create collection
+          </button>
+        </form>
+      ) : null}
+      {collections.length === 0 ? <p>No collections yet.</p> : null}
+      <ul className="repo-list" role="list">
+        {collections.map((collection) => {
+          const items = (links ?? []).flatMap((link) => {
+            if (link.collection_id !== collection.id) return [];
+            const project = byId.get(link.project_id);
+            return project ? [project] : [];
+          });
+          return (
+            <li key={collection.id} className="repo-row">
+              <div className="repo-title">
+                <strong>{collection.title}</strong>
+              </div>
+              {items.length === 0 ? <p className="form-note">No public projects in this collection.</p> : null}
+              <ul>
+                {items.map((project) => (
+                  <li key={project.id}>
+                    <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }
