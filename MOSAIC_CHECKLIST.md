@@ -150,7 +150,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Add contributors to projects
 - [x] Assign project roles
 - [x] Display team members publicly
-- [ ] Track contributions
+- [x] Track contributions
 - [ ] Credit contributors
 - [ ] Create team pages
 - [ ] Team activity feed
