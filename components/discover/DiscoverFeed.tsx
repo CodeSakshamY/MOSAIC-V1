@@ -38,6 +38,7 @@ const views = [
   { id: "technologies", label: "Technologies" },
   { id: "everything", label: "Search" },
   { id: "collections", label: "Collections" },
+  { id: "picks", label: "Editor's picks" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -84,6 +85,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("collections", filters)} aria-current={view === "collections" ? "page" : undefined}>
           Collections
         </Link>
+        <Link href={hrefFor("picks", filters)} aria-current={view === "picks" ? "page" : undefined}>
+          Editor&apos;s picks
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -95,7 +99,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       <div className="discover-tools">
         {view === "people" || view === "projects" || view === "everything" ? <DiscoverSearch view={view} filters={filters} /> : null}
         {view === "projects" ? <ProjectSort filters={filters} /> : null}
-        {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" || view === "collections" ? null : <TypeFilters view={view} filters={filters} />}
+        {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" || view === "collections" || view === "picks" ? null : <TypeFilters view={view} filters={filters} />}
       </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
@@ -110,6 +114,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "technologies" ? <TechnologyList /> : null}
       {view === "everything" ? <SearchEverything filters={filters} /> : null}
       {view === "collections" ? <CollectionList /> : null}
+      {view === "picks" ? <EditorsPicks /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -131,7 +136,7 @@ function hrefFor(view: View, filters: DiscoverFilters, type: ProjectCategory | n
     if (filters.age) params.set("age", filters.age);
     if (filters.place) params.set("place", filters.place);
     if (filters.skill) params.set("skill", filters.skill);
-  } else if (view !== "everything" && view !== "collections" && type) {
+  } else if (view !== "everything" && view !== "collections" && view !== "picks" && type) {
     params.set("type", type);
   }
   if (view === "projects" && filters.status) params.set("status", filters.status);
@@ -742,6 +747,33 @@ async function CollectionList() {
             </li>
           );
         })}
+      </ul>
+    </section>
+  );
+}
+
+async function EditorsPicks() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("projects")
+    .select("id, name, slug")
+    .eq("visibility", "public")
+    .not("featured_at", "is", null)
+    .is("removed_at", null)
+    .order("featured_at", { ascending: false })
+    .limit(12);
+  const projects = data ?? [];
+  return (
+    <section aria-labelledby="discover-picks-heading">
+      <h2 id="discover-picks-heading">Editor&apos;s picks</h2>
+      <p className="form-note">Public projects a staff member has featured. A builder cannot feature their own project.</p>
+      {projects.length === 0 ? <p>No editor&apos;s picks yet.</p> : null}
+      <ul className="repo-list" role="list">
+        {projects.map((project) => (
+          <li key={project.id} className="repo-row">
+            <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+          </li>
+        ))}
       </ul>
     </section>
   );
