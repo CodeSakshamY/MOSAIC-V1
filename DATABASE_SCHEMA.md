@@ -176,7 +176,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 
 ### project_milestones
 
-`id`, `project_id`, `title`, `happens_on`, `created_at`. Up to 12 rows. `title` is 1–80. `happens_on` is a date from 2000-01-01 through 2100-12-31. The same title cannot repeat on the same day. Inserts and deletes are limited to the owner. `ON DELETE CASCADE` with the project.
+`id`, `project_id`, `title`, `happens_on`, `major`, `created_at`. Up to 12 rows. `title` is 1–80. `happens_on` is a date from 2000-01-01 through 2100-12-31. The same title cannot repeat on the same day. `major` defaults to false. The owner can set it when adding a milestone or change it later. Other columns stay fixed after insert. Inserts and deletes are limited to the owner. `ON DELETE CASCADE` with the project.
 
 ### project_skills
 
@@ -605,6 +605,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `049_build_log_lesson.sql` | A build log can record a failed attempt. |
 | `050_build_log_explanation.sql` | A build log can be a technical explanation. |
 | `051_build_log_follows.sql` | Follow one build log. Comments on it notify the follower. |
+| `052_major_milestones.sql` | The owner can mark a dated milestone as major. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

@@ -363,10 +363,12 @@ export async function addMilestone(formData: FormData) {
     .select("id", { count: "exact", head: true })
     .eq("project_id", projectId);
   if ((count ?? 0) >= 12) return;
+  const major = formData.get("major") === "1";
   const { error } = await supabase.from("project_milestones").insert({
     project_id: projectId,
     title,
     happens_on: happensOn,
+    major,
   });
   if (error) return;
   revalidatePath(`/forge/${project.slug}`);
@@ -386,6 +388,29 @@ export async function removeMilestone(formData: FormData) {
     .maybeSingle();
   if (!project || project.owner_id !== member.id) return;
   await supabase.from("project_milestones").delete().eq("id", milestoneId).eq("project_id", projectId);
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function highlightMilestone(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const milestoneId = String(formData.get("milestoneId") ?? "");
+  const major = formData.get("major") === "1";
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(milestoneId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("project_milestones")
+    .update({ major })
+    .eq("id", milestoneId)
+    .eq("project_id", projectId);
+  if (error) return;
   revalidatePath(`/forge/${project.slug}`);
 }
 

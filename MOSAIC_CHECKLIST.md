@@ -81,7 +81,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Comment on an individual update
 - [x] React to build logs
 - [x] Follow build-log updates
-- [ ] Highlight major milestones on project pages
+- [x] Highlight major milestones on project pages
 
 ## 4. Builder profiles
 

@@ -801,14 +801,14 @@ isOneToOne: false
                   ]
                 },"project_milestones": {
                   Row: {
-                    "created_at": string,"happens_on": string,"id": string,"project_id": string,"title": string
+                    "created_at": string,"happens_on": string,"id": string,"major": boolean,"project_id": string,"title": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"happens_on": string,"id"?: string,"project_id": string,"title": string
+                    "created_at"?: string,"happens_on": string,"id"?: string,"major"?: boolean,"project_id": string,"title": string
                   }
                   Update: {
-                    "created_at"?: string,"happens_on"?: string,"id"?: string,"project_id"?: string,"title"?: string
+                    "created_at"?: string,"happens_on"?: string,"id"?: string,"major"?: boolean,"project_id"?: string,"title"?: string
                   }
                   Relationships: [
                     {

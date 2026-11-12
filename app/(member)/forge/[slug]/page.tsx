@@ -9,7 +9,7 @@ import { Collaboration } from "@/components/build/Collaboration";
 import { ContributionHistory } from "@/components/build/ContributionHistory";
 import { CreditsForm } from "@/components/build/CreditsForm";
 import { DocumentationForm } from "@/components/build/DocumentationForm";
-import { Milestones } from "@/components/build/Milestones";
+import { Milestones, MajorMilestones } from "@/components/build/Milestones";
 import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
@@ -126,7 +126,7 @@ async function ProjectView({
     supabase.from("project_skills").select("skill_id, relation").eq("project_id", project.id).in("relation", ["uses", "seeking"]),
     supabase
       .from("project_milestones")
-      .select("id, title, happens_on")
+      .select("id, title, happens_on, major")
       .eq("project_id", project.id)
       .order("happens_on", { ascending: true })
       .order("created_at", { ascending: true }),
@@ -436,6 +436,7 @@ async function ProjectView({
         <div>
           {tab === "overview" ? (
             <>
+              <MajorMilestones milestones={(milestoneResult.data ?? []).filter((milestone) => milestone.major)} />
               <ProjectMedia
                 projectId={project.id}
                 cover={project.cover_image_url}
