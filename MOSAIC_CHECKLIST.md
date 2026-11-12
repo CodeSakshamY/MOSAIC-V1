@@ -288,7 +288,7 @@ Not started. Future phase.
 - [ ] Connected accounts
 - [x] Privacy controls and profile visibility
 - [x] Follow and interaction controls
-- [ ] Feed and interest preferences
+- [x] Feed and interest preferences
 - [x] Notification preferences
 - [x] Blocked and muted accounts
 - [x] Download account data

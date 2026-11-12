@@ -9,8 +9,9 @@ import { ThemePicker } from "@/components/settings/ThemePicker";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember } from "@/lib/auth/session";
 import { changePassword, signOutOtherSessions } from "@/lib/auth/actions";
-import { saveCommentsOpen, saveNotifyFollows, saveProfileVisibility } from "@/lib/profile/actions";
+import { saveCommentsOpen, saveHiddenProjectType, saveNotifyFollows, saveProfileVisibility } from "@/lib/profile/actions";
 import { createClient } from "@/lib/supabase/server";
+import { projectCategories } from "@/lib/projects/slug";
 import { themeFromId } from "@/lib/theme/themes";
 
 export const instant = false;
@@ -30,7 +31,7 @@ export default async function SettingsPage({
   const params = await searchParams;
   const supabase = await createClient();
   const { data: prefs } = member
-    ? await supabase.from("profiles").select("notify_follows, notify_comments, notify_reactions, visibility, comments_open").eq("id", member.id).maybeSingle()
+    ? await supabase.from("profiles").select("notify_follows, notify_comments, notify_reactions, visibility, comments_open, hidden_project_type").eq("id", member.id).maybeSingle()
     : { data: null };
 
   return (
@@ -76,6 +77,23 @@ export default async function SettingsPage({
           </label>
           <button className="text-button" type="submit">
             Save comment preference
+          </button>
+        </form>
+      ) : null}
+      {member ? (
+        <form action={saveHiddenProjectType}>
+          <h2 id="feed-heading">Feed</h2>
+          <label htmlFor="hidden-project-type">Hide a project type</label>
+          <select id="hidden-project-type" name="hidden" className="field-select" defaultValue={prefs?.hidden_project_type ?? ""}>
+            <option value="">Show every type</option>
+            {projectCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+          <button className="text-button" type="submit">
+            Save feed preference
           </button>
         </form>
       ) : null}

@@ -892,6 +892,11 @@ async function ProjectList({ filters }: { filters: DiscoverFilters }) {
     .limit(30);
   if (filters.type) query = query.eq("category", filters.type);
   if (filters.status) query = query.eq("status", filters.status);
+  const member = await getMember();
+  if (member) {
+    const { data: preference } = await supabase.from("profiles").select("hidden_project_type").eq("id", member.id).maybeSingle();
+    if (preference?.hidden_project_type) query = query.neq("category", preference.hidden_project_type);
+  }
   if (filters.q) query = query.or(`name.ilike.%${filters.q}%,description.ilike.%${filters.q}%,tagline.ilike.%${filters.q}%`);
   const { data } = await query;
   let projects = data ?? [];
