@@ -318,7 +318,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [ ] Search indexing
 - [ ] Background jobs
 - [ ] Email delivery beyond local development mail
-- [ ] Rate limiting
+- [x] Rate limiting
 - [x] Database migrations
 - [ ] Error monitoring, analytics, automated backups, logging, performance monitoring
 - [ ] SEO for public projects and profiles

@@ -36,6 +36,13 @@ export async function announceOpportunity(_state: { error?: string } | null, for
   const slug = projectSlug(title);
   if (slug.length < 3) return { error: "Use a title that can become a link." };
   const supabase = await createClient();
+  const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { count } = await supabase
+    .from("opportunities")
+    .select("id", { count: "exact", head: true })
+    .eq("created_by", member.id)
+    .gte("created_at", since);
+  if ((count ?? 0) >= 5) return { error: "Too many announcements in a short time. Wait and try again." };
   const { error } = await supabase.from("opportunities").insert({
     title,
     slug,
