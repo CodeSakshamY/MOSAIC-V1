@@ -21,7 +21,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Opportunity announcements
 - [x] Event announcements
 - [x] Image, video, document and link attachments
-- [ ] Rich project previews embedded in posts
+- [x] Rich project previews embedded in posts
 - [x] Like or appreciation reactions
 - [ ] Interesting reaction
 - [ ] Inspired reaction

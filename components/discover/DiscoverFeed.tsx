@@ -310,11 +310,17 @@ async function loadPosts(type: ProjectCategory | null) {
     ? await supabase.from("opportunities").select("id, category").in("id", opportunityIds)
     : { data: [] };
   const opportunityCategories = new Map((opportunities ?? []).map((item) => [item.id, item.category]));
+  const previewIds = [...new Set(posts.map((post) => post.project_id).filter((id): id is string => Boolean(id)))];
+  const { data: projects } = previewIds.length
+    ? await supabase.from("projects").select("id, name, slug").in("id", previewIds).is("removed_at", null)
+    : { data: [] };
+  const projectById = new Map((projects ?? []).map((project) => [project.id, project]));
   return posts.map((post) => ({
     ...post,
     author: names.get(post.author_id),
     logKind: post.build_log_id ? kinds.get(post.build_log_id) : null,
     opportunityCategory: post.opportunity_id ? opportunityCategories.get(post.opportunity_id) : null,
+    project: post.project_id ? projectById.get(post.project_id) ?? null : null,
   }));
 }
 
@@ -410,6 +416,11 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
             <span className="repo-visibility">{postKindLabel(post.type, post.logKind, post.opportunityCategory)}</span>
           </div>
           <p className="discover-copy">{post.content}</p>
+          {post.project ? (
+            <p className="repo-meta">
+              <Link href={`/forge/${post.project.slug}`}>{post.project.name}</Link>
+            </p>
+          ) : null}
           {(post.media_urls ?? []).map((url) => (
             <p key={url}>
               <a href={url}>Attachment</a>
