@@ -148,6 +148,36 @@ export async function addPublication(_state: { error?: string } | null, formData
   redirect("/profile");
 }
 
+export async function addCompetition(_state: { error?: string } | null, formData: FormData) {
+  const member = await requireOwner();
+  const name = text(formData.get("name"), 160);
+  const host = text(formData.get("host"), 120);
+  const result = text(formData.get("result"), 80);
+  const held = year(formData.get("year"));
+  const link = parseWebsite(String(formData.get("url") ?? ""));
+  if (!name) return { error: "Add the competition name." };
+  if (!held.ok) return { error: held.error };
+  if (!link.ok) return { error: link.error };
+  if (link.website && link.website.length > 300) return { error: "Keep the link to 300 characters." };
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("profile_competitions")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_id", member.id);
+  if ((count ?? 0) >= 20) return { error: "A profile can list 20 competitions." };
+  const { error } = await supabase.from("profile_competitions").insert({
+    profile_id: member.id,
+    name,
+    host: host || null,
+    year: held.year,
+    result: result || null,
+    url: link.website,
+  });
+  if (error) return { error: "That competition was not saved." };
+  redirect("/profile");
+}
+
 export async function addExperience(_state: { error?: string } | null, formData: FormData) {
   const member = await requireOwner();
   const title = text(formData.get("title"), 120);
@@ -257,6 +287,8 @@ export async function removeProfileItem(formData: FormData) {
     await supabase.from("profile_awards").delete().eq("id", id).eq("profile_id", member.id);
   } else if (kind === "publication") {
     await supabase.from("profile_publications").delete().eq("id", id).eq("profile_id", member.id);
+  } else if (kind === "competition") {
+    await supabase.from("profile_competitions").delete().eq("id", id).eq("profile_id", member.id);
   }
   redirect("/profile");
 }

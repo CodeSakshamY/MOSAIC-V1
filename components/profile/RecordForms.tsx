@@ -5,6 +5,7 @@ import {
   addAchievement,
   addAward,
   addCertificate,
+  addCompetition,
   addEducation,
   addExperience,
   addPublication,
@@ -20,6 +21,37 @@ function ErrorLine({ error }: { error?: string }) {
     <p className="form-error" role="alert">
       {error}
     </p>
+  );
+}
+
+export function CompetitionForm() {
+  const [state, action] = useActionState(addCompetition, null);
+  return (
+    <form className="form-stack" action={action}>
+      <div className="field">
+        <Label htmlFor="competition-name">Competition</Label>
+        <Input id="competition-name" name="name" required maxLength={160} />
+      </div>
+      <div className="field">
+        <Label htmlFor="competition-host">Organiser</Label>
+        <Input id="competition-host" name="host" maxLength={120} />
+      </div>
+      <div className="field">
+        <Label htmlFor="competition-year">Year</Label>
+        <Input id="competition-year" name="year" inputMode="numeric" maxLength={4} />
+      </div>
+      <div className="field">
+        <Label htmlFor="competition-result">Result</Label>
+        <Input id="competition-result" name="result" maxLength={80} />
+      </div>
+      <div className="field">
+        <Label htmlFor="competition-url">Link</Label>
+        <Input id="competition-url" name="url" type="url" placeholder="https://" maxLength={300} />
+      </div>
+      <p className="form-note">Write the result yourself. MOSAIC does not rank competitions.</p>
+      <ErrorLine error={state?.error} />
+      <SubmitButton>Add competition</SubmitButton>
+    </form>
   );
 }
 

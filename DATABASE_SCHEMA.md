@@ -531,6 +531,10 @@ Feed candidate generation uses the posts time index and joins; it does not seq-s
 
 A builder can list up to 20 papers or notes. `title` is 1–160. `venue` is optional, 1–120. `year` is optional, 1950–2100. `url` is an optional https link up to 300 characters. `summary` is optional, 1–500. Select follows the same visibility as the profile. Insert and delete stay with that member. `ON DELETE CASCADE` with the profile.
 
+### profile_competitions
+
+A builder can list up to 20 competitions. `name` is 1–160. `host` and `result` are optional, 1–120 and 1–80. `year` is optional, 1950–2100. `url` is an optional https link up to 300 characters. The result is text the builder writes. Select, insert, and delete follow the publication rules.
+
 ## Storage
 
 `014_storage_policies.sql` creates the buckets.
@@ -613,6 +617,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `052_major_milestones.sql` | The owner can mark a dated milestone as major. |
 | `053_profile_featured_projects.sql` | The owner can feature up to 3 public projects on their profile. |
 | `054_profile_publications.sql` | A builder can list research and publications on their profile. |
+| `055_profile_competitions.sql` | A builder can list competitions they took part in. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

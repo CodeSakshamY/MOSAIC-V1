@@ -7,6 +7,7 @@ import {
   AchievementForm,
   AwardForm,
   CertificateForm,
+  CompetitionForm,
   EducationForm,
   ExperienceForm,
   PublicationForm,
@@ -49,6 +50,7 @@ export async function ProfessionalProfile({
     memberResult,
     mergedResult,
     publicationResult,
+    competitionResult,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -91,6 +93,11 @@ export async function ProfessionalProfile({
     supabase
       .from("profile_publications")
       .select("id, title, venue, year, url, summary")
+      .eq("profile_id", profileId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("profile_competitions")
+      .select("id, name, host, year, result, url")
       .eq("profile_id", profileId)
       .order("created_at", { ascending: false }),
   ]);
@@ -379,6 +386,22 @@ export async function ProfessionalProfile({
           href: item.url,
           body: item.summary,
           kind: "publication",
+        }))}
+      />
+
+      <RecordSection
+        id="competitions"
+        title="Competitions"
+        empty="No competitions added yet."
+        editable={editable}
+        form={<CompetitionForm />}
+        items={(competitionResult.data ?? []).map((item) => ({
+          id: item.id,
+          title: item.name,
+          detail: [item.host, item.result].filter(Boolean).join(" · ") || null,
+          meta: item.year ? String(item.year) : null,
+          href: item.url,
+          kind: "competition",
         }))}
       />
 
