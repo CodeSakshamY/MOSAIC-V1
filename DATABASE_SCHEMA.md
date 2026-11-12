@@ -19,7 +19,7 @@ Enums are used for sets the product owns. Adding a value is a migration.
 | Enum | Values |
 | --- | --- |
 | `age_group` | `13_15`, `16_17`, `18_24`, `25_34`, `35_plus` |
-| `project_status` | `idea`, `planning`, `prototype`, `building`, `testing`, `working`, `shipped`, `abandoned` |
+| `project_status` | `idea`, `researching`, `in_development`, `prototype`, `testing`, `completed`, `on_hold` |
 | `member_role` | `owner`, `maintainer`, `contributor` |
 | `member_status` | `pending`, `active`, `rejected` |
 | `collaboration_type` | `remote`, `local`, `hybrid` |
@@ -149,13 +149,14 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `slug` | Unique case-insensitively. Pattern `^[a-z0-9]+(-[a-z0-9]+)*$`, length 3–60. |
 | `description` | 1–200. The card line. |
 | `tagline` | Nullable, 1–80. One line under the project name. |
-| `detailed_description` | Nullable, max 8000. |
+| `detailed_description` | Nullable, max 8000. The project page writes this as the documentation. |
 | `problem` | Nullable, max 2000. |
 | `solution` | Nullable, max 2000. |
 | `cover_image_url` | Nullable. Public projects only. |
 | `category` | Text, max 60, matching an interest slug where possible. |
 | `subcategory` | Nullable. A closed list under `category`, checked by `is_project_subcategory`. |
-| `status` | `project_status`, default `idea`. |
+| `status` | `project_status`, default `idea`. The owner can set Idea, Researching, In development, Prototype, Testing, Completed, or On hold. |
+| `starts_on`, `ends_on` | Nullable dates from 2000-01-01 through 2100-12-31. The end is on or after the start when both are set. |
 | `github_url`, `demo_url`, `documentation_url` | Nullable, `https` only. |
 | `visibility` | Default `public`. |
 | `looking_for_contributors` | Boolean, default false. |
@@ -172,9 +173,13 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 
 `id`, `project_id`, `image_url`, `created_at`. Up to 8 rows. `image_url` must be a storage URL. Inserts are limited to the owner of a public project. Deletes are limited to that owner. `ON DELETE CASCADE` with the project.
 
+### project_milestones
+
+`id`, `project_id`, `title`, `happens_on`, `created_at`. Up to 12 rows. `title` is 1–80. `happens_on` is a date from 2000-01-01 through 2100-12-31. The same title cannot repeat on the same day. Inserts and deletes are limited to the owner. `ON DELETE CASCADE` with the project.
+
 ### project_skills
 
-PK `(project_id, skill_id, relation)`. A project can both use Python and be seeking Python. Index on `skill_id`. The project page writes `relation = uses` for the tools it uses, and a trigger stops that relation at 8 rows. The app does not write `seeking`.
+PK `(project_id, skill_id, relation)`. A project can both use Python and be seeking Python. Index on `skill_id`. The project page writes `uses` for tools and `seeking` for skills required. A trigger stops each relation at 8 rows.
 
 ### project_members
 
@@ -187,7 +192,7 @@ PK `(project_id, skill_id, relation)`. A project can both use Python and be seek
 | `joined_at` | Nullable until active. |
 | `created_at`, `updated_at` | |
 
-A trigger after insert on `projects` inserts the owner as `role = owner`, `status = active`, `joined_at = now()`. Exactly one active owner is enforced by a deferred constraint trigger.
+A trigger after insert on `projects` inserts the owner as `role = owner`, `status = active`, `joined_at = now()`. Exactly one active owner is enforced by a deferred constraint trigger. The project page lists those joins, and each build log, as the contribution history.
 
 ### contribution_requests
 
@@ -571,6 +576,10 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `034_project_gallery_cap.sql` | Stop a project at 8 gallery photos. |
 | `035_project_subcategories.sql` | Closed subcategory under the project category. |
 | `036_project_tools.sql` | Stop a project at 8 tools it uses. |
+| `037_project_skills_required.sql` | Stop a project at 8 skills it is seeking. |
+| `038_project_status.sql` | Seven project statuses a builder can set. |
+| `039_project_timeline.sql` | Optional start and end dates on a project. |
+| `040_project_milestones.sql` | Up to 12 named dates on a project. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

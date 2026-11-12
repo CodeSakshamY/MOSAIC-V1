@@ -44,16 +44,16 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Project category
 - [x] Project subcategories
 - [x] Technology stack and tools used
-- [ ] Skills required
-- [ ] Project status: Idea, Researching, In development, Prototype, Testing, Completed, On hold
+- [x] Skills required
+- [x] Project status: Idea, Researching, In development, Prototype, Testing, Completed, On hold
 - [x] Public or private visibility
-- [ ] Project timeline
-- [ ] Project milestones
-- [ ] Project documentation
+- [x] Project timeline
+- [x] Project milestones
+- [x] Project documentation
 - [x] Demo, GitHub, website, paper and video links as first-class fields
-- [ ] Project updates and build logs shown on the project as a public history beyond the commit form
-- [ ] Project contributors and team members shown as a team
-- [ ] Contribution history
+- [x] Project updates and build logs shown on the project as a public history beyond the commit form
+- [x] Project contributors and team members shown as a team
+- [x] Contribution history
 - [ ] Credits and acknowledgements
 - [x] Project discussions (threads and replies)
 - [ ] Collaboration requests on the project

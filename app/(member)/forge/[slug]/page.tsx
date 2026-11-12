@@ -3,7 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { ContributionHistory } from "@/components/build/ContributionHistory";
+import { DocumentationForm } from "@/components/build/DocumentationForm";
+import { Milestones } from "@/components/build/Milestones";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
+import { SkillsForm } from "@/components/build/SkillsForm";
+import { StatusForm } from "@/components/build/StatusForm";
+import { TimelineForm } from "@/components/build/TimelineForm";
+import { ProjectTeam } from "@/components/build/ProjectTeam";
+import { UpdateHistory } from "@/components/build/UpdateHistory";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { ToolsForm } from "@/components/build/ToolsForm";
@@ -11,7 +19,8 @@ import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
-import { isProjectCategory, projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
+import { isProjectCategory, isProjectStatus, projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
+import { projectTimelineText } from "@/lib/projects/timeline";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -64,13 +73,13 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, tagline, subcategory, cover_image_url, visibility, status, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, tagline, subcategory, cover_image_url, visibility, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, toolsResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -95,14 +104,84 @@ async function ProjectView({
       : Promise.resolve({ data: null }),
     supabase.from("project_gallery").select("id, image_url").eq("project_id", project.id).order("created_at", { ascending: true }),
     supabase.from("skills").select("id, name").order("name"),
-    supabase.from("project_skills").select("skill_id").eq("project_id", project.id).eq("relation", "uses"),
+    supabase.from("project_skills").select("skill_id, relation").eq("project_id", project.id).in("relation", ["uses", "seeking"]),
+    supabase
+      .from("project_milestones")
+      .select("id, title, happens_on")
+      .eq("project_id", project.id)
+      .order("happens_on", { ascending: true })
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("build_logs")
+      .select("id, title, content, created_at, author_id")
+      .eq("project_id", project.id)
+      .is("removed_at", null)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("project_members")
+      .select("profile_id, role, joined_at")
+      .eq("project_id", project.id)
+      .eq("status", "active"),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
   const isOwner = member?.id === project.owner_id;
   const skills = skillsResult.data ?? [];
-  const usedIds = new Set((toolsResult.data ?? []).map((row) => row.skill_id));
+  const links = skillLinks.data ?? [];
+  const usedIds = new Set(links.filter((row) => row.relation === "uses").map((row) => row.skill_id));
+  const neededIds = new Set(links.filter((row) => row.relation === "seeking").map((row) => row.skill_id));
   const tools = skills.filter((skill) => usedIds.has(skill.id));
+  const needed = skills.filter((skill) => neededIds.has(skill.id));
+  const timeline = projectTimelineText(project.starts_on, project.ends_on);
+  const logs = logResult.data ?? [];
+  const roster = memberResult.data ?? [];
+  const authorIds = [...new Set([...logs.map((log) => log.author_id), ...roster.map((person) => person.profile_id)])];
+  const { data: authorRows } = authorIds.length
+    ? await supabase.from("profiles").select("id, display_name, username").in("id", authorIds)
+    : { data: [] };
+  const authorNames = new Map(
+    (authorRows ?? []).map((person) => [person.id, person.display_name || person.username]),
+  );
+  const updates = logs.map((log) => ({
+    id: log.id,
+    title: log.title,
+    content: log.content,
+    when: formatWhen(log.created_at),
+    author: authorNames.get(log.author_id) ?? "builder",
+  }));
+  const roleOrder = ["owner", "maintainer", "contributor"];
+  const team = roster
+    .map((person) => {
+      const profile = (authorRows ?? []).find((row) => row.id === person.profile_id);
+      return {
+        id: person.profile_id,
+        name: profile?.display_name || profile?.username || "builder",
+        username: profile?.username ?? "",
+        role: person.role,
+      };
+    })
+    .filter((person) => person.username)
+    .sort((left, right) => roleOrder.indexOf(left.role) - roleOrder.indexOf(right.role) || left.name.localeCompare(right.name));
+  const roleLabels: Record<string, string> = {
+    owner: "Owner",
+    maintainer: "Maintainer",
+    contributor: "Contributor",
+  };
+  const contributions = [
+    ...roster.flatMap((person) => {
+      if (!person.joined_at) return [];
+      const name = authorNames.get(person.profile_id) ?? "builder";
+      const role = roleLabels[person.role] ?? person.role;
+      return [{ id: `join-${person.profile_id}`, at: person.joined_at, text: `${name} joined as ${role}` }];
+    }),
+    ...logs.map((log) => ({
+      id: `log-${log.id}`,
+      at: log.created_at,
+      text: `${authorNames.get(log.author_id) ?? "builder"} recorded ${log.title}`,
+    })),
+  ]
+    .sort((left, right) => left.at.localeCompare(right.at) || left.text.localeCompare(right.text))
+    .map((entry) => ({ id: entry.id, text: entry.text, when: formatWhen(entry.at) }));
   const onProject = Boolean(membershipResult.data);
   const typeNote = projectTypeNotes[project.category as ProjectCategory];
 
@@ -143,11 +222,18 @@ async function ProjectView({
         ) : null}
       </header>
       {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
+      {needed.length ? <p className="repo-meta project-needs">Needs {needed.map((skill) => skill.name).join(", ")}</p> : null}
+      {timeline ? <p className="repo-meta project-timeline">{timeline}</p> : null}
       {isOwner ? <TaglineForm projectId={project.id} tagline={project.tagline} /> : null}
       {isOwner && isProjectCategory(project.category) ? (
         <SubcategoryForm projectId={project.id} category={project.category} subcategory={project.subcategory} />
       ) : null}
       {isOwner ? <ToolsForm projectId={project.id} skills={skills} selected={[...usedIds]} /> : null}
+      {isOwner ? <SkillsForm projectId={project.id} skills={skills} selected={[...neededIds]} /> : null}
+      {isOwner && isProjectStatus(project.status) ? <StatusForm projectId={project.id} status={project.status} /> : null}
+      {isOwner ? (
+        <TimelineForm projectId={project.id} startsOn={project.starts_on} endsOn={project.ends_on} />
+      ) : null}
       {!isOwner && member ? (
         <ReportForm kind="project" target={project.id} reported={reportedState(query.reported)} />
       ) : null}
@@ -175,6 +261,25 @@ async function ProjectView({
                 isPublic={project.visibility === "public"}
               />
               <Overview description={project.description} forks={forksResult.data ?? []} />
+              <section aria-labelledby="project-documentation-heading">
+                <h2 id="project-documentation-heading">Documentation</h2>
+                {project.detailed_description ? (
+                  <p className="project-docs">{project.detailed_description}</p>
+                ) : (
+                  <p className="form-note">No documentation yet.</p>
+                )}
+                {isOwner ? (
+                  <DocumentationForm projectId={project.id} documentation={project.detailed_description} />
+                ) : null}
+              </section>
+              <UpdateHistory updates={updates} />
+              <ProjectTeam members={team} />
+              <ContributionHistory entries={contributions} />
+              <Milestones
+                projectId={project.id}
+                milestones={milestoneResult.data ?? []}
+                isOwner={isOwner}
+              />
             </>
           ) : null}
           {tab === "commits" ? (
@@ -203,7 +308,7 @@ async function ProjectView({
             </div>
             <div>
               <dt>Status</dt>
-              <dd>{projectStatusLabel(project.status)}</dd>
+              <dd className="project-status">{projectStatusLabel(project.status)}</dd>
             </div>
             <div>
               <dt>Forks</dt>

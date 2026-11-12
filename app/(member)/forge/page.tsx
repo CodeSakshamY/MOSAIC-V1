@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { NewProjectForm } from "@/components/build/NewProjectForm";
 import { FilterMenu } from "@/components/filters/FilterMenu";
 import { getMember } from "@/lib/auth/session";
-import { isProjectCategory, isProjectSubcategory, projectCategories, projectStatusLabel, projectSubcategories } from "@/lib/projects/slug";
+import { isProjectCategory, isProjectStatus, isProjectSubcategory, projectCategories, projectStatusLabel, projectStatuses, projectSubcategories } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function BuildPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; visibility?: string; type?: string; sub?: string; tool?: string }>;
+  searchParams: Promise<{ q?: string; visibility?: string; type?: string; sub?: string; tool?: string; need?: string; status?: string }>;
 }) {
   return (
     <Suspense fallback={null}>
@@ -28,7 +28,7 @@ export default function BuildPage({
 async function BuildWorkspace({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; visibility?: string; type?: string; sub?: string; tool?: string }>;
+  searchParams: Promise<{ q?: string; visibility?: string; type?: string; sub?: string; tool?: string; need?: string; status?: string }>;
 }) {
   const params = await searchParams;
   const member = await getMember();
@@ -40,6 +40,8 @@ async function BuildWorkspace({
   const { data: skillRows } = await supabase.from("skills").select("id, name, slug").order("name");
   const skills = skillRows ?? [];
   const tool = skills.find((skill) => skill.slug === params.tool)?.slug ?? "";
+  const need = skills.find((skill) => skill.slug === params.need)?.slug ?? "";
+  const status = params.status && isProjectStatus(params.status) ? params.status : "";
   let request = supabase
     .from("projects")
     .select("id, name, slug, description, tagline, subcategory, visibility, status, category, updated_at")
@@ -49,30 +51,40 @@ async function BuildWorkspace({
   if (visibility !== "all") request = request.eq("visibility", visibility);
   if (type !== "all") request = request.eq("category", type);
   if (subcategory) request = request.eq("subcategory", subcategory);
+  if (status) request = request.eq("status", status);
   if (query) {
     request = request.or(`name.ilike.%${query}%,description.ilike.%${query}%,tagline.ilike.%${query}%`);
   }
   const { data } = await request;
   const owned = data ?? [];
   const { data: usedRows } = owned.length
-    ? await supabase.from("project_skills").select("project_id, skill_id").eq("relation", "uses").in(
-        "project_id",
-        owned.map((project) => project.id),
-      )
+    ? await supabase
+        .from("project_skills")
+        .select("project_id, skill_id, relation")
+        .in("relation", ["uses", "seeking"])
+        .in(
+          "project_id",
+          owned.map((project) => project.id),
+        )
     : { data: [] };
   const names = new Map(skills.map((skill) => [skill.id, skill.name]));
   const toolsByProject = new Map<string, string[]>();
+  const needsByProject = new Map<string, string[]>();
   for (const row of usedRows ?? []) {
     const name = names.get(row.skill_id);
     if (!name) continue;
-    const list = toolsByProject.get(row.project_id) ?? [];
+    const bucket = row.relation === "seeking" ? needsByProject : toolsByProject;
+    const list = bucket.get(row.project_id) ?? [];
     list.push(name);
-    toolsByProject.set(row.project_id, list);
+    bucket.set(row.project_id, list);
   }
   const toolName = skills.find((skill) => skill.slug === tool)?.name;
-  const projects = toolName
-    ? owned.filter((project) => (toolsByProject.get(project.id) ?? []).includes(toolName))
-    : owned;
+  const needName = skills.find((skill) => skill.slug === need)?.name;
+  const projects = owned.filter((project) => {
+    if (toolName && !(toolsByProject.get(project.id) ?? []).includes(toolName)) return false;
+    if (needName && !(needsByProject.get(project.id) ?? []).includes(needName)) return false;
+    return true;
+  });
   const username = member?.username ?? "you";
 
   return (
@@ -100,28 +112,30 @@ async function BuildWorkspace({
               {type !== "all" ? <input type="hidden" name="type" value={type} /> : null}
               {subcategory ? <input type="hidden" name="sub" value={subcategory} /> : null}
               {tool ? <input type="hidden" name="tool" value={tool} /> : null}
+              {need ? <input type="hidden" name="need" value={need} /> : null}
+              {status ? <input type="hidden" name="status" value={status} /> : null}
             </form>
             <nav className="repo-filters" aria-label="Project visibility">
-              <FilterLink href={filterHref(query, "all", type, subcategory, tool)} current={visibility === "all"}>
+              <FilterLink href={filterHref(query, "all", type, subcategory, tool, need, status)} current={visibility === "all"}>
                 All
               </FilterLink>
-              <FilterLink href={filterHref(query, "public", type, subcategory, tool)} current={visibility === "public"}>
+              <FilterLink href={filterHref(query, "public", type, subcategory, tool, need, status)} current={visibility === "public"}>
                 Public
               </FilterLink>
-              <FilterLink href={filterHref(query, "private", type, subcategory, tool)} current={visibility === "private"}>
+              <FilterLink href={filterHref(query, "private", type, subcategory, tool, need, status)} current={visibility === "private"}>
                 Private
               </FilterLink>
             </nav>
           </div>
-          <FilterMenu active={(type === "all" ? 0 : 1) + (subcategory ? 1 : 0) + (tool ? 1 : 0)}>
+          <FilterMenu active={(type === "all" ? 0 : 1) + (subcategory ? 1 : 0) + (tool ? 1 : 0) + (need ? 1 : 0) + (status ? 1 : 0)}>
             <nav className="repo-filters type-filters" aria-label="Project type">
-              <FilterLink href={filterHref(query, visibility, "all", "", tool)} current={type === "all"}>
+              <FilterLink href={filterHref(query, visibility, "all", "", tool, need, status)} current={type === "all"}>
                 All types
               </FilterLink>
               {projectCategories.map((category) => (
                 <FilterLink
                   key={category}
-                  href={filterHref(query, visibility, category, "", tool)}
+                  href={filterHref(query, visibility, category, "", tool, need, status)}
                   current={type === category}
                 >
                   {category}
@@ -130,13 +144,13 @@ async function BuildWorkspace({
             </nav>
             {type !== "all" ? (
               <nav className="repo-filters type-filters" aria-label="Subcategory">
-                <FilterLink href={filterHref(query, visibility, type, "", tool)} current={!subcategory}>
+                <FilterLink href={filterHref(query, visibility, type, "", tool, need, status)} current={!subcategory}>
                   All subcategories
                 </FilterLink>
                 {projectSubcategories[type].map((item) => (
                   <FilterLink
                     key={item}
-                    href={filterHref(query, visibility, type, item, tool)}
+                    href={filterHref(query, visibility, type, item, tool, need, status)}
                     current={subcategory === item}
                   >
                     {item}
@@ -144,11 +158,26 @@ async function BuildWorkspace({
                 ))}
               </nav>
             ) : null}
+            <nav className="repo-filters type-filters" aria-label="Project status">
+              <FilterLink href={filterHref(query, visibility, type, subcategory, tool, need)} current={!status}>
+                Any status
+              </FilterLink>
+              {projectStatuses.map((item) => (
+                <FilterLink
+                  key={item.value}
+                  href={filterHref(query, visibility, type, subcategory, tool, need, item.value)}
+                  current={status === item.value}
+                >
+                  {item.label}
+                </FilterLink>
+              ))}
+            </nav>
             <form className="field" action="/forge">
               {query ? <input type="hidden" name="q" value={query} /> : null}
               {visibility !== "all" ? <input type="hidden" name="visibility" value={visibility} /> : null}
               {type !== "all" ? <input type="hidden" name="type" value={type} /> : null}
               {subcategory ? <input type="hidden" name="sub" value={subcategory} /> : null}
+              {status ? <input type="hidden" name="status" value={status} /> : null}
               <label htmlFor="forge-tool">Tool</label>
               <select id="forge-tool" name="tool" className="field-select" defaultValue={tool}>
                 <option value="">Any tool</option>
@@ -158,14 +187,23 @@ async function BuildWorkspace({
                   </option>
                 ))}
               </select>
+              <label htmlFor="forge-need">Skill required</label>
+              <select id="forge-need" name="need" className="field-select" defaultValue={need}>
+                <option value="">Any skill</option>
+                {skills.map((skill) => (
+                  <option key={skill.id} value={skill.slug}>
+                    {skill.name}
+                  </option>
+                ))}
+              </select>
               <button className="text-button" type="submit">
-                Apply tool
+                Apply
               </button>
             </form>
           </FilterMenu>
           {projects.length === 0 ? (
             <p className="repo-empty">
-              {query || visibility !== "all" || type !== "all" || tool
+              {query || visibility !== "all" || type !== "all" || tool || need || status
                 ? "No projects match that filter."
                 : "You have no projects yet. Create one in the panel beside this list."}
             </p>
@@ -189,6 +227,11 @@ async function BuildWorkspace({
                     ))}
                   </div>
                   {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
+                  {(needsByProject.get(project.id) ?? []).length ? (
+                    <p className="repo-meta project-needs">
+                      Needs {(needsByProject.get(project.id) ?? []).slice().sort().join(", ")}
+                    </p>
+                  ) : null}
                   <p>{project.description}</p>
                   <p className="repo-meta">
                     <span className="repo-status">{projectStatusLabel(project.status)}</span>
@@ -217,13 +260,23 @@ async function BuildWorkspace({
   );
 }
 
-function filterHref(query: string, visibility: string, type: string, subcategory = "", tool = "") {
+function filterHref(
+  query: string,
+  visibility: string,
+  type: string,
+  subcategory = "",
+  tool = "",
+  need = "",
+  status = "",
+) {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   if (visibility !== "all") params.set("visibility", visibility);
   if (type !== "all") params.set("type", type);
   if (subcategory) params.set("sub", subcategory);
   if (tool) params.set("tool", tool);
+  if (need) params.set("need", need);
+  if (status) params.set("status", status);
   const suffix = params.toString();
   return suffix ? `/forge?${suffix}` : "/forge";
 }

@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
-import { isProjectCategory, isProjectSlug, isProjectSubcategory, projectSlug } from "@/lib/projects/slug";
+import { parseProjectDay } from "@/lib/projects/timeline";
+import { isProjectCategory, isProjectSlug, isProjectStatus, isProjectSubcategory, projectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/auth/actions";
 
@@ -128,11 +129,11 @@ export async function updateSubcategory(formData: FormData) {
   revalidatePath("/discover");
 }
 
-export async function updateTools(formData: FormData) {
+async function replaceProjectSkills(formData: FormData, field: "tool" | "skill", relation: "uses" | "seeking") {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");
   if (!projectIdPattern.test(projectId)) return;
-  const requested = [...new Set(formData.getAll("tool").map((value) => String(value)))];
+  const requested = [...new Set(formData.getAll(field).map((value) => String(value)))];
   if (requested.length > 8 || requested.some((id) => !projectIdPattern.test(id))) return;
   const supabase = await createClient();
   const { data: project } = await supabase
@@ -151,7 +152,7 @@ export async function updateTools(formData: FormData) {
     .from("project_skills")
     .select("skill_id")
     .eq("project_id", projectId)
-    .eq("relation", "uses");
+    .eq("relation", relation);
   const have = new Set((existing ?? []).map((row) => row.skill_id));
   const next = new Set(requested);
   const remove = [...have].filter((id) => !next.has(id));
@@ -161,19 +162,139 @@ export async function updateTools(formData: FormData) {
       .from("project_skills")
       .delete()
       .eq("project_id", projectId)
-      .eq("relation", "uses")
+      .eq("relation", relation)
       .in("skill_id", remove);
     if (error) return;
   }
   if (add.length) {
     const { error } = await supabase.from("project_skills").insert(
-      add.map((skillId) => ({ project_id: projectId, skill_id: skillId, relation: "uses" as const })),
+      add.map((skillId) => ({ project_id: projectId, skill_id: skillId, relation })),
     );
     if (error) return;
   }
   revalidatePath(`/forge/${project.slug}`);
   revalidatePath("/forge");
   revalidatePath("/discover");
+}
+
+export async function updateTools(formData: FormData) {
+  await replaceProjectSkills(formData, "tool", "uses");
+}
+
+export async function updateSkillsRequired(formData: FormData) {
+  await replaceProjectSkills(formData, "skill", "seeking");
+}
+
+export async function updateStatus(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!projectIdPattern.test(projectId) || !isProjectStatus(status)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase.from("projects").update({ status }).eq("id", projectId).eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/forge");
+  revalidatePath("/discover");
+}
+
+export async function updateTimeline(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const startsOn = parseProjectDay(String(formData.get("startsOn") ?? ""));
+  const endsOn = parseProjectDay(String(formData.get("endsOn") ?? ""));
+  if (!projectIdPattern.test(projectId) || startsOn === undefined || endsOn === undefined) return;
+  if (startsOn && endsOn && endsOn < startsOn) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ starts_on: startsOn, ends_on: endsOn })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/forge");
+}
+
+export async function updateDocumentation(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const documentation = String(formData.get("documentation") ?? "").trim();
+  if (!projectIdPattern.test(projectId) || documentation.length > 8000) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ detailed_description: documentation || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function addMilestone(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const happensOn = parseProjectDay(String(formData.get("happensOn") ?? ""));
+  if (!projectIdPattern.test(projectId) || title.length < 1 || title.length > 80 || !happensOn) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { count } = await supabase
+    .from("project_milestones")
+    .select("id", { count: "exact", head: true })
+    .eq("project_id", projectId);
+  if ((count ?? 0) >= 12) return;
+  const { error } = await supabase.from("project_milestones").insert({
+    project_id: projectId,
+    title,
+    happens_on: happensOn,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function removeMilestone(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const milestoneId = String(formData.get("milestoneId") ?? "");
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(milestoneId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  await supabase.from("project_milestones").delete().eq("id", milestoneId).eq("project_id", projectId);
+  revalidatePath(`/forge/${project.slug}`);
 }
 
 export async function updateCover(formData: FormData) {
@@ -282,14 +403,14 @@ export async function forkProject(formData: FormData) {
       .select("id")
       .single();
     if (!error && created) {
-      const { data: tools } = await supabase
+      const { data: links } = await supabase
         .from("project_skills")
-        .select("skill_id")
+        .select("skill_id, relation")
         .eq("project_id", projectId)
-        .eq("relation", "uses");
-      if (tools?.length) {
+        .in("relation", ["uses", "seeking"]);
+      if (links?.length) {
         await supabase.from("project_skills").insert(
-          tools.map((row) => ({ project_id: created.id, skill_id: row.skill_id, relation: "uses" as const })),
+          links.map((row) => ({ project_id: created.id, skill_id: row.skill_id, relation: row.relation })),
         );
       }
       redirect(`/forge/${slug}`);
