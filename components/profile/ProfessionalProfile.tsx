@@ -94,10 +94,21 @@ export async function ProfessionalProfile({
     ? await supabase.from("blocks").select("blocked_id").eq("blocker_id", viewer.id).eq("blocked_id", profileId).maybeSingle()
     : { data: null };
   const blocked = Boolean(blockRow);
+  const savedRows =
+    editable && viewer?.id === profileId
+      ? (
+          await supabase
+            .from("project_saves")
+            .select("project_id")
+            .eq("profile_id", profileId)
+            .order("created_at", { ascending: false })
+        ).data ?? []
+      : [];
+  const savedIds = savedRows.map((row) => row.project_id);
   const skillIds = (skillsResult.data ?? []).map((row) => row.skill_id);
   const projectIds = (memberResult.data ?? []).map((row) => row.project_id);
   const targetIds = (mergedResult.data ?? []).map((row) => row.target_project_id);
-  const [skillRows, contributed, targets, followerCount, followingCount, followerRows, followingRows, mine] =
+  const [skillRows, contributed, targets, savedProjects, followerCount, followingCount, followerRows, followingRows, mine] =
     await Promise.all([
       skillIds.length
         ? supabase.from("skills").select("id, name").in("id", skillIds)
@@ -107,6 +118,9 @@ export async function ProfessionalProfile({
         : Promise.resolve({ data: [] }),
       targetIds.length
         ? supabase.from("projects").select("id, name, slug").in("id", targetIds)
+        : Promise.resolve({ data: [] }),
+      savedIds.length
+        ? supabase.from("projects").select("id, name, slug").in("id", savedIds).is("removed_at", null)
         : Promise.resolve({ data: [] }),
       supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", profileId),
       supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", profileId),
@@ -377,6 +391,15 @@ export async function ProfessionalProfile({
             </li>
           ))}
         </ProjectGroup>
+        {editable ? (
+          <ProjectGroup title="Saved" empty="No saved projects yet.">
+            {(savedProjects.data ?? []).map((project) => (
+              <li key={project.id} className="repo-row">
+                <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+              </li>
+            ))}
+          </ProjectGroup>
+        ) : null}
         <ProjectGroup title="Merged pull requests" empty="No merged pull requests yet.">
           {(mergedResult.data ?? []).map((request) => {
             const target = targetName.get(request.target_project_id);

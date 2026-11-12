@@ -707,6 +707,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_saves": {
+                  Row: {
+                    "created_at": string,"profile_id": string,"project_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"profile_id": string,"project_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"profile_id"?: string,"project_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_saves_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_saves_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project_gallery": {
                   Row: {
                     "created_at": string,"id": string,"image_url": string,"project_id": string

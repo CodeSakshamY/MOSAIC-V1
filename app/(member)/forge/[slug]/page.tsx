@@ -18,6 +18,7 @@ import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { ToolsForm } from "@/components/build/ToolsForm";
 import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
+import { toggleProjectSave } from "@/lib/projects/follow";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
@@ -81,7 +82,7 @@ async function ProjectView({
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult, requestResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, saveResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult, requestResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -99,6 +100,14 @@ async function ProjectView({
     member
       ? supabase
           .from("project_follows")
+          .select("profile_id")
+          .eq("profile_id", member.id)
+          .eq("project_id", project.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    member
+      ? supabase
+          .from("project_saves")
           .select("profile_id")
           .eq("profile_id", member.id)
           .eq("project_id", project.id)
@@ -239,6 +248,15 @@ async function ProjectView({
           signedIn={Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt)}
           next={`/forge/${project.slug}`}
         />
+        {member ? (
+          <form action={toggleProjectSave}>
+            <input type="hidden" name="projectId" value={project.id} />
+            <input type="hidden" name="next" value={`/forge/${project.slug}`} />
+            <button className="text-button" type="submit" aria-pressed={Boolean(saveResult.data)}>
+              {saveResult.data ? "Saved" : "Save project"}
+            </button>
+          </form>
+        ) : null}
         {!isOwner && member ? (
           <form action={forkProject}>
             <input type="hidden" name="projectId" value={project.id} />
