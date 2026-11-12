@@ -2,7 +2,7 @@ import { Children, type ReactNode } from "react";
 import Link from "next/link";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ReportForm, type reportedState } from "@/components/safety/ReportForm";
-import { removeProfileItem } from "@/lib/profile/actions";
+import { removeProfileItem, featureProject } from "@/lib/profile/actions";
 import {
   AchievementForm,
   AwardForm,
@@ -71,7 +71,7 @@ export async function ProfessionalProfile({
       .order("created_at", { ascending: false }),
     supabase
       .from("projects")
-      .select("id, name, slug, description, tagline, subcategory, category, visibility")
+      .select("id, name, slug, description, tagline, subcategory, category, visibility, profile_featured_at")
       .eq("owner_id", profileId)
       .is("removed_at", null)
       .order("updated_at", { ascending: false }),
@@ -186,6 +186,9 @@ export async function ProfessionalProfile({
   const targetName = new Map((targets.data ?? []).map((project) => [project.id, project]));
 
   const initial = profile.display_name.trim().charAt(0).toUpperCase() || "?";
+  const featured = (ownedResult.data ?? [])
+    .filter((project) => project.visibility === "public" && project.profile_featured_at)
+    .sort((left, right) => (right.profile_featured_at ?? "").localeCompare(left.profile_featured_at ?? ""));
 
   return (
     <article className="profile-page">
@@ -402,6 +405,17 @@ export async function ProfessionalProfile({
 
       <section className="profile-section" aria-labelledby="projects-heading">
         <h2 id="projects-heading">Projects</h2>
+        {featured.length > 0 || editable ? (
+          <ProjectGroup title="Featured" empty="No featured projects yet.">
+            {featured.map((project) => (
+              <li key={project.id} className="repo-row">
+                <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+                {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
+                <p>{project.description}</p>
+              </li>
+            ))}
+          </ProjectGroup>
+        ) : null}
         <ProjectGroup title="Repositories" empty="No public projects yet.">
           {(ownedResult.data ?? []).map((project) => (
             <li key={project.id} className="repo-row">
@@ -413,6 +427,15 @@ export async function ProfessionalProfile({
               </div>
               {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
               <p>{project.description}</p>
+              {editable && project.visibility === "public" ? (
+                <form action={featureProject}>
+                  <input type="hidden" name="projectId" value={project.id} />
+                  <input type="hidden" name="feature" value={project.profile_featured_at ? "0" : "1"} />
+                  <button className="text-button" type="submit">
+                    {project.profile_featured_at ? `Remove ${project.name} from featured` : `Feature ${project.name}`}
+                  </button>
+                </form>
+              ) : null}
             </li>
           ))}
         </ProjectGroup>

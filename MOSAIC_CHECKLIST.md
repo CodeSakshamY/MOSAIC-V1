@@ -92,7 +92,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Interests and disciplines shown and editable
 - [x] Skills shown when chosen during onboarding
 - [x] Current projects (repositories you own)
-- [ ] Featured projects
+- [x] Featured projects
 - [ ] Completed projects as their own list
 - [ ] Research and publications
 - [x] Achievements and awards, including photos

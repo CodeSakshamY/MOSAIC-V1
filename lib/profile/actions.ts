@@ -48,6 +48,30 @@ export async function saveInterests(formData: FormData) {
   redirect("/profile");
 }
 
+export async function featureProject(formData: FormData) {
+  const member = await requireOwner();
+  const projectId = String(formData.get("projectId") ?? "");
+  const feature = formData.get("feature") === "1";
+  if (!interestIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id, owner_id, visibility")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id || project.visibility !== "public") return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ profile_featured_at: feature ? new Date().toISOString() : null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath("/profile");
+  if (member.username) revalidatePath(`/people/${member.username}`);
+  redirect("/profile");
+}
+
 function year(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
   if (!text) return { ok: true as const, year: null };

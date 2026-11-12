@@ -164,6 +164,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `collaboration_type` | Nullable. |
 | `parent_project_id` | Nullable FK → `projects(id)` `ON DELETE SET NULL`. Check `parent_project_id <> id`. |
 | `featured_at` | Nullable. Writable only by staff. A trigger rejects other updates. |
+| `profile_featured_at` | Nullable. The owner can set this on a public project. A profile can feature 3. A private project cannot keep it. |
 | `is_demo` | Boolean, default false. |
 | `removed_at` | Nullable. Moderator removal. |
 | `created_at`, `updated_at` | |
@@ -606,6 +607,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `050_build_log_explanation.sql` | A build log can be a technical explanation. |
 | `051_build_log_follows.sql` | Follow one build log. Comments on it notify the follower. |
 | `052_major_milestones.sql` | The owner can mark a dated milestone as major. |
+| `053_profile_featured_projects.sql` | The owner can feature up to 3 public projects on their profile. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
