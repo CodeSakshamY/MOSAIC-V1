@@ -28,6 +28,7 @@ const views = [
   { id: "posts", label: "Posts" },
   { id: "reels", label: "Reels" },
   { id: "experiments", label: "Experiments" },
+  { id: "communities", label: "Communities" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -47,6 +48,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("experiments", filters)} aria-current={view === "experiments" ? "page" : undefined}>
           Experiments
         </Link>
+        <Link href={hrefFor("communities", filters)} aria-current={view === "communities" ? "page" : undefined}>
+          Communities
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -63,6 +67,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "projects" ? <ProjectList filters={filters} /> : null}
       {view === "research" ? <ResearchList /> : null}
       {view === "experiments" ? <ExperimentList /> : null}
+      {view === "communities" ? <CommunityList /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -320,6 +325,32 @@ async function ExperimentList() {
               <span className="repo-visibility">{log.project.name}</span>
             </div>
           </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+async function CommunityList() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_communities")
+    .select("name, created_at")
+    .order("created_at", { ascending: false })
+    .limit(40);
+  const names: string[] = [];
+  for (const row of data ?? []) {
+    if (!names.includes(row.name)) names.push(row.name);
+    if (names.length === 20) break;
+  }
+  return (
+    <section aria-labelledby="discover-communities-heading">
+      <h2 id="discover-communities-heading">Communities</h2>
+      <p className="form-note">Names builders have typed on their profiles. MOSAIC groups are not open yet.</p>
+      {names.length === 0 ? <p>No communities listed yet.</p> : null}
+      <ul className="skill-row" role="list">
+        {names.map((name) => (
+          <li key={name}>{name}</li>
         ))}
       </ul>
     </section>
