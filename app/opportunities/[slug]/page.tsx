@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember } from "@/lib/auth/session";
 import { opportunityCategoryLabel } from "@/lib/opportunities/categories";
+import { toggleOpportunitySave } from "@/lib/opportunities/actions";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -22,16 +23,20 @@ export default async function OpportunityDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  await getMember();
+  const member = await getMember();
   const supabase = await createClient();
   const { data } = await supabase
     .from("opportunities")
-    .select("title, organizer, official_url, deadline, description, category, eligibility, country, state")
+    .select("id, title, organizer, official_url, deadline, description, category, eligibility, country, state")
     .eq("slug", slug)
     .eq("is_published", true)
     .is("removed_at", null)
     .maybeSingle();
   if (!data) notFound();
+  const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
+  const { data: saved } = member && signedIn
+    ? await supabase.from("opportunity_saves").select("opportunity_id").eq("opportunity_id", data.id).eq("profile_id", member.id).maybeSingle()
+    : { data: null };
 
   return (
     <SectionPage editorial title={data.title} lede={`${opportunityCategoryLabel(data.category)} · ${data.organizer}`}>
@@ -42,6 +47,15 @@ export default async function OpportunityDetailPage({
         <a href={data.official_url}>Official application link</a>
       </p>
       <p className="form-note">{data.deadline ? `Deadline ${data.deadline.slice(0, 10)}` : "No deadline was provided."}</p>
+      {signedIn ? (
+        <form action={toggleOpportunitySave}>
+          <input type="hidden" name="opportunityId" value={data.id} />
+          <input type="hidden" name="slug" value={slug} />
+          <button className="text-button" type="submit" aria-pressed={Boolean(saved)}>
+            {saved ? "Saved" : "Save opportunity"}
+          </button>
+        </form>
+      ) : null}
     </SectionPage>
   );
 }

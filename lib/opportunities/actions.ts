@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { parseWebsite } from "@/lib/auth/validation";
 import { isOpportunityCategory } from "@/lib/opportunities/categories";
-import { projectSlug } from "@/lib/projects/slug";
+import { projectSlug, isProjectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 
 export async function announceOpportunity(_state: { error?: string } | null, formData: FormData) {
@@ -92,4 +92,35 @@ export async function announceEvent(_state: { error?: string } | null, formData:
   revalidatePath("/opportunities");
   revalidatePath("/discover");
   redirect("/opportunities");
+}
+
+const idPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export async function toggleOpportunitySave(formData: FormData) {
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  if (!idPattern.test(opportunityId) || !isProjectSlug(slug)) return;
+  const back = `/opportunities/${slug}`;
+  const member = await getMember();
+  if (!member) redirect(`/profile?next=${encodeURIComponent(back)}`);
+  const gate = memberGate(member);
+  if (gate) redirect(gate);
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("opportunity_saves")
+    .select("opportunity_id")
+    .eq("opportunity_id", opportunityId)
+    .eq("profile_id", member.id)
+    .maybeSingle();
+  if (existing) {
+    await supabase.from("opportunity_saves").delete().eq("opportunity_id", opportunityId).eq("profile_id", member.id);
+  } else {
+    const { error } = await supabase.from("opportunity_saves").insert({
+      opportunity_id: opportunityId,
+      profile_id: member.id,
+    });
+    if (error) return;
+  }
+  revalidatePath(back);
+  redirect(back);
 }

@@ -188,7 +188,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Filters by eligibility, discipline, country and region
 - [x] Application deadlines that are never invented
 - [x] Opportunity details and official application links
-- [ ] Save opportunities
+- [x] Save opportunities
 - [ ] Deadline reminders
 - [ ] Mark as applied, shortlisted or completed
 - [ ] Community-submitted opportunities

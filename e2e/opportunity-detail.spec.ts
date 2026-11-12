@@ -73,4 +73,14 @@ test("an opportunity page shows the details and the official link", async ({ pag
   await expect(page).toHaveURL(/\/opportunities\/detail-/);
   await expect(page.getByText("Read the official page before applying.").first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Official application link" })).toHaveAttribute("href", "https://example.com/detail");
+  const saved = page.waitForResponse((response) => response.request().method() === "POST");
+  await page.getByRole("button", { name: "Save opportunity" }).click();
+  await saved;
+  await expect(page.getByRole("button", { name: "Saved" })).toHaveAttribute("aria-pressed", "true");
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Saved" })).toBeVisible();
+  const removed = page.waitForResponse((response) => response.request().method() === "POST");
+  await page.getByRole("button", { name: "Saved" }).click();
+  await removed;
+  await expect(page.getByRole("button", { name: "Save opportunity" })).toBeVisible();
 });
