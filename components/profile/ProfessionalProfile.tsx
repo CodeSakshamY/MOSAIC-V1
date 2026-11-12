@@ -154,6 +154,11 @@ export async function ProfessionalProfile({
   const savedIds = savedRows.map((row) => row.project_id);
   const skillIds = (skillsResult.data ?? []).map((row) => row.skill_id);
   const interestIds = (interestsResult.data ?? []).map((row) => row.interest_id);
+  const { data: viewerInterestRows } =
+    viewer && viewer.id !== profileId
+      ? await supabase.from("profile_interests").select("interest_id").eq("profile_id", viewer.id)
+      : { data: [] };
+  const viewerInterestIds = new Set((viewerInterestRows ?? []).map((row) => row.interest_id));
   const projectIds = (memberResult.data ?? []).map((row) => row.project_id);
   const targetIds = (mergedResult.data ?? []).map((row) => row.target_project_id);
   const [skillRows, interestRows, interestCatalog, contributed, targets, savedProjects, followerCount, followingCount, followerRows, followingRows, mine] =
@@ -230,6 +235,7 @@ export async function ProfessionalProfile({
   const targetName = new Map((targets.data ?? []).map((project) => [project.id, project]));
 
   const initial = profile.display_name.trim().charAt(0).toUpperCase() || "?";
+  const sharedInterests = (interestRows.data ?? []).filter((interest) => viewerInterestIds.has(interest.id));
   const owned = ownedResult.data ?? [];
   const featured = owned
     .filter((project) => project.visibility === "public" && project.profile_featured_at)
@@ -440,6 +446,20 @@ export async function ProfessionalProfile({
               selected={interestIds}
             />
           ) : null}
+        </section>
+      ) : null}
+
+      {!editable && sharedInterests.length > 0 ? (
+        <section className="profile-section" aria-labelledby="shared-interests-heading">
+          <h2 id="shared-interests-heading">Shared interests</h2>
+          <ul className="skill-row" role="list">
+            {sharedInterests
+              .slice()
+              .sort((left, right) => left.name.localeCompare(right.name))
+              .map((interest) => (
+                <li key={interest.id}>{interest.name}</li>
+              ))}
+          </ul>
         </section>
       ) : null}
 

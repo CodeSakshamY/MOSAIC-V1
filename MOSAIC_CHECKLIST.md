@@ -125,7 +125,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Similar-interest discovery
 - [x] People working on related projects
 - [x] Follow builders
-- [ ] View shared interests
+- [x] View shared interests
 - [ ] View mutual connections
 - [ ] Find potential teammates
 - [ ] Find mentors and experienced contributors
