@@ -128,11 +128,11 @@ export async function updateSubcategory(formData: FormData) {
   revalidatePath("/discover");
 }
 
-export async function updateTools(formData: FormData) {
+async function replaceProjectSkills(formData: FormData, field: "tool" | "skill", relation: "uses" | "seeking") {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");
   if (!projectIdPattern.test(projectId)) return;
-  const requested = [...new Set(formData.getAll("tool").map((value) => String(value)))];
+  const requested = [...new Set(formData.getAll(field).map((value) => String(value)))];
   if (requested.length > 8 || requested.some((id) => !projectIdPattern.test(id))) return;
   const supabase = await createClient();
   const { data: project } = await supabase
@@ -151,7 +151,7 @@ export async function updateTools(formData: FormData) {
     .from("project_skills")
     .select("skill_id")
     .eq("project_id", projectId)
-    .eq("relation", "uses");
+    .eq("relation", relation);
   const have = new Set((existing ?? []).map((row) => row.skill_id));
   const next = new Set(requested);
   const remove = [...have].filter((id) => !next.has(id));
@@ -161,19 +161,27 @@ export async function updateTools(formData: FormData) {
       .from("project_skills")
       .delete()
       .eq("project_id", projectId)
-      .eq("relation", "uses")
+      .eq("relation", relation)
       .in("skill_id", remove);
     if (error) return;
   }
   if (add.length) {
     const { error } = await supabase.from("project_skills").insert(
-      add.map((skillId) => ({ project_id: projectId, skill_id: skillId, relation: "uses" as const })),
+      add.map((skillId) => ({ project_id: projectId, skill_id: skillId, relation })),
     );
     if (error) return;
   }
   revalidatePath(`/forge/${project.slug}`);
   revalidatePath("/forge");
   revalidatePath("/discover");
+}
+
+export async function updateTools(formData: FormData) {
+  await replaceProjectSkills(formData, "tool", "uses");
+}
+
+export async function updateSkillsRequired(formData: FormData) {
+  await replaceProjectSkills(formData, "skill", "seeking");
 }
 
 export async function updateCover(formData: FormData) {
@@ -282,14 +290,14 @@ export async function forkProject(formData: FormData) {
       .select("id")
       .single();
     if (!error && created) {
-      const { data: tools } = await supabase
+      const { data: links } = await supabase
         .from("project_skills")
-        .select("skill_id")
+        .select("skill_id, relation")
         .eq("project_id", projectId)
-        .eq("relation", "uses");
-      if (tools?.length) {
+        .in("relation", ["uses", "seeking"]);
+      if (links?.length) {
         await supabase.from("project_skills").insert(
-          tools.map((row) => ({ project_id: created.id, skill_id: row.skill_id, relation: "uses" as const })),
+          links.map((row) => ({ project_id: created.id, skill_id: row.skill_id, relation: row.relation })),
         );
       }
       redirect(`/forge/${slug}`);

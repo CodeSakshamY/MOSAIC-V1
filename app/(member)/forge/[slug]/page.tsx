@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
+import { SkillsForm } from "@/components/build/SkillsForm";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { ToolsForm } from "@/components/build/ToolsForm";
@@ -70,7 +71,7 @@ async function ProjectView({
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, toolsResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -95,14 +96,17 @@ async function ProjectView({
       : Promise.resolve({ data: null }),
     supabase.from("project_gallery").select("id, image_url").eq("project_id", project.id).order("created_at", { ascending: true }),
     supabase.from("skills").select("id, name").order("name"),
-    supabase.from("project_skills").select("skill_id").eq("project_id", project.id).eq("relation", "uses"),
+    supabase.from("project_skills").select("skill_id, relation").eq("project_id", project.id).in("relation", ["uses", "seeking"]),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
   const isOwner = member?.id === project.owner_id;
   const skills = skillsResult.data ?? [];
-  const usedIds = new Set((toolsResult.data ?? []).map((row) => row.skill_id));
+  const links = skillLinks.data ?? [];
+  const usedIds = new Set(links.filter((row) => row.relation === "uses").map((row) => row.skill_id));
+  const neededIds = new Set(links.filter((row) => row.relation === "seeking").map((row) => row.skill_id));
   const tools = skills.filter((skill) => usedIds.has(skill.id));
+  const needed = skills.filter((skill) => neededIds.has(skill.id));
   const onProject = Boolean(membershipResult.data);
   const typeNote = projectTypeNotes[project.category as ProjectCategory];
 
@@ -143,11 +147,13 @@ async function ProjectView({
         ) : null}
       </header>
       {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
+      {needed.length ? <p className="repo-meta project-needs">Needs {needed.map((skill) => skill.name).join(", ")}</p> : null}
       {isOwner ? <TaglineForm projectId={project.id} tagline={project.tagline} /> : null}
       {isOwner && isProjectCategory(project.category) ? (
         <SubcategoryForm projectId={project.id} category={project.category} subcategory={project.subcategory} />
       ) : null}
       {isOwner ? <ToolsForm projectId={project.id} skills={skills} selected={[...usedIds]} /> : null}
+      {isOwner ? <SkillsForm projectId={project.id} skills={skills} selected={[...neededIds]} /> : null}
       {!isOwner && member ? (
         <ReportForm kind="project" target={project.id} reported={reportedState(query.reported)} />
       ) : null}
