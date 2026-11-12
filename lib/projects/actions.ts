@@ -591,6 +591,30 @@ export async function createCommit(_state: ActionState, formData: FormData): Pro
   redirect(`/forge/${slug}?tab=commits`);
 }
 
+export async function commentOnUpdate(formData: FormData) {
+  const member = await requireMember();
+  const postId = String(formData.get("postId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  const content = String(formData.get("content") ?? "").trim();
+  if (!projectIdPattern.test(postId) || !isProjectSlug(slug) || content.length < 1 || content.length > 2000) return;
+  const supabase = await createClient();
+  const { data: post } = await supabase
+    .from("posts")
+    .select("id")
+    .eq("id", postId)
+    .eq("type", "build_log")
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!post) return;
+  const { error } = await supabase.from("comments").insert({
+    post_id: postId,
+    author_id: member.id,
+    content,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${slug}`);
+}
+
 export async function openPullRequest(_state: ActionState, formData: FormData): Promise<ActionState> {
   const member = await requireMember();
   const sourceId = String(formData.get("projectId") ?? "");

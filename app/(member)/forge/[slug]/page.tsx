@@ -228,11 +228,26 @@ async function ProjectView({
     ...roster.map((person) => ({ project_id: project.id, profile_id: person.profile_id, role: person.role })),
     ...(branchMembers ?? []),
   ];
+  const logIds = logs.map((log) => log.id);
+  const { data: logPosts } = logIds.length
+    ? await supabase.from("posts").select("id, build_log_id").in("build_log_id", logIds).eq("type", "build_log").is("removed_at", null)
+    : { data: [] };
+  const postIds = (logPosts ?? []).map((post) => post.id);
+  const { data: commentRows } = postIds.length
+    ? await supabase
+        .from("comments")
+        .select("id, post_id, author_id, content")
+        .in("post_id", postIds)
+        .is("parent_comment_id", null)
+        .is("removed_at", null)
+        .order("created_at", { ascending: true })
+    : { data: [] };
   const authorIds = [
     ...new Set([
       ...logs.map((log) => log.author_id),
       ...lineageMembers.map((person) => person.profile_id),
       ...requests.map((request) => request.requester_id),
+      ...(commentRows ?? []).map((comment) => comment.author_id),
     ]),
   ];
   const { data: authorRows } = authorIds.length
@@ -249,6 +264,14 @@ async function ProjectView({
     author: authorNames.get(log.author_id) ?? "builder",
     media: log.media_urls,
     kind: log.kind,
+    postId: (logPosts ?? []).find((post) => post.build_log_id === log.id)?.id ?? null,
+    comments: (commentRows ?? [])
+      .filter((comment) => (logPosts ?? []).some((post) => post.id === comment.post_id && post.build_log_id === log.id))
+      .map((comment) => ({
+        id: comment.id,
+        author: authorNames.get(comment.author_id) ?? "builder",
+        content: comment.content,
+      })),
   }));
   const roleOrder = ["owner", "maintainer", "contributor"];
   const team = roster
@@ -416,7 +439,7 @@ async function ProjectView({
                 {project.credits ? <p className="project-credits">{project.credits}</p> : <p className="form-note">No credits yet.</p>}
                 {isOwner ? <CreditsForm projectId={project.id} credits={project.credits} /> : null}
               </section>
-              <UpdateHistory updates={updates} />
+              <UpdateHistory slug={project.slug} updates={updates} />
               <ProjectTeam members={team} />
               <RelatedProjects projects={related} />
               <ProjectLineage entries={lineage} />

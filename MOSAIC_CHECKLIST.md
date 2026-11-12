@@ -78,7 +78,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Add technical explanations as a distinct log type
 - [x] Link updates to a specific project
 - [x] Display those updates in chronological order on the project
-- [ ] Comment on an individual update
+- [x] Comment on an individual update
 - [ ] React to build logs
 - [ ] Follow build-log updates
 - [ ] Highlight major milestones on project pages

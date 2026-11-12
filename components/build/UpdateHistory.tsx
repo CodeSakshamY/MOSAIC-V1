@@ -1,10 +1,25 @@
+import { commentOnUpdate } from "@/lib/projects/actions";
 import { buildLogKindLabel } from "@/lib/projects/log-kind";
 import { LogMedia } from "@/components/build/LogMedia";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export function UpdateHistory({
+  slug,
   updates,
 }: {
-  updates: { id: string; title: string; content: string; when: string; author: string; media: string[]; kind: string }[];
+  slug: string;
+  updates: {
+    id: string;
+    title: string;
+    content: string;
+    when: string;
+    author: string;
+    media: string[];
+    kind: string;
+    postId: string | null;
+    comments: { id: string; author: string; content: string }[];
+  }[];
 }) {
   return (
     <section className="project-updates" aria-labelledby="project-updates-heading">
@@ -23,6 +38,29 @@ export function UpdateHistory({
               <span aria-hidden="true">·</span>
               {update.when}
             </p>
+            {update.comments.length ? (
+              <ul className="repo-list">
+                {update.comments.map((comment) => (
+                  <li key={comment.id}>
+                    <p>{comment.content}</p>
+                    <p className="repo-meta">{comment.author}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {update.postId ? (
+              <form className="form-stack" action={commentOnUpdate}>
+                <input type="hidden" name="postId" value={update.postId} />
+                <input type="hidden" name="slug" value={slug} />
+                <div className="field">
+                  <Label htmlFor={`update-comment-${update.id}`}>Comment</Label>
+                  <Textarea id={`update-comment-${update.id}`} name="content" required maxLength={2000} rows={2} />
+                </div>
+                <button className="text-button" type="submit">
+                  Comment
+                </button>
+              </form>
+            ) : null}
           </li>
         ))}
       </ol>
