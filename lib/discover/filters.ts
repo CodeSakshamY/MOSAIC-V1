@@ -7,6 +7,7 @@ export type DiscoverFilters = {
   place: string;
   skill: string;
   discipline: string;
+  interest: string;
   type: ProjectCategory | null;
 };
 
@@ -26,6 +27,7 @@ export function readDiscoverFilters(input: {
   place?: string;
   skill?: string;
   discipline?: string;
+  interest?: string;
   type?: string;
 }): DiscoverFilters {
   const q = (input.q ?? "").trim().replace(/[%_\\]/g, "").replace(/\s+/g, " ").slice(0, 80);
@@ -37,10 +39,11 @@ export function readDiscoverFilters(input: {
     .slice(0, 80);
   const skill = input.skill && skillPattern.test(input.skill) ? input.skill : "";
   const discipline = interestCategories.find((category) => category.value === input.discipline)?.value ?? "";
+  const interest = input.interest && skillPattern.test(input.interest) ? input.interest : "";
   const type = input.type && isProjectCategory(input.type) ? input.type : null;
-  return { q, age, place, skill, discipline, type };
+  return { q, age, place, skill, discipline, interest, type };
 }
 
 export function peopleFilterActive(filters: DiscoverFilters) {
-  return Boolean(filters.age || filters.place || filters.skill || filters.discipline);
+  return Boolean(filters.age || filters.place || filters.skill || filters.discipline || filters.interest);
 }

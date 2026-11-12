@@ -119,6 +119,17 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
     }
     query = query.in("id", ids);
   }
+  if (filters.interest) {
+    const { data: interest } = await supabase.from("interests").select("id").eq("slug", filters.interest).maybeSingle();
+    const { data: links } = interest
+      ? await supabase.from("profile_interests").select("profile_id").eq("interest_id", interest.id)
+      : { data: [] };
+    const ids = (links ?? []).map((row) => row.profile_id);
+    if (ids.length === 0) {
+      return <p className="repo-empty">No people match that filter.</p>;
+    }
+    query = query.in("id", ids);
+  }
   const { data } = await query;
   const people = (data ?? []).filter((person) => person.username);
   if (people.length === 0) {
@@ -456,8 +467,15 @@ function DiscoverSearch({ view, filters }: { view: "people" | "projects"; filter
 async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
   const supabase = await createClient();
   const { data } = await supabase.from("skills").select("slug, name").order("name");
+  const { data: interestRows } = await supabase.from("interests").select("slug, name").order("name");
   const skills = data ?? [];
-  const active = Number(Boolean(filters.age)) + Number(Boolean(filters.place)) + Number(Boolean(filters.skill)) + Number(Boolean(filters.discipline));
+  const interests = interestRows ?? [];
+  const active =
+    Number(Boolean(filters.age)) +
+    Number(Boolean(filters.place)) +
+    Number(Boolean(filters.skill)) +
+    Number(Boolean(filters.discipline)) +
+    Number(Boolean(filters.interest));
   return (
     <FilterMenu active={active}>
     <form className="discover-filters" action="/discover">
@@ -503,6 +521,17 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
           {interestCategories.map((category) => (
             <option key={category.value} value={category.value}>
               {category.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="discover-interest">Interest</label>
+        <select id="discover-interest" name="interest" className="field-select" defaultValue={filters.interest}>
+          <option value="">Any</option>
+          {interests.map((interest) => (
+            <option key={interest.slug} value={interest.slug}>
+              {interest.name}
             </option>
           ))}
         </select>
