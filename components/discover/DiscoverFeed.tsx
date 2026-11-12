@@ -39,6 +39,7 @@ const views = [
   { id: "everything", label: "Search" },
   { id: "collections", label: "Collections" },
   { id: "picks", label: "Editor's picks" },
+  { id: "emerging", label: "New" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -88,6 +89,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("picks", filters)} aria-current={view === "picks" ? "page" : undefined}>
           Editor&apos;s picks
         </Link>
+        <Link href={hrefFor("emerging", filters)} aria-current={view === "emerging" ? "page" : undefined}>
+          New
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -99,7 +103,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       <div className="discover-tools">
         {view === "people" || view === "projects" || view === "everything" ? <DiscoverSearch view={view} filters={filters} /> : null}
         {view === "projects" ? <ProjectSort filters={filters} /> : null}
-        {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" || view === "collections" || view === "picks" ? null : <TypeFilters view={view} filters={filters} />}
+        {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" || view === "collections" || view === "picks" || view === "emerging" ? null : <TypeFilters view={view} filters={filters} />}
       </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
@@ -115,6 +119,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "everything" ? <SearchEverything filters={filters} /> : null}
       {view === "collections" ? <CollectionList /> : null}
       {view === "picks" ? <EditorsPicks /> : null}
+      {view === "emerging" ? <EmergingProjects /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -136,7 +141,7 @@ function hrefFor(view: View, filters: DiscoverFilters, type: ProjectCategory | n
     if (filters.age) params.set("age", filters.age);
     if (filters.place) params.set("place", filters.place);
     if (filters.skill) params.set("skill", filters.skill);
-  } else if (view !== "everything" && view !== "collections" && view !== "picks" && type) {
+  } else if (view !== "everything" && view !== "collections" && view !== "picks" && view !== "emerging" && type) {
     params.set("type", type);
   }
   if (view === "projects" && filters.status) params.set("status", filters.status);
@@ -768,6 +773,33 @@ async function EditorsPicks() {
       <h2 id="discover-picks-heading">Editor&apos;s picks</h2>
       <p className="form-note">Public projects a staff member has featured. A builder cannot feature their own project.</p>
       {projects.length === 0 ? <p>No editor&apos;s picks yet.</p> : null}
+      <ul className="repo-list" role="list">
+        {projects.map((project) => (
+          <li key={project.id} className="repo-row">
+            <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+async function EmergingProjects() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("projects")
+    .select("id, name, slug, created_at")
+    .eq("visibility", "public")
+    .in("status", ["idea", "researching", "in_development"])
+    .is("removed_at", null)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const projects = data ?? [];
+  return (
+    <section aria-labelledby="discover-emerging-heading">
+      <h2 id="discover-emerging-heading">New and emerging</h2>
+      <p className="form-note">The newest public projects still at idea, researching, or in development. Ordered by when they were created.</p>
+      {projects.length === 0 ? <p>No new projects yet.</p> : null}
       <ul className="repo-list" role="list">
         {projects.map((project) => (
           <li key={project.id} className="repo-row">
