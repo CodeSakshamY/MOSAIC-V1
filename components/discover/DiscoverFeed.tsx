@@ -47,63 +47,47 @@ type View = (typeof views)[number]["id"];
 export async function DiscoverFeed({ view, filters }: { view: View; filters: DiscoverFilters }) {
   return (
     <div className="discover-feed">
-      <nav className="repo-filters" aria-label="Discover">
-        {views.slice(0, 3).map((item) => (
-          <Link key={item.id} href={hrefFor(item.id, filters)} aria-current={view === item.id ? "page" : undefined}>
-            {item.label}
-          </Link>
-        ))}
-        <Link href={hrefFor("research", filters)} aria-current={view === "research" ? "page" : undefined}>
-          Research
-        </Link>
-        <Link href={hrefFor("experiments", filters)} aria-current={view === "experiments" ? "page" : undefined}>
-          Experiments
-        </Link>
-        <Link href={hrefFor("communities", filters)} aria-current={view === "communities" ? "page" : undefined}>
-          Communities
-        </Link>
-        <Link href={hrefFor("opportunities", filters)} aria-current={view === "opportunities" ? "page" : undefined}>
-          Opportunities
-        </Link>
-        <Link href={hrefFor("events", filters)} aria-current={view === "events" ? "page" : undefined}>
-          Events
-        </Link>
-        <Link href={hrefFor("competitions", filters)} aria-current={view === "competitions" ? "page" : undefined}>
-          Competitions
-        </Link>
-        <Link href={hrefFor("hackathons", filters)} aria-current={view === "hackathons" ? "page" : undefined}>
-          Hackathons
-        </Link>
-        <Link href={hrefFor("opensource", filters)} aria-current={view === "opensource" ? "page" : undefined}>
-          Open source
-        </Link>
-        <Link href={hrefFor("technologies", filters)} aria-current={view === "technologies" ? "page" : undefined}>
-          Technologies
-        </Link>
-        <Link href={hrefFor("everything", filters)} aria-current={view === "everything" ? "page" : undefined}>
-          Search
-        </Link>
-        <Link href={hrefFor("collections", filters)} aria-current={view === "collections" ? "page" : undefined}>
-          Collections
-        </Link>
-        <Link href={hrefFor("picks", filters)} aria-current={view === "picks" ? "page" : undefined}>
-          Editor&apos;s picks
-        </Link>
-        <Link href={hrefFor("emerging", filters)} aria-current={view === "emerging" ? "page" : undefined}>
-          New
-        </Link>
-      </nav>
-      <nav className="repo-filters discover-format" aria-label="Feed format">
-        {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
-          <Link key={item.id} href={hrefFor(item.id, filters)} aria-current={view === item.id ? "page" : undefined}>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+      <form className="discover-section" action="/discover">
+        <label htmlFor="discover-section">Section</label>
+        <select id="discover-section" name="view" className="field-select" defaultValue={view}>
+          {views.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        <button className="text-button" type="submit">
+          Show
+        </button>
+      </form>
       <div className="discover-tools">
         {view === "people" || view === "projects" || view === "everything" ? <DiscoverSearch view={view} filters={filters} /> : null}
         {view === "projects" ? <ProjectSort filters={filters} /> : null}
-        {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" || view === "collections" || view === "picks" || view === "emerging" ? null : <TypeFilters view={view} filters={filters} />}
+        {view === "everything" ? (
+          <form className="discover-filters" action="/discover">
+            <input type="hidden" name="view" value="everything" />
+            {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
+            <label htmlFor="search-discipline">Discipline</label>
+            <select id="search-discipline" name="type" className="field-select" defaultValue={filters.type ?? ""}>
+              <option value="">Any</option>
+              {projectCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            <button className="text-button" type="submit">
+              Apply discipline
+            </button>
+          </form>
+        ) : null}
+        {view === "people" ? (
+          <PeopleFilters filters={filters} />
+        ) : view === "projects" ? (
+          <AdvancedProjectFilters filters={filters} />
+        ) : view === "ideas" || view === "posts" || view === "reels" ? (
+          <TypeFilters view={view} filters={filters} />
+        ) : null}
       </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
@@ -144,6 +128,7 @@ function hrefFor(view: View, filters: DiscoverFilters, type: ProjectCategory | n
   } else if (view !== "everything" && view !== "collections" && view !== "picks" && view !== "emerging" && type) {
     params.set("type", type);
   }
+  if (view === "everything" && type) params.set("type", type);
   if (view === "projects" && filters.status) params.set("status", filters.status);
   if (view === "projects" && filters.sort !== "latest") params.set("sort", filters.sort);
   const query = params.toString();
@@ -627,14 +612,15 @@ async function SearchEverything({ filters }: { filters: DiscoverFilters }) {
     ? (
         await supabase
           .from("projects")
-          .select("id, name, slug")
+          .select("id, name, slug, category")
           .eq("visibility", "public")
           .is("removed_at", null)
-          .ilike("name", `%${term}%`)
+          .or(`name.ilike.%${term}%,subcategory.ilike.%${term}%`)
           .order("updated_at", { ascending: false })
           .limit(8)
       ).data ?? []
     : [];
+  const matchedProjects = filters.type ? projects.filter((project) => project.category === filters.type) : projects;
   const posts = term
     ? (
         await supabase
@@ -646,12 +632,34 @@ async function SearchEverything({ filters }: { filters: DiscoverFilters }) {
           .limit(8)
       ).data ?? []
     : [];
+  const listings = term
+    ? (
+        await supabase
+          .from("opportunities")
+          .select("id, title, slug, category")
+          .eq("is_published", true)
+          .is("removed_at", null)
+          .ilike("title", `%${term}%`)
+          .order("created_at", { ascending: false })
+          .limit(16)
+      ).data ?? []
+    : [];
+  const opportunities = listings.filter((item) => item.category !== "workshop" && item.category !== "maker_event");
+  const events = listings.filter((item) => item.category === "workshop" || item.category === "maker_event");
+  const skills = term
+    ? (await supabase.from("skills").select("id, name, slug").ilike("name", `%${term}%`).order("name").limit(8)).data ?? []
+    : [];
+  const communities = term
+    ? (await supabase.from("profile_communities").select("name").ilike("name", `%${term}%`).limit(8)).data ?? []
+    : [];
+  const communityNames = [...new Set((communities ?? []).map((row) => row.name))];
+  const total = people.length + matchedProjects.length + posts.length + opportunities.length + events.length + skills.length + communityNames.length;
   return (
     <section aria-labelledby="discover-search-heading">
       <h2 id="discover-search-heading">Search</h2>
-      <p className="form-note">People, projects, and posts whose names match the words you type.</p>
+      <p className="form-note">People, projects, posts, opportunities, events, skills, and community names people have typed. MOSAIC groups are not open.</p>
       {!term ? <p>Type a search above.</p> : null}
-      {term && people.length + projects.length + posts.length === 0 ? <p>Nothing matched.</p> : null}
+      {term && total === 0 ? <p>Nothing matched.</p> : null}
       {people.length ? (
         <>
           <h3>People</h3>
@@ -670,7 +678,7 @@ async function SearchEverything({ filters }: { filters: DiscoverFilters }) {
         <>
           <h3>Projects</h3>
           <ul className="repo-list" role="list">
-            {projects.map((project) => (
+            {matchedProjects.map((project) => (
               <li key={project.id} className="repo-row">
                 <Link href={`/forge/${project.slug}`}>{project.name}</Link>
               </li>
@@ -685,6 +693,54 @@ async function SearchEverything({ filters }: { filters: DiscoverFilters }) {
             {posts.map((post) => (
               <li key={post.id} className="repo-row">
                 <Link href={`/posts/${post.id}`}>{post.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {opportunities.length ? (
+        <>
+          <h3>Opportunities</h3>
+          <ul className="repo-list" role="list">
+            {opportunities.map((item) => (
+              <li key={item.id} className="repo-row">
+                <Link href={`/opportunities/${item.slug}`}>{item.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {events.length ? (
+        <>
+          <h3>Events</h3>
+          <ul className="repo-list" role="list">
+            {events.map((item) => (
+              <li key={item.id} className="repo-row">
+                <Link href={`/opportunities/${item.slug}`}>{item.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {skills.length ? (
+        <>
+          <h3>Skills</h3>
+          <ul className="repo-list" role="list">
+            {skills.map((skill) => (
+              <li key={skill.id} className="repo-row">
+                <Link href={`/discover?view=people&skill=${skill.slug}`}>{skill.name}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {communityNames.length ? (
+        <>
+          <h3>Communities</h3>
+          <ul className="repo-list" role="list">
+            {communityNames.map((name) => (
+              <li key={name} className="repo-row">
+                {name}
               </li>
             ))}
           </ul>
@@ -822,6 +878,11 @@ async function ProjectList({ filters }: { filters: DiscoverFilters }) {
     .limit(30);
   if (filters.type) query = query.eq("category", filters.type);
   if (filters.status) query = query.eq("status", filters.status);
+  const member = await getMember();
+  if (member) {
+    const { data: preference } = await supabase.from("profiles").select("hidden_project_type").eq("id", member.id).maybeSingle();
+    if (preference?.hidden_project_type) query = query.neq("category", preference.hidden_project_type);
+  }
   if (filters.q) query = query.or(`name.ilike.%${filters.q}%,description.ilike.%${filters.q}%,tagline.ilike.%${filters.q}%`);
   const { data } = await query;
   let projects = data ?? [];

@@ -235,7 +235,7 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 ## 12. Notifications
 
 - [x] New followers, reactions, comments, replies, mentions
-- [ ] Collaboration requests and updates
+- [x] Collaboration requests and updates
 - [x] Project invitations, updates and new contributors
 - [ ] Community announcements and invitations
 - [ ] Opportunity and event reminders
@@ -246,8 +246,8 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 
 ## 13. Search
 
-- [ ] Search people, projects, posts, communities, opportunities, events, skills and tags
-- [ ] Search by discipline
+- [x] Search people, projects, posts, communities, opportunities, events, skills and tags
+- [x] Search by discipline
 - [ ] Recent and suggested searches
 - [ ] Search filters
 - [ ] Relevance ranking
@@ -288,8 +288,8 @@ Not started. Future phase.
 - [ ] Connected accounts
 - [x] Privacy controls and profile visibility
 - [x] Follow and interaction controls
-- [ ] Feed and interest preferences
-- [ ] Notification preferences
+- [x] Feed and interest preferences
+- [x] Notification preferences
 - [x] Blocked and muted accounts
 - [x] Download account data
 - [x] Delete account
@@ -299,7 +299,7 @@ Not started. Future phase.
 
 ## 17. Admin and moderation dashboard
 
-- [ ] Admin dashboard and every moderation queue listed in the spec
+- [x] Admin dashboard and every moderation queue listed in the spec
 
 The database has reports, sanctions and admin roles. There is no admin screen.
 
