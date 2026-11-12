@@ -14,6 +14,7 @@ import { SkillsForm } from "@/components/build/SkillsForm";
 import { StatusForm } from "@/components/build/StatusForm";
 import { TimelineForm } from "@/components/build/TimelineForm";
 import { ProjectTeam } from "@/components/build/ProjectTeam";
+import { RelatedProjects } from "@/components/build/RelatedProjects";
 import { UpdateHistory } from "@/components/build/UpdateHistory";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
@@ -24,6 +25,7 @@ import { toggleProjectSave } from "@/lib/projects/follow";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
+import { relatedProjects } from "@/lib/projects/related";
 import { isProjectCategory, isProjectStatus, projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
 import { projectTimelineText } from "@/lib/projects/timeline";
 import { createClient } from "@/lib/supabase/server";
@@ -158,6 +160,30 @@ async function ProjectView({
   const links = skillLinks.data ?? [];
   const usedIds = new Set(links.filter((row) => row.relation === "uses").map((row) => row.skill_id));
   const neededIds = new Set(links.filter((row) => row.relation === "seeking").map((row) => row.skill_id));
+  const { data: relatedRows } = await supabase
+    .from("projects")
+    .select("id, name, slug, subcategory, updated_at")
+    .eq("category", project.category)
+    .eq("visibility", "public")
+    .is("removed_at", null)
+    .neq("id", project.id)
+    .order("updated_at", { ascending: false })
+    .limit(40);
+  const relatedIds = (relatedRows ?? []).map((row) => row.id);
+  const { data: relatedSkillRows } = relatedIds.length
+    ? await supabase.from("project_skills").select("project_id, skill_id").in("project_id", relatedIds).eq("relation", "uses")
+    : { data: [] };
+  const related = relatedProjects(
+    { id: project.id, subcategory: project.subcategory, skillIds: [...usedIds] },
+    (relatedRows ?? []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      subcategory: row.subcategory,
+      updatedAt: row.updated_at,
+      skillIds: (relatedSkillRows ?? []).filter((skill) => skill.project_id === row.id).map((skill) => skill.skill_id),
+    })),
+  );
   const tools = skills.filter((skill) => usedIds.has(skill.id));
   const needed = skills.filter((skill) => neededIds.has(skill.id));
   const timeline = projectTimelineText(project.starts_on, project.ends_on);
@@ -337,6 +363,7 @@ async function ProjectView({
               </section>
               <UpdateHistory updates={updates} />
               <ProjectTeam members={team} />
+              <RelatedProjects projects={related} />
               <ContributionHistory entries={contributions} />
               <Collaboration
                 projectId={project.id}
