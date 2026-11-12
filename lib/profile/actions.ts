@@ -114,6 +114,15 @@ export async function saveProfileVisibility(formData: FormData) {
   redirect("/profile");
 }
 
+export async function saveNotifyFollows(formData: FormData) {
+  const member = await requireOwner();
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update({ notify_follows: formData.get("notify") === "1" }).eq("id", member.id);
+  if (error) return;
+  revalidatePath("/settings");
+  redirect("/settings");
+}
+
 export async function addProfileSection(_state: { error?: string } | null, formData: FormData) {
   const member = await requireOwner();
   const title = text(formData.get("title"), 80);

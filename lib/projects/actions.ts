@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
+import { parseUsername, parseWebsite } from "@/lib/auth/validation";
+import { isCollaborationPreference } from "@/lib/profile/collaboration";
 import { parseProjectDay } from "@/lib/projects/timeline";
 import { isReactionType } from "@/lib/feed/reactions";
 import { isBuildLogKind } from "@/lib/projects/log-kind";
@@ -205,6 +207,235 @@ export async function updateStatus(formData: FormData) {
   revalidatePath(`/forge/${project.slug}`);
   revalidatePath("/forge");
   revalidatePath("/discover");
+}
+
+export async function setOpenToCollaborators(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const open = formData.get("open") === "1";
+  if (!projectIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ looking_for_contributors: open })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function saveTeammateRequirement(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const requirement = String(formData.get("requirement") ?? "").trim().slice(0, 500);
+  if (!projectIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ teammate_requirement: requirement || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function saveTeammateResponsibilities(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const responsibilities = String(formData.get("responsibilities") ?? "").trim().slice(0, 500);
+  if (!projectIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ teammate_responsibilities: responsibilities || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function saveTimeCommitment(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const commitment = String(formData.get("commitment") ?? "").trim().slice(0, 80);
+  if (!projectIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ time_commitment: commitment || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function saveGithubUrl(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const parsed = parseWebsite(String(formData.get("github") ?? ""));
+  if (!projectIdPattern.test(projectId) || !parsed.ok) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ github_url: parsed.website })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/discover");
+}
+
+export async function saveProjectCollaboration(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const value = String(formData.get("collaboration") ?? "");
+  const preference = value && isCollaborationPreference(value) ? value : null;
+  if (!projectIdPattern.test(projectId) || (value && !preference)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ collaboration_type: preference })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function assignProjectRole(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const profileId = String(formData.get("profileId") ?? "");
+  const role = formData.get("role") === "maintainer" ? "maintainer" : formData.get("role") === "contributor" ? "contributor" : "";
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(profileId) || !role) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id || profileId === member.id) return;
+  const { error } = await supabase
+    .from("project_members")
+    .update({ role })
+    .eq("project_id", projectId)
+    .eq("profile_id", profileId)
+    .eq("status", "active")
+    .neq("role", "owner");
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function addProjectDiscussion(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const body = String(formData.get("body") ?? "").trim().slice(0, 1000);
+  if (!projectIdPattern.test(projectId) || body.length < 1) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase.from("projects").select("slug").eq("id", projectId).is("removed_at", null).maybeSingle();
+  if (!project) return;
+  const { error } = await supabase.from("project_discussion").insert({
+    project_id: projectId,
+    author_id: member.id,
+    body,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function inviteToProject(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const parsed = parseUsername(String(formData.get("username") ?? ""));
+  if (!projectIdPattern.test(projectId) || !parsed.ok) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { data: invitee } = await supabase
+    .from("profile_directory")
+    .select("id")
+    .eq("username", parsed.username)
+    .maybeSingle();
+  if (!invitee || invitee.id === member.id) return;
+  const { error } = await supabase.from("project_invites").insert({
+    project_id: projectId,
+    invitee_id: invitee.id,
+    invited_by: member.id,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function respondToInvite(formData: FormData) {
+  const member = await requireMember();
+  const inviteId = String(formData.get("inviteId") ?? "");
+  const accept = formData.get("accept") === "1";
+  if (!projectIdPattern.test(inviteId)) return;
+  const supabase = await createClient();
+  const { data: invite } = await supabase
+    .from("project_invites")
+    .select("id, project_id")
+    .eq("id", inviteId)
+    .eq("invitee_id", member.id)
+    .eq("status", "pending")
+    .maybeSingle();
+  if (!invite) return;
+  const { error } = await supabase
+    .from("project_invites")
+    .update({ status: accept ? "accepted" : "declined" })
+    .eq("id", inviteId)
+    .eq("invitee_id", member.id);
+  if (error) return;
+  revalidatePath("/");
+  const { data: project } = await supabase.from("projects").select("slug").eq("id", invite.project_id).maybeSingle();
+  if (project) revalidatePath(`/forge/${project.slug}`);
 }
 
 export async function updateTimeline(formData: FormData) {

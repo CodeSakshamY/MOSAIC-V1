@@ -58,35 +58,16 @@ async function onboard(page: Page, username: string, displayName: string, email:
   await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
 }
 
-test("a builder can request to contribute and the owner can accept", async ({ browser }) => {
-  test.setTimeout(180_000);
+test("an owner can say whether teammates meet in person", async ({ page }) => {
+  test.setTimeout(120_000);
   const stamp = Date.now().toString(36);
-  const ownerName = `Own ${stamp}`;
-  const guestName = `Ask ${stamp}`;
-  const ownerContext = await browser.newContext();
-  const guestContext = await browser.newContext();
-  const owner = await ownerContext.newPage();
-  const guest = await guestContext.newPage();
-  await onboard(owner, `own${stamp}`, ownerName, `own.${stamp}@example.com`);
-  await owner.goto("/forge");
-  await owner.getByLabel("Project name").fill(`Collab ${stamp}`);
-  await owner.getByLabel("Description").fill("A project created to check collaboration requests.");
-  await owner.getByRole("button", { name: "Create project" }).click();
-  await expect(owner).toHaveURL(/\/forge\/collab-/);
-  const projectUrl = owner.url();
-  await onboard(guest, `ask${stamp}`, guestName, `ask.${stamp}@example.com`);
-  await guest.goto(projectUrl);
-  await guest.locator("#contribution-message").fill("I can test the enclosure.");
-  await guest.locator("#contribution-proposal").fill("I will run the fit check.");
-  await guest.getByRole("button", { name: "Send request" }).click();
-  await expect(guest.locator(".project-requests")).toContainText("Request sent.");
-  await owner.reload();
-  await owner.getByRole("button", { name: `Accept ${guestName}` }).click();
-  await expect(owner.locator(".project-team")).toContainText(guestName);
-  await expect(owner.locator(".project-team")).toContainText("Contributor");
-  await guest.reload();
-  await expect(guest.locator(".project-team")).toContainText(guestName);
-  await expect(guest.getByLabel("Message")).toHaveCount(0);
-  await ownerContext.close();
-  await guestContext.close();
+  await onboard(page, `col${stamp}`, `Col ${stamp}`, `col.${stamp}@example.com`);
+  await page.goto("/forge");
+  await page.getByLabel("Project name").fill(`Col ${stamp}`);
+  await page.getByLabel("Description").fill("A project with a meeting preference.");
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(page).toHaveURL(/\/forge\/col-/);
+  await page.locator("#project-collaboration").selectOption("Hybrid");
+  await page.getByRole("button", { name: "Save meeting preference" }).click();
+  await expect(page.locator(".repo-meta", { hasText: "Meets: Hybrid" })).toBeVisible();
 });

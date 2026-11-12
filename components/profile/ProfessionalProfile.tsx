@@ -22,7 +22,7 @@ import { LookingForForm } from "@/components/profile/LookingForForm";
 import { collaborationLabel } from "@/lib/profile/collaboration";
 import { lookingForOptions } from "@/lib/auth/looking-for";
 import { getMember, memberGate } from "@/lib/auth/session";
-import { toggleBlock } from "@/lib/safety/actions";
+import { toggleBlock, toggleMute } from "@/lib/safety/actions";
 import { createClient } from "@/lib/supabase/server";
 
 type RecordItem = {
@@ -141,6 +141,10 @@ export async function ProfessionalProfile({
     ? await supabase.from("blocks").select("blocked_id").eq("blocker_id", viewer.id).eq("blocked_id", profileId).maybeSingle()
     : { data: null };
   const blocked = Boolean(blockRow);
+  const { data: muteRow } = viewer && viewer.id !== profileId
+    ? await supabase.from("mutes").select("muted_id").eq("profile_id", viewer.id).eq("muted_id", profileId).maybeSingle()
+    : { data: null };
+  const muted = Boolean(muteRow);
   const savedRows =
     editable && viewer?.id === profileId
       ? (
@@ -154,6 +158,11 @@ export async function ProfessionalProfile({
   const savedIds = savedRows.map((row) => row.project_id);
   const skillIds = (skillsResult.data ?? []).map((row) => row.skill_id);
   const interestIds = (interestsResult.data ?? []).map((row) => row.interest_id);
+  const { data: viewerInterestRows } =
+    viewer && viewer.id !== profileId
+      ? await supabase.from("profile_interests").select("interest_id").eq("profile_id", viewer.id)
+      : { data: [] };
+  const viewerInterestIds = new Set((viewerInterestRows ?? []).map((row) => row.interest_id));
   const projectIds = (memberResult.data ?? []).map((row) => row.project_id);
   const targetIds = (mergedResult.data ?? []).map((row) => row.target_project_id);
   const [skillRows, interestRows, interestCatalog, contributed, targets, savedProjects, followerCount, followingCount, followerRows, followingRows, mine] =
@@ -199,9 +208,18 @@ export async function ProfessionalProfile({
             .maybeSingle()
         : Promise.resolve({ data: null }),
     ]);
+  const { data: viewerFollows } =
+    viewer && viewer.id !== profileId
+      ? await supabase.from("follows").select("following_id").eq("follower_id", viewer.id).order("created_at", { ascending: false }).limit(40)
+      : { data: [] };
+  const theirFollowing = new Set((followingRows.data ?? []).map((row) => row.following_id));
+  const mutualIds = (viewerFollows ?? [])
+    .map((row) => row.following_id)
+    .filter((id) => theirFollowing.has(id) && id !== profileId);
   const relatedIds = [
     ...(followerRows.data ?? []).map((row) => row.follower_id),
     ...(followingRows.data ?? []).map((row) => row.following_id),
+    ...mutualIds,
   ];
   const { data: relatedProfiles } = relatedIds.length
     ? await supabase
@@ -223,6 +241,10 @@ export async function ProfessionalProfile({
     const person = related.get(row.following_id);
     return person ? [person] : [];
   });
+  const mutual = mutualIds.flatMap((id) => {
+    const person = related.get(id);
+    return person ? [person] : [];
+  });
 
   const place = [profile.city, profile.state].filter(Boolean).join(", ");
   const education = [...(educationResult.data ?? [])].sort(byYears);
@@ -230,6 +252,7 @@ export async function ProfessionalProfile({
   const targetName = new Map((targets.data ?? []).map((project) => [project.id, project]));
 
   const initial = profile.display_name.trim().charAt(0).toUpperCase() || "?";
+  const sharedInterests = (interestRows.data ?? []).filter((interest) => viewerInterestIds.has(interest.id));
   const owned = ownedResult.data ?? [];
   const featured = owned
     .filter((project) => project.visibility === "public" && project.profile_featured_at)
@@ -348,6 +371,14 @@ export async function ProfessionalProfile({
                   </button>
                 </form>
               ) : null}
+              {signedIn ? (
+                <form action={toggleMute}>
+                  <input type="hidden" name="username" value={profile.username} />
+                  <button className="text-button follow-button" type="submit" aria-pressed={muted}>
+                    {muted ? "Unmute" : "Mute"}
+                  </button>
+                </form>
+              ) : null}
             </>
           )}
         </div>
@@ -367,6 +398,12 @@ export async function ProfessionalProfile({
 
       <section className="profile-section" aria-labelledby="network-heading">
         <h2 id="network-heading">Network</h2>
+        {!editable && mutual.length > 0 ? (
+          <>
+            <h3 id="mutual-heading">Mutual connections</h3>
+            <PersonLinks people={mutual} empty="No mutual connections yet." />
+          </>
+        ) : null}
         <h3>Followers</h3>
         <PersonLinks people={followers} empty="No followers yet." />
         <h3>Following</h3>
@@ -440,6 +477,20 @@ export async function ProfessionalProfile({
               selected={interestIds}
             />
           ) : null}
+        </section>
+      ) : null}
+
+      {!editable && sharedInterests.length > 0 ? (
+        <section className="profile-section" aria-labelledby="shared-interests-heading">
+          <h2 id="shared-interests-heading">Shared interests</h2>
+          <ul className="skill-row" role="list">
+            {sharedInterests
+              .slice()
+              .sort((left, right) => left.name.localeCompare(right.name))
+              .map((interest) => (
+                <li key={interest.id}>{interest.name}</li>
+              ))}
+          </ul>
         </section>
       ) : null}
 

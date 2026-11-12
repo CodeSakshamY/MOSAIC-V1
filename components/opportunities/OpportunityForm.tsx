@@ -2,19 +2,10 @@
 
 import { useActionState } from "react";
 import { announceOpportunity } from "@/lib/opportunities/actions";
+import { opportunityCategories } from "@/lib/opportunities/categories";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-const categories = [
-  { value: "hackathon", label: "Hackathon" },
-  { value: "internship", label: "Internship" },
-  { value: "fellowship", label: "Fellowship" },
-  { value: "scholarship", label: "Scholarship" },
-  { value: "grant", label: "Grant" },
-  { value: "workshop", label: "Workshop" },
-  { value: "research_program", label: "Research programme" },
-];
 
 export function OpportunityForm() {
   const [state, action] = useActionState(announceOpportunity, null);
@@ -31,7 +22,7 @@ export function OpportunityForm() {
       <div className="field">
         <Label htmlFor="opportunity-category">Category</Label>
         <select id="opportunity-category" name="category" className="field-select" defaultValue="hackathon">
-          {categories.map((category) => (
+          {opportunityCategories.map((category) => (
             <option key={category.value} value={category.value}>
               {category.label}
             </option>
@@ -41,6 +32,20 @@ export function OpportunityForm() {
       <div className="field">
         <Label htmlFor="opportunity-url">Official link</Label>
         <Input id="opportunity-url" name="url" type="url" required placeholder="https://" maxLength={300} />
+      </div>
+      <div className="field">
+        <Label htmlFor="opportunity-country">Country</Label>
+        <Input id="opportunity-country" name="country" maxLength={2} placeholder="IN" />
+        <p className="form-note">Optional two-letter code.</p>
+      </div>
+      <div className="field">
+        <Label htmlFor="opportunity-region">Region</Label>
+        <Input id="opportunity-region" name="region" maxLength={80} />
+      </div>
+      <div className="field">
+        <Label htmlFor="opportunity-eligibility">Eligibility</Label>
+        <Textarea id="opportunity-eligibility" name="eligibility" maxLength={1000} rows={2} />
+        <p className="form-note">Leave this empty when the official page has the criteria.</p>
       </div>
       <div className="field">
         <Label htmlFor="opportunity-deadline">Deadline</Label>

@@ -12,7 +12,10 @@ describe("readDiscoverFilters", () => {
         interest: "robotics",
         experience: "Software",
         availability: "hybrid",
+        looking: "teammates",
         type: "Software",
+        status: "prototype",
+        sort: "popular",
         q: " Sensor% ",
       }),
     ).toEqual({
@@ -24,7 +27,10 @@ describe("readDiscoverFilters", () => {
       interest: "robotics",
       experience: "Software",
       availability: "hybrid",
+      looking: "teammates",
       type: "Software",
+      status: "prototype",
+      sort: "popular",
     });
   });
 
@@ -38,7 +44,10 @@ describe("readDiscoverFilters", () => {
         interest: "Not An Interest",
         experience: "spaceship",
         availability: "anywhere",
+        looking: "nope",
         type: "robotics",
+        status: "famous",
+        sort: "trending",
       }),
     ).toEqual({
       q: "",
@@ -49,7 +58,10 @@ describe("readDiscoverFilters", () => {
       interest: "",
       experience: null,
       availability: "",
+      looking: "",
       type: null,
+      status: null,
+      sort: "latest",
     });
   });
 });

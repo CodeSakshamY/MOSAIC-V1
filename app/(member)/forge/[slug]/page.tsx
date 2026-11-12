@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { collaborationLabel, isCollaborationPreference } from "@/lib/profile/collaboration";
 import { buildLogKindLabel } from "@/lib/projects/log-kind";
 import { LogMedia } from "@/components/build/LogMedia";
 import { Collaboration } from "@/components/build/Collaboration";
@@ -14,10 +15,19 @@ import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
+import { InviteForm } from "@/components/build/InviteForm";
+import { ProjectDiscussion } from "@/components/build/ProjectDiscussion";
+import { ProjectCollaborationForm } from "@/components/build/ProjectCollaborationForm";
+import { GithubForm } from "@/components/build/GithubForm";
+import { TimeCommitmentForm } from "@/components/build/TimeCommitmentForm";
+import { TeammateResponsibilitiesForm } from "@/components/build/TeammateResponsibilitiesForm";
+import { TeammateRequirementForm } from "@/components/build/TeammateRequirementForm";
+import { OpenCollaboratorsForm } from "@/components/build/OpenCollaboratorsForm";
 import { StatusForm } from "@/components/build/StatusForm";
 import { TimelineForm } from "@/components/build/TimelineForm";
 import { ProjectTeam } from "@/components/build/ProjectTeam";
 import { RelatedProjects } from "@/components/build/RelatedProjects";
+import { RelatedUpdates } from "@/components/build/RelatedUpdates";
 import { UpdateHistory } from "@/components/build/UpdateHistory";
 import { Versions } from "@/components/build/Versions";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
@@ -84,7 +94,7 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, teammate_requirement, teammate_responsibilities, time_commitment, collaboration_type, github_url, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
@@ -193,6 +203,19 @@ async function ProjectView({
       skillIds: (relatedSkillRows ?? []).filter((skill) => skill.project_id === row.id).map((skill) => skill.skill_id),
     })),
   );
+  const { data: relatedLogs } = relatedIds.length
+    ? await supabase
+        .from("build_logs")
+        .select("id, title, project_id")
+        .in("project_id", relatedIds)
+        .is("removed_at", null)
+        .order("created_at", { ascending: false })
+        .limit(8)
+    : { data: [] };
+  const relatedUpdates = (relatedLogs ?? []).flatMap((log) => {
+    const source = (relatedRows ?? []).find((row) => row.id === log.project_id);
+    return source ? [{ id: log.id, title: log.title, projectName: source.name, slug: source.slug }] : [];
+  });
   const tools = skills.filter((skill) => usedIds.has(skill.id));
   const needed = skills.filter((skill) => neededIds.has(skill.id));
   const timeline = projectTimelineText(project.starts_on, project.ends_on);
@@ -266,6 +289,21 @@ async function ProjectView({
   const authorNames = new Map(
     (authorRows ?? []).map((person) => [person.id, person.display_name || person.username]),
   );
+  const authorUsernames = new Map((authorRows ?? []).map((person) => [person.id, person.username]));
+  const requesterIds = [...new Set(requests.map((request) => request.requester_id))];
+  const { data: applicantProjects } = requesterIds.length
+    ? await supabase
+        .from("projects")
+        .select("owner_id, name, slug")
+        .in("owner_id", requesterIds)
+        .eq("visibility", "public")
+        .is("removed_at", null)
+        .order("updated_at", { ascending: false })
+    : { data: [] };
+  const projectByApplicant = new Map<string, { name: string; slug: string }>();
+  for (const item of applicantProjects ?? []) {
+    if (!projectByApplicant.has(item.owner_id)) projectByApplicant.set(item.owner_id, { name: item.name, slug: item.slug });
+  }
   const updates = logs.map((log) => ({
     id: log.id,
     title: log.title,
@@ -331,10 +369,12 @@ async function ProjectView({
   const collaboration = requests.map((request) => ({
     id: request.id,
     name: authorNames.get(request.requester_id) ?? "builder",
+    username: authorUsernames.get(request.requester_id) ?? null,
     message: request.message,
     proposed: request.proposed_contribution,
     status: request.status,
     mine: request.requester_id === member?.id,
+    project: projectByApplicant.get(request.requester_id) ?? null,
   }));
   const canRequest =
     Boolean(member) &&
@@ -372,6 +412,7 @@ async function ProjectView({
           <span>{project.name}</span>
         </h1>
         <span className="repo-visibility">{project.visibility === "private" ? "Private" : "Public"}</span>
+        {project.looking_for_contributors ? <span className="repo-visibility">Open to collaborators</span> : null}
         <span className="repo-visibility">{project.category}</span>
         {project.subcategory ? <span className="repo-visibility">{project.subcategory}</span> : null}
         {tools.map((tool) => (
@@ -414,6 +455,31 @@ async function ProjectView({
       {isOwner ? <ToolsForm projectId={project.id} skills={skills} selected={[...usedIds]} /> : null}
       {isOwner ? <SkillsForm projectId={project.id} skills={skills} selected={[...neededIds]} /> : null}
       {isOwner && isProjectStatus(project.status) ? <StatusForm projectId={project.id} status={project.status} /> : null}
+      {isOwner ? <OpenCollaboratorsForm projectId={project.id} open={project.looking_for_contributors} /> : null}
+      {isOwner ? <InviteForm projectId={project.id} /> : null}
+      {project.teammate_requirement ? <p className="repo-meta">{project.teammate_requirement}</p> : null}
+      {isOwner ? <TeammateRequirementForm projectId={project.id} requirement={project.teammate_requirement} /> : null}
+      {project.teammate_responsibilities ? <p className="repo-meta">{project.teammate_responsibilities}</p> : null}
+      {isOwner ? (
+        <TeammateResponsibilitiesForm projectId={project.id} responsibilities={project.teammate_responsibilities} />
+      ) : null}
+      {project.time_commitment ? <p className="repo-meta">Time: {project.time_commitment}</p> : null}
+      {isOwner ? <TimeCommitmentForm projectId={project.id} commitment={project.time_commitment} /> : null}
+      {project.github_url ? (
+        <p className="repo-meta">
+          <a href={project.github_url}>Repository</a>
+        </p>
+      ) : null}
+      {isOwner ? <GithubForm projectId={project.id} githubUrl={project.github_url} /> : null}
+      {project.collaboration_type ? (
+        <p className="repo-meta">Meets: {collaborationLabel(project.collaboration_type)}</p>
+      ) : null}
+      {isOwner ? (
+        <ProjectCollaborationForm
+          projectId={project.id}
+          value={project.collaboration_type && isCollaborationPreference(project.collaboration_type) ? project.collaboration_type : null}
+        />
+      ) : null}
       {isOwner ? (
         <TimelineForm projectId={project.id} startsOn={project.starts_on} endsOn={project.ends_on} />
       ) : null}
@@ -462,10 +528,12 @@ async function ProjectView({
                 {isOwner ? <CreditsForm projectId={project.id} credits={project.credits} /> : null}
               </section>
               <UpdateHistory slug={project.slug} signedIn={Boolean(member)} updates={updates} />
-              <ProjectTeam members={team} />
+              <ProjectTeam projectId={project.id} slug={project.slug} editable={isOwner} members={team} />
               <RelatedProjects projects={related} />
+              <RelatedUpdates updates={relatedUpdates} />
               <ProjectLineage entries={lineage} />
               <ContributionHistory entries={contributions} />
+              <ProjectDiscussion projectId={project.id} />
               <Collaboration
                 projectId={project.id}
                 isOwner={isOwner}

@@ -4,18 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { parseWebsite } from "@/lib/auth/validation";
-import { projectSlug } from "@/lib/projects/slug";
+import { isOpportunityCategory } from "@/lib/opportunities/categories";
+import { projectSlug, isProjectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
-
-const categories = [
-  "hackathon",
-  "internship",
-  "fellowship",
-  "scholarship",
-  "grant",
-  "workshop",
-  "research_program",
-] as const;
 
 export async function announceOpportunity(_state: { error?: string } | null, formData: FormData) {
   const member = await getMember();
@@ -28,11 +19,15 @@ export async function announceOpportunity(_state: { error?: string } | null, for
   const category = String(formData.get("category") ?? "");
   const link = parseWebsite(String(formData.get("url") ?? ""));
   const deadlineText = String(formData.get("deadline") ?? "").trim();
+  const eligibility = String(formData.get("eligibility") ?? "").trim().slice(0, 1000);
+  const region = String(formData.get("region") ?? "").trim().slice(0, 80);
+  const countryText = String(formData.get("country") ?? "").trim();
   if (title.length < 3) return { error: "Add a title." };
   if (!organizer) return { error: "Add the organiser." };
   if (!description) return { error: "Describe the opportunity." };
-  if (!categories.some((item) => item === category)) return { error: "Choose a category." };
+  if (!isOpportunityCategory(category)) return { error: "Choose a category." };
   if (!link.ok || !link.website) return { error: link.ok ? "Add the official https link." : link.error };
+  if (countryText && !/^[A-Za-z]{2}$/.test(countryText)) return { error: "Use a two-letter country code, or leave it empty." };
   let deadline: string | null = null;
   if (deadlineText) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(deadlineText)) return { error: "Use a real date, or leave the deadline empty." };
@@ -41,14 +36,24 @@ export async function announceOpportunity(_state: { error?: string } | null, for
   const slug = projectSlug(title);
   if (slug.length < 3) return { error: "Use a title that can become a link." };
   const supabase = await createClient();
+  const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { count } = await supabase
+    .from("opportunities")
+    .select("id", { count: "exact", head: true })
+    .eq("created_by", member.id)
+    .gte("created_at", since);
+  if ((count ?? 0) >= 5) return { error: "Too many announcements in a short time. Wait and try again." };
   const { error } = await supabase.from("opportunities").insert({
     title,
     slug,
     organizer,
     description,
-    category: category as (typeof categories)[number],
+    category,
     official_url: link.website,
     deadline,
+    eligibility: eligibility || null,
+    country: countryText ? countryText.toUpperCase() : null,
+    state: region || null,
     is_published: true,
     is_verified: false,
     is_demo: false,
@@ -91,6 +96,57 @@ export async function announceEvent(_state: { error?: string } | null, formData:
     created_by: member.id,
   });
   if (error) return { error: "That event was not saved." };
+  revalidatePath("/opportunities");
+  revalidatePath("/discover");
+  redirect("/opportunities");
+}
+
+const idPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export async function toggleOpportunitySave(formData: FormData) {
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  if (!idPattern.test(opportunityId) || !isProjectSlug(slug)) return;
+  const back = `/opportunities/${slug}`;
+  const member = await getMember();
+  if (!member) redirect(`/profile?next=${encodeURIComponent(back)}`);
+  const gate = memberGate(member);
+  if (gate) redirect(gate);
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("opportunity_saves")
+    .select("opportunity_id")
+    .eq("opportunity_id", opportunityId)
+    .eq("profile_id", member.id)
+    .maybeSingle();
+  if (existing) {
+    await supabase.from("opportunity_saves").delete().eq("opportunity_id", opportunityId).eq("profile_id", member.id);
+  } else {
+    const { error } = await supabase.from("opportunity_saves").insert({
+      opportunity_id: opportunityId,
+      profile_id: member.id,
+    });
+    if (error) return;
+  }
+  revalidatePath(back);
+  redirect(back);
+}
+
+export async function withdrawOpportunity(formData: FormData) {
+  const member = await getMember();
+  if (!member) redirect("/profile?next=/opportunities");
+  const gate = memberGate(member);
+  if (gate) redirect(gate);
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(opportunityId)) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("opportunities")
+    .update({ is_published: false })
+    .eq("id", opportunityId)
+    .eq("created_by", member.id)
+    .eq("is_published", true);
+  if (error) return;
   revalidatePath("/opportunities");
   revalidatePath("/discover");
   redirect("/opportunities");

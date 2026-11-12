@@ -17,7 +17,9 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
 async function MemberGate({ children }: { children: React.ReactNode }) {
   const member = await getMember();
   const path = safeNext((await headers()).get("x-polymath-path"));
-  if (!member) redirect(`/profile?next=${encodeURIComponent(path === "/" ? "/settings" : path)}`);
+  const publicForge = path === "/forge" || path.startsWith("/forge/");
+  if (!member && !publicForge) redirect(`/profile?next=${encodeURIComponent(path === "/" ? "/settings" : path)}`);
+  if (!member) return children;
   const gate = memberGate(member);
   if (gate) redirect(gate);
   return children;

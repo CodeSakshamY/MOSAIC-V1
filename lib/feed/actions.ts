@@ -185,6 +185,13 @@ export async function createFeedPost(_state: { error?: string } | null, formData
   const attachment = parseWebsite(String(formData.get("attachment") ?? ""));
   if (!attachment.ok) return { error: attachment.error };
   const supabase = await createClient();
+  const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { count } = await supabase
+    .from("posts")
+    .select("id", { count: "exact", head: true })
+    .eq("author_id", member.id)
+    .gte("created_at", since);
+  if ((count ?? 0) >= 5) return { error: "Too many posts in a short time. Wait and try again." };
   let projectId: string | null = null;
   if (type === "project") {
     projectId = String(formData.get("projectId") ?? "");

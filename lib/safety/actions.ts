@@ -16,7 +16,9 @@ type Reason =
   | "impersonation"
   | "unsafe"
   | "copyright"
-  | "other";
+  | "other"
+  | "outdated"
+  | "misleading";
 
 const reasons = new Set<Reason>([
   "harassment",
@@ -26,6 +28,8 @@ const reasons = new Set<Reason>([
   "unsafe",
   "copyright",
   "other",
+  "outdated",
+  "misleading",
 ]);
 
 async function requireMember(next: string) {
@@ -73,6 +77,33 @@ export async function toggleBlock(formData: FormData) {
   if (!existing) {
     await supabase.from("follows").delete().eq("follower_id", member.id).eq("following_id", target.id);
   }
+  revalidatePath(next);
+  revalidatePath("/discover");
+  revalidatePath("/settings");
+}
+
+export async function toggleMute(formData: FormData) {
+  const parsed = parseUsername(String(formData.get("username") ?? ""));
+  if (!parsed.ok) return;
+  const next = `/people/${parsed.username}`;
+  const member = await requireMember(next);
+  const supabase = await createClient();
+  const { data: target } = await supabase
+    .from("profile_directory")
+    .select("id, username, deleted_at")
+    .eq("username", parsed.username)
+    .maybeSingle();
+  if (!target?.username || target.deleted_at || target.id === member.id) return;
+  const { data: existing } = await supabase
+    .from("mutes")
+    .select("profile_id")
+    .eq("profile_id", member.id)
+    .eq("muted_id", target.id)
+    .maybeSingle();
+  const { error } = existing
+    ? await supabase.from("mutes").delete().eq("profile_id", member.id).eq("muted_id", target.id)
+    : await supabase.from("mutes").insert({ profile_id: member.id, muted_id: target.id });
+  if (error) return;
   revalidatePath(next);
   revalidatePath("/discover");
   revalidatePath("/settings");
@@ -151,6 +182,32 @@ export async function reportProject(formData: FormData) {
   const { error } = await supabase.from("reports").insert({
     reporter_id: member.id,
     project_id: project.id,
+    reason: why,
+    description: note(formData),
+  });
+  redirect(error ? `${next}?reported=missing` : `${next}?reported=1`);
+}
+
+export async function reportOpportunity(formData: FormData) {
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  if (!idPattern.test(opportunityId)) return;
+  const next = `/opportunities/${slug}`;
+  const member = await requireMember(next);
+  const why = reason(formData);
+  if (!why) redirect(`${next}?reported=missing`);
+  const supabase = await createClient();
+  const { data: item } = await supabase
+    .from("opportunities")
+    .select("id, created_by")
+    .eq("id", opportunityId)
+    .eq("is_published", true)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!item || item.created_by === member.id) return;
+  const { error } = await supabase.from("reports").insert({
+    reporter_id: member.id,
+    opportunity_id: item.id,
     reason: why,
     description: note(formData),
   });

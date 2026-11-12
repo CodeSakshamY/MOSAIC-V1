@@ -28,7 +28,7 @@ Enums are used for sets the product owns. Adding a value is a migration.
 | `post_type` | `project`, `build_log`, `idea`, `help`, `achievement`, `opportunity` |
 | `visibility` | `public`, `private` |
 | `reaction_type` | `interesting`, `inspired`, `build`, `contribute` |
-| `opportunity_category` | `hackathon`, `robotics_competition`, `science_fair`, `research_program`, `olympiad`, `scholarship`, `fellowship`, `internship`, `grant`, `maker_event`, `startup_competition`, `innovation_challenge`, `workshop` |
+| `opportunity_category` | `hackathon`, `robotics_competition`, `science_fair`, `research_program`, `olympiad`, `scholarship`, `fellowship`, `internship`, `grant`, `maker_event`, `startup_competition`, `innovation_challenge`, `workshop`, `conference`, `startup_program`, `incubator`, `open_source`, `volunteering`, `mentorship` |
 | `community_category` | `technology`, `discipline`, `city`, `institution`, `research`, `project` |
 | `community_role` | `owner`, `moderator`, `member` |
 | `notification_type` | `new_follower`, `comment`, `reply`, `contribution_request`, `contribution_accepted`, `contribution_rejected`, `project_update`, `community_activity` |
@@ -544,6 +544,10 @@ A builder can list up to 20 groups they have taken part in. `name` is 1–80. `r
 
 Up to 8 extra https links. `label` is 1–40. `url` is at most 300 characters. The same URL cannot be saved twice on one profile. GitHub and the website stay on `profiles`. Select, insert, and delete follow the publication rules.
 
+### collections
+
+A builder can name up to 5 collections and put up to 12 public projects in each one. Anyone can read a collection. The projects inside it stay subject to project visibility. Deleting an account removes the collections that account created.
+
 ## Storage
 
 `014_storage_policies.sql` creates the buckets.
@@ -636,6 +640,22 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `062_project_showcase_posts.sql` | A builder can post a showcase of a public project they own. |
 | `063_opportunity_announcements.sql` | A builder can announce an opportunity. Verification stays off. |
 | `064_post_link.sql` | A feed post can store one optional https attachment. |
+| `065_teammate_requirement.sql` | The owner can publish what a teammate would do. |
+| `066_teammate_responsibilities.sql` | The owner can say what contribution they expect. |
+| `067_time_commitment.sql` | The owner can say how much time a teammate would give. |
+| `068_project_discussion.sql` | A flat project discussion, separate from titled threads. |
+| `069_project_invites.sql` | An owner can invite a builder onto a project. |
+| `070_collections.sql` | A builder can name a collection and put public projects in it. |
+| `071_opportunity_categories.sql` | Conferences, startup programmes, incubators, open source, volunteering, and mentorship can be announced. |
+| `072_close_own_account.sql` | A person can close their own account. |
+| `073_close_account_storage.sql` | Closing an account still finishes when storage refuses a direct file delete. |
+| `074_other_sessions.sql` | Signing out other sessions ends older logins on their next request. |
+| `075_opportunity_reports.sql` | A listing can be reported as outdated or misleading. |
+| `076_opportunity_moderation.sql` | The announcer can withdraw a listing. Only a trusted writer can mark it checked. |
+| `077_mutes.sql` | Muting hides someone's posts from your feed. |
+| `078_notify_follows.sql` | A person can turn off the notification that someone followed them. |
+| `079_security_notice_type.sql` | Notifications can record a security event. |
+| `080_security_notice.sql` | A password change records a notice for that person. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

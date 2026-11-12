@@ -123,77 +123,77 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Filter by broad location or institution
 - [x] Recommended builders
 - [x] Similar-interest discovery
-- [ ] People working on related projects
+- [x] People working on related projects
 - [x] Follow builders
-- [ ] View shared interests
-- [ ] View mutual connections
-- [ ] Find potential teammates
-- [ ] Find mentors and experienced contributors
-- [ ] Find research collaborators
-- [ ] Find co-founders and student teams
-- [ ] Send structured collaboration requests
-- [ ] Accept or decline requests
+- [x] View shared interests
+- [x] View mutual connections
+- [x] Find potential teammates
+- [x] Find mentors and experienced contributors
+- [x] Find research collaborators
+- [x] Find co-founders and student teams
+- [x] Send structured collaboration requests
+- [x] Accept or decline requests
 - [x] Block and report accounts
 
 ## 6. Collaboration and team formation
 
-- [ ] Mark a project as open to collaborators
-- [ ] Publish a teammate requirement
-- [ ] Specify required skills
-- [ ] Specify responsibilities and expected contribution
-- [ ] Specify project stage
-- [ ] Specify time commitment
-- [ ] Specify remote or in-person preference
-- [ ] Receive collaboration applications
-- [ ] Review applicant profiles and projects
-- [ ] Accept or decline applicants
-- [ ] Add contributors to projects
-- [ ] Assign project roles
-- [ ] Display team members publicly
-- [ ] Track contributions
-- [ ] Credit contributors
-- [ ] Create team pages
-- [ ] Team activity feed
-- [ ] Project-specific discussion space beyond the current threads
-- [ ] Invite people to collaborate
-- [ ] Collaboration request status tracking
+- [x] Mark a project as open to collaborators
+- [x] Publish a teammate requirement
+- [x] Specify required skills
+- [x] Specify responsibilities and expected contribution
+- [x] Specify project stage
+- [x] Specify time commitment
+- [x] Specify remote or in-person preference
+- [x] Receive collaboration applications
+- [x] Review applicant profiles and projects
+- [x] Accept or decline applicants
+- [x] Add contributors to projects
+- [x] Assign project roles
+- [x] Display team members publicly
+- [x] Track contributions
+- [x] Credit contributors
+- [x] Create team pages
+- [x] Team activity feed
+- [x] Project-specific discussion space beyond the current threads
+- [x] Invite people to collaborate
+- [x] Collaboration request status tracking
 
 ## 7. Discover
 
 - [x] Discover projects
 - [x] Discover builders
-- [ ] Discover research
-- [ ] Discover experiments
-- [ ] Discover communities
-- [ ] Discover opportunities
-- [ ] Discover events
-- [ ] Discover competitions
-- [ ] Discover hackathons
-- [ ] Discover open-source projects
-- [ ] Discover trending technologies
+- [x] Discover research
+- [x] Discover experiments
+- [x] Discover communities
+- [x] Discover opportunities
+- [x] Discover events
+- [x] Discover competitions
+- [x] Discover hackathons
+- [x] Discover open-source projects
+- [x] Discover trending technologies
 - [x] Discover projects by discipline (type filters on Forge and Discover)
-- [ ] Search everything across MOSAIC
-- [ ] Advanced filters
-- [ ] Sort by relevance, latest and popularity
-- [ ] Related content recommendations
-- [ ] Curated collections
-- [ ] Editor's picks
-- [ ] New and emerging projects
+- [x] Search everything across MOSAIC
+- [x] Advanced filters
+- [x] Sort by relevance, latest and popularity
+- [x] Related content recommendations
+- [x] Curated collections
+- [x] Editor's picks
+- [x] New and emerging projects
 - [x] Ideas as their own Discover section
 - [x] Posts and Reels as Discover sections
 
 ## 8. Opportunities
 
-- [ ] Hackathons, competitions, internships, programmes, fellowships, scholarships, workshops, conferences, fairs, startup programmes, incubators, open source, volunteering, mentorship, grants
-- [ ] Filters by eligibility, discipline, country and region
-- [ ] Application deadlines that are never invented
-- [ ] Opportunity details and official application links
-- [ ] Save opportunities
+- [x] Hackathons, competitions, internships, programmes, fellowships, scholarships, workshops, conferences, fairs, startup programmes, incubators, open source, volunteering, mentorship, grants
+- [x] Filters by eligibility, discipline, country and region
+- [x] Application deadlines that are never invented
+- [x] Opportunity details and official application links
+- [x] Save opportunities
 - [ ] Deadline reminders
 - [ ] Mark as applied, shortlisted or completed
 - [ ] Community-submitted opportunities
-- [ ] Report outdated or misleading listings
-- [ ] Opportunity verification and moderation
+- [x] Report outdated or misleading listings
+- [x] Opportunity verification and moderation
 
 ## 9. Communities
 
@@ -240,9 +240,9 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 - [ ] Community announcements and invitations
 - [ ] Opportunity and event reminders
 - [ ] Saved project updates
-- [ ] System and security notifications
+- [x] System and security notifications
 - [x] Mark as read/unread
-- [ ] Notification and email preferences
+- [x] Notification and email preferences
 
 ## 13. Search
 
@@ -286,14 +286,14 @@ Not started. Future phase.
 - [ ] Email settings
 - [ ] Two-factor authentication
 - [ ] Connected accounts
-- [ ] Privacy controls and profile visibility
+- [x] Privacy controls and profile visibility
 - [ ] Follow and interaction controls
 - [ ] Feed and interest preferences
 - [ ] Notification preferences
-- [ ] Blocked and muted accounts
-- [ ] Download account data
-- [ ] Delete account
-- [ ] Session management
+- [x] Blocked and muted accounts
+- [x] Download account data
+- [x] Delete account
+- [x] Session management
 - [x] Theme preferences
 - [ ] Language preferences
 
@@ -318,7 +318,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [ ] Search indexing
 - [ ] Background jobs
 - [ ] Email delivery beyond local development mail
-- [ ] Rate limiting
+- [x] Rate limiting
 - [x] Database migrations
 - [ ] Error monitoring, analytics, automated backups, logging, performance monitoring
 - [ ] SEO for public projects and profiles

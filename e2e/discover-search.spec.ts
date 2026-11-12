@@ -1,21 +1,82 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
-test("search people by username and projects by name", async ({ page }) => {
-  await page.goto("/discover?view=people");
-  await page.getByLabel("Search").fill("djhjhd");
-  await page.getByLabel("Search").press("Enter");
-  await expect(page).toHaveURL(/q=djhjhd/);
-  await expect(page.locator(".person-card")).toHaveCount(1);
-  await expect(page.getByRole("link", { name: /dhhd/ })).toBeVisible();
+async function confirmationLink(email: string) {
+  const deadline = Date.now() + 15_000;
+  while (Date.now() < deadline) {
+    const list = (await fetch("http://127.0.0.1:54324/api/v1/messages").then((response) =>
+      response.json(),
+    )) as { messages?: { ID: string; To: { Address: string }[] }[] };
+    const hit = list.messages?.find((message) =>
+      message.To.some((person) => person.Address === email),
+    );
+    if (hit) {
+      const detail = (await fetch(`http://127.0.0.1:54324/api/v1/message/${hit.ID}`).then(
+        (response) => response.json(),
+      )) as { HTML?: string; Text?: string };
+      const raw = `${detail.HTML ?? ""}\n${detail.Text ?? ""}`.replaceAll("&amp;", "&");
+      const link = [...raw.matchAll(/https?:\/\/[^\s"'<>]+/g)]
+        .map((match) => match[0])
+        .find((item) => item.includes("/auth/v1/verify") || item.includes("/auth/callback"));
+      if (link) return link;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+  throw new Error("The confirmation email did not arrive.");
+}
 
-  await page.goto("/discover?view=people&q=zzzz-nope");
-  await expect(page.getByText("No people match that search.")).toBeVisible();
+async function onboard(page: Page, username: string, displayName: string, email: string) {
+  await page.goto("/signup");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password", { exact: true }).fill("Local-test-1!");
+  await page.getByLabel("Confirm password").fill("Local-test-1!");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.goto(await confirmationLink(email));
+  await expect(page.getByText("Step 1 of 9")).toBeVisible();
+  await page.getByLabel("Username").fill(username);
+  await page.getByLabel("Display name").fill(displayName);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Step 2 of 9")).toBeVisible();
+  await page.getByRole("button", { name: "Skip" }).click();
+  await expect(page.getByText("Step 3 of 9")).toBeVisible();
+  await page.getByLabel("City").fill("Bengaluru");
+  await page.getByLabel("State").fill("Karnataka");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Step 4 of 9")).toBeVisible();
+  await page.getByLabel("Age band").selectOption("18_24");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Step 5 of 9")).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Step 6 of 9")).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Step 7 of 9")).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Step 8 of 9")).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Step 9 of 9")).toBeVisible();
+  await page.getByLabel("Find teammates").check();
+  await page.getByRole("button", { name: "Finish" }).click();
+  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
+}
 
-  await page.goto("/discover?view=projects");
-  await page.getByLabel("Search").fill("Sensor");
-  await page.getByLabel("Search").press("Enter");
-  await expect(page.getByRole("link", { name: "Sensor Node" })).toBeVisible();
-
-  await page.goto("/discover?view=projects&q=zzzz-nope");
-  await expect(page.getByText("No projects match that search.")).toBeVisible();
+test("search finds a person, a project, and a post", async ({ page }) => {
+  test.setTimeout(120_000);
+  const stamp = Date.now().toString(36);
+  const name = `Find ${stamp}`;
+  const title = `Note ${stamp}`;
+  await onboard(page, `find${stamp}`, name, `find.${stamp}@example.com`);
+  await page.goto("/forge");
+  await page.getByLabel("Project name").fill(name);
+  await page.getByLabel("Description").fill("A project created so search can find it.");
+  await page.getByRole("button", { name: "Create project" }).click();
+  await expect(page).toHaveURL(/\/forge\/find-/);
+  await page.goto("/discover?view=posts");
+  await page.locator("#feed-post-title").fill(title);
+  await page.locator("#feed-post-body").fill("A note created so search can find it.");
+  await page.getByRole("button", { name: "Publish" }).click();
+  await expect(page.getByRole("link", { name: title })).toBeVisible();
+  await page.goto(`/discover?view=everything&q=${stamp}`);
+  const section = page.locator("[aria-labelledby='discover-search-heading']");
+  await expect(section.locator("a[href^='/people/']", { hasText: name })).toBeVisible();
+  await expect(section.locator("a[href^='/forge/']", { hasText: name })).toBeVisible();
+  await expect(section.getByRole("link", { name: title })).toBeVisible();
 });

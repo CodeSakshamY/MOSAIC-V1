@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMember, memberGate } from "@/lib/auth/session";
@@ -94,11 +95,48 @@ export async function updatePassword(
   if (!member) return { error: "Open the reset link from your email, then choose a new password." };
   const { error } = await supabase.auth.updateUser({ password: password.password });
   if (error) return { error: "That password was not saved. Request a new link and try again." };
+  await supabase.rpc("record_security_notice");
   redirect(memberGate(member) ?? "/");
+}
+
+export async function changePassword(formData: FormData) {
+  await updatePassword(null, formData);
 }
 
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/");
+}
+
+export async function signOutOtherSessions() {
+  const member = await getMember();
+  if (!member) redirect("/profile?next=/settings");
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const iat = typeof data?.claims.iat === "number" ? String(data.claims.iat) : "";
+  if (!iat) redirect("/settings?sessions=failed");
+  const cookieStore = await cookies();
+  cookieStore.set("mosaic-kept", iat, { httpOnly: true, sameSite: "lax", path: "/", secure: process.env.NODE_ENV === "production" });
+  const { error } = await supabase.from("profile_session_floor").upsert({
+    profile_id: member.id,
+    valid_after: new Date().toISOString(),
+  });
+  if (error) redirect("/settings?sessions=failed");
+  await supabase.auth.signOut({ scope: "others" });
+  redirect("/settings?sessions=closed");
+}
+
+export async function closeAccount(_state: ActionState, formData: FormData): Promise<ActionState> {
+  const member = await getMember();
+  if (!member) redirect("/profile?next=/settings");
+  const gate = memberGate(member);
+  if (gate) redirect(gate);
+  if (formData.get("confirm") !== "yes") return { error: "Confirm that this closes the account." };
+  const typed = String(formData.get("username") ?? "").trim();
+  if (!member.username || typed !== member.username) return { error: "Type your username to close the account." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("anonymize_profile", { target: member.id });
+  if (error) return { error: "The account was not closed." };
+  redirect("/account/closed");
 }
