@@ -334,6 +334,15 @@ async function ownedPublicProjects(memberId: string | undefined, signedIn: boole
   return data ?? [];
 }
 
+function postKindLabel(type: string) {
+  if (type === "build_log") return "Build in public";
+  if (type === "help") return "Question";
+  if (type === "project") return "Showcase";
+  if (type === "achievement") return "Achievement";
+  if (type === "idea") return "Idea";
+  return type.replaceAll("_", " ");
+}
+
 async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: DiscoverFilters }) {
   const member = await getMember();
   const loaded = (await loadPosts(filters.type)).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
@@ -380,7 +389,7 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
             <strong>
               <Link href={`/posts/${post.id}`}>{post.title ?? "Post"}</Link>
             </strong>
-            <span className="repo-visibility">{post.type.replace("_", " ")}</span>
+            <span className="repo-visibility">{postKindLabel(post.type)}</span>
           </div>
           <p className="discover-copy">{post.content}</p>
           {kind === "ideas" ? (
