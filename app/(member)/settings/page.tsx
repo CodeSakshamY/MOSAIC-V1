@@ -8,7 +8,7 @@ import { ThemePicker } from "@/components/settings/ThemePicker";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember } from "@/lib/auth/session";
 import { changePassword, signOutOtherSessions } from "@/lib/auth/actions";
-import { saveNotifyFollows, saveProfileVisibility } from "@/lib/profile/actions";
+import { saveCommentsOpen, saveNotifyFollows, saveProfileVisibility } from "@/lib/profile/actions";
 import { createClient } from "@/lib/supabase/server";
 import { themeFromId } from "@/lib/theme/themes";
 
@@ -29,7 +29,7 @@ export default async function SettingsPage({
   const params = await searchParams;
   const supabase = await createClient();
   const { data: prefs } = member
-    ? await supabase.from("profiles").select("notify_follows, visibility").eq("id", member.id).maybeSingle()
+    ? await supabase.from("profiles").select("notify_follows, visibility, comments_open").eq("id", member.id).maybeSingle()
     : { data: null };
 
   return (
@@ -58,6 +58,17 @@ export default async function SettingsPage({
           </label>
           <button className="text-button" type="submit">
             Save notification preference
+          </button>
+        </form>
+      ) : null}
+      {member ? (
+        <form action={saveCommentsOpen}>
+          <h2 id="comments-heading">Comments</h2>
+          <label>
+            <input id="comments-open" type="checkbox" name="comments" value="1" defaultChecked={prefs?.comments_open !== false} /> Let people comment on my posts
+          </label>
+          <button className="text-button" type="submit">
+            Save comment preference
           </button>
         </form>
       ) : null}

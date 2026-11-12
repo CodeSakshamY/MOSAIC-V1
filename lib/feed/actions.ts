@@ -168,7 +168,9 @@ export async function addComment(formData: FormData) {
     content,
     parent_comment_id: parentId || null,
   });
-  if (error) return;
+  if (error) {
+    redirect(`/posts/${postId}${error.message.toLowerCase().includes("closed") ? "?comments=closed" : ""}`);
+  }
   refresh(postId);
 }
 

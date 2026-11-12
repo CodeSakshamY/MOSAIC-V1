@@ -123,6 +123,15 @@ export async function saveNotifyFollows(formData: FormData) {
   redirect("/settings");
 }
 
+export async function saveCommentsOpen(formData: FormData) {
+  const member = await requireOwner();
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update({ comments_open: formData.get("comments") === "1" }).eq("id", member.id);
+  if (error) return;
+  revalidatePath("/settings");
+  redirect("/settings");
+}
+
 export async function addProfileSection(_state: { error?: string } | null, formData: FormData) {
   const member = await requireOwner();
   const title = text(formData.get("title"), 80);

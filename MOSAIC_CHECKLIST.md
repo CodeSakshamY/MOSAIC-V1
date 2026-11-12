@@ -287,7 +287,7 @@ Not started. Future phase.
 - [ ] Two-factor authentication
 - [ ] Connected accounts
 - [x] Privacy controls and profile visibility
-- [ ] Follow and interaction controls
+- [x] Follow and interaction controls
 - [ ] Feed and interest preferences
 - [ ] Notification preferences
 - [x] Blocked and muted accounts

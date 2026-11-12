@@ -659,6 +659,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `081_mention_notices.sql` | A comment that names @username notifies that person. |
 | `082_notice_kinds.sql` | Notifications can record a reaction or a project invitation. |
 | `083_reaction_notices.sql` | A like, upvote, interesting, or inspired reaction notifies the author. |
+| `084_comments_open.sql` | A person can close comments on their posts. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
