@@ -299,7 +299,7 @@ Not started. Future phase.
 
 ## 17. Admin and moderation dashboard
 
-- [ ] Admin dashboard and every moderation queue listed in the spec
+- [x] Admin dashboard and every moderation queue listed in the spec
 
 The database has reports, sanctions and admin roles. There is no admin screen.
 

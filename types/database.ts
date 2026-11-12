@@ -1276,6 +1276,12 @@ isOneToOne: false
 "record_security_notice":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"current_user_is_staff":
+{ Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"staff_remove_report":
+{ Args: { "report": string }; Returns: undefined
+                           },
 "owner_project_save_count":
 { Args: { "target": string }; Returns: number
                            },
