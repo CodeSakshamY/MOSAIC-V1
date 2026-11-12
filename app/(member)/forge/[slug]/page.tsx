@@ -14,6 +14,7 @@ import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
+import { OpenCollaboratorsForm } from "@/components/build/OpenCollaboratorsForm";
 import { StatusForm } from "@/components/build/StatusForm";
 import { TimelineForm } from "@/components/build/TimelineForm";
 import { ProjectTeam } from "@/components/build/ProjectTeam";
@@ -372,6 +373,7 @@ async function ProjectView({
           <span>{project.name}</span>
         </h1>
         <span className="repo-visibility">{project.visibility === "private" ? "Private" : "Public"}</span>
+        {project.looking_for_contributors ? <span className="repo-visibility">Open to collaborators</span> : null}
         <span className="repo-visibility">{project.category}</span>
         {project.subcategory ? <span className="repo-visibility">{project.subcategory}</span> : null}
         {tools.map((tool) => (
@@ -414,6 +416,7 @@ async function ProjectView({
       {isOwner ? <ToolsForm projectId={project.id} skills={skills} selected={[...usedIds]} /> : null}
       {isOwner ? <SkillsForm projectId={project.id} skills={skills} selected={[...neededIds]} /> : null}
       {isOwner && isProjectStatus(project.status) ? <StatusForm projectId={project.id} status={project.status} /> : null}
+      {isOwner ? <OpenCollaboratorsForm projectId={project.id} open={project.looking_for_contributors} /> : null}
       {isOwner ? (
         <TimelineForm projectId={project.id} startsOn={project.starts_on} endsOn={project.ends_on} />
       ) : null}

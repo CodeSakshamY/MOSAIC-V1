@@ -207,6 +207,28 @@ export async function updateStatus(formData: FormData) {
   revalidatePath("/discover");
 }
 
+export async function setOpenToCollaborators(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const open = formData.get("open") === "1";
+  if (!projectIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ looking_for_contributors: open })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function updateTimeline(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");
