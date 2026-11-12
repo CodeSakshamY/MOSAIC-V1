@@ -31,6 +31,7 @@ type RecordItem = {
   meta?: string | null;
   href?: string | null;
   image?: string | null;
+  verified?: boolean;
 };
 
 export async function ProfessionalProfile({
@@ -73,8 +74,8 @@ export async function ProfessionalProfile({
       .from("profile_experience")
       .select("id, title, organization, summary, start_year, end_year")
       .eq("profile_id", profileId),
-    supabase.from("profile_certificates").select("id, name, issuer, year, credential_url, image_url").eq("profile_id", profileId),
-    supabase.from("profile_awards").select("id, title, issuer, year, image_url").eq("profile_id", profileId),
+    supabase.from("profile_certificates").select("id, name, issuer, year, credential_url, image_url, verified_at").eq("profile_id", profileId),
+    supabase.from("profile_awards").select("id, title, issuer, year, image_url, verified_at").eq("profile_id", profileId),
     supabase
       .from("posts")
       .select("id, title, content, media_urls, created_at")
@@ -568,6 +569,7 @@ export async function ProfessionalProfile({
           meta: item.year ? String(item.year) : null,
           href: item.credential_url,
           image: item.image_url,
+          verified: Boolean(item.verified_at),
           kind: "certificate",
         }))}
       />
@@ -584,6 +586,7 @@ export async function ProfessionalProfile({
           detail: item.issuer,
           meta: item.year ? String(item.year) : null,
           image: item.image_url,
+          verified: Boolean(item.verified_at),
           kind: "award",
         }))}
       />
@@ -716,6 +719,7 @@ function RecordSection({
         <article key={item.id} className="profile-entry">
           <h3>{item.href ? <a href={item.href}>{item.title}</a> : item.title}</h3>
           {item.detail ? <p>{item.detail}</p> : null}
+          {item.verified ? <p className="profile-meta">Verified</p> : null}
           {item.meta ? <p className="profile-meta">{item.meta}</p> : null}
           {item.body ? <p>{item.body}</p> : null}
           {item.image ? (

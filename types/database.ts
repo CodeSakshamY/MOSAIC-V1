@@ -543,14 +543,14 @@ isOneToOne: false
                   ]
                 },"profile_awards": {
                   Row: {
-                    "created_at": string,"id": string,"image_url": string | null,"issuer": string,"profile_id": string,"title": string,"year": number | null
+                    "created_at": string,"id": string,"image_url": string | null,"issuer": string,"profile_id": string,"title": string,"verified_at": string | null,"year": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer": string,"profile_id": string,"title": string,"year"?: number | null
+                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer": string,"profile_id": string,"title": string,"verified_at"?: string | null,"year"?: number | null
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer"?: string,"profile_id"?: string,"title"?: string,"year"?: number | null
+                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer"?: string,"profile_id"?: string,"title"?: string,"verified_at"?: string | null,"year"?: number | null
                   }
                   Relationships: [
                     {
@@ -563,14 +563,14 @@ isOneToOne: false
                   ]
                 },"profile_certificates": {
                   Row: {
-                    "created_at": string,"credential_url": string | null,"id": string,"image_url": string | null,"issuer": string,"name": string,"profile_id": string,"year": number | null
+                    "created_at": string,"credential_url": string | null,"id": string,"image_url": string | null,"issuer": string,"name": string,"profile_id": string,"verified_at": string | null,"year": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer": string,"name": string,"profile_id": string,"year"?: number | null
+                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer": string,"name": string,"profile_id": string,"verified_at"?: string | null,"year"?: number | null
                   }
                   Update: {
-                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer"?: string,"name"?: string,"profile_id"?: string,"year"?: number | null
+                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer"?: string,"name"?: string,"profile_id"?: string,"verified_at"?: string | null,"year"?: number | null
                   }
                   Relationships: [
                     {

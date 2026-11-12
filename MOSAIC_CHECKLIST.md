@@ -108,7 +108,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Contribution history (projects contributed to, merged pull requests)
 - [x] Activity timeline
 - [x] Profile visibility settings
-- [ ] Verified achievement or credential indicators
+- [x] Verified achievement or credential indicators
 - [ ] Profile completion indicator
 - [ ] Custom profile sections
 
