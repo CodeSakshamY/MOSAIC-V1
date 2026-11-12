@@ -287,7 +287,7 @@ async function loadPosts(type: ProjectCategory | null) {
   }
   let query = supabase
     .from("posts")
-    .select("id, title, content, type, media_urls, author_id, project_id, build_log_id, created_at")
+    .select("id, title, content, type, media_urls, author_id, project_id, build_log_id, opportunity_id, created_at")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("created_at", { ascending: false })
@@ -305,7 +305,17 @@ async function loadPosts(type: ProjectCategory | null) {
     ? await supabase.from("build_logs").select("id, kind").in("id", logIds)
     : { data: [] };
   const kinds = new Map((logs ?? []).map((log) => [log.id, log.kind]));
-  return posts.map((post) => ({ ...post, author: names.get(post.author_id), logKind: post.build_log_id ? kinds.get(post.build_log_id) : null }));
+  const opportunityIds = posts.map((post) => post.opportunity_id).filter((id): id is string => Boolean(id));
+  const { data: opportunities } = opportunityIds.length
+    ? await supabase.from("opportunities").select("id, category").in("id", opportunityIds)
+    : { data: [] };
+  const opportunityCategories = new Map((opportunities ?? []).map((item) => [item.id, item.category]));
+  return posts.map((post) => ({
+    ...post,
+    author: names.get(post.author_id),
+    logKind: post.build_log_id ? kinds.get(post.build_log_id) : null,
+    opportunityCategory: post.opportunity_id ? opportunityCategories.get(post.opportunity_id) : null,
+  }));
 }
 
 async function followedIds(memberId: string | null, authorIds: string[]) {
@@ -339,13 +349,14 @@ async function ownedPublicProjects(memberId: string | undefined, signedIn: boole
   return data ?? [];
 }
 
-function postKindLabel(type: string, logKind?: string | null) {
+function postKindLabel(type: string, logKind?: string | null, opportunityCategory?: string | null) {
   if (type === "build_log" && logKind === "experiment") return "Experiment";
   if (type === "build_log") return "Build in public";
   if (type === "help") return "Question";
   if (type === "project") return "Showcase";
   if (type === "achievement") return "Achievement";
   if (type === "idea") return "Idea";
+  if (type === "opportunity" && (opportunityCategory === "workshop" || opportunityCategory === "maker_event")) return "Event";
   if (type === "opportunity") return "Opportunity";
   return type.replaceAll("_", " ");
 }
@@ -396,7 +407,7 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
             <strong>
               <Link href={`/posts/${post.id}`}>{post.title ?? "Post"}</Link>
             </strong>
-            <span className="repo-visibility">{postKindLabel(post.type, post.logKind)}</span>
+            <span className="repo-visibility">{postKindLabel(post.type, post.logKind, post.opportunityCategory)}</span>
           </div>
           <p className="discover-copy">{post.content}</p>
           {kind === "ideas" ? (

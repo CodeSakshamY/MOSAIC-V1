@@ -59,3 +59,39 @@ export async function announceOpportunity(_state: { error?: string } | null, for
   revalidatePath("/discover");
   redirect("/opportunities");
 }
+
+export async function announceEvent(_state: { error?: string } | null, formData: FormData) {
+  const member = await getMember();
+  if (!member) redirect("/profile?next=/opportunities");
+  const gate = memberGate(member);
+  if (gate) redirect(gate);
+  const title = String(formData.get("title") ?? "").trim().slice(0, 160);
+  const description = String(formData.get("description") ?? "").trim().slice(0, 8000);
+  const link = parseWebsite(String(formData.get("url") ?? ""));
+  const start = String(formData.get("start") ?? "").trim();
+  if (title.length < 3) return { error: "Add a title." };
+  if (!description) return { error: "Describe the event." };
+  if (!link.ok || !link.website) return { error: link.ok ? "Add the registration https link." : link.error };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) return { error: "Enter the date the organiser published." };
+  const slug = projectSlug(`event ${title}`);
+  if (slug.length < 3) return { error: "Use a title that can become a link." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("opportunities").insert({
+    title,
+    slug,
+    organizer: member.displayName,
+    description,
+    category: "workshop",
+    official_url: link.website,
+    start_date: `${start}T00:00:00.000Z`,
+    is_online: formData.get("online") === "1",
+    is_published: true,
+    is_verified: false,
+    is_demo: false,
+    created_by: member.id,
+  });
+  if (error) return { error: "That event was not saved." };
+  revalidatePath("/opportunities");
+  revalidatePath("/discover");
+  redirect("/opportunities");
+}
