@@ -583,6 +583,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `040_project_milestones.sql` | Up to 12 named dates on a project. |
 | `041_project_credits.sql` | Optional credits on a project. |
 | `042_project_saves.sql` | A member's private saved projects. Select, insert, and delete stay with that member. |
+| `043_project_analytics.sql` | The owner can count saves. The function returns null for anyone else. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

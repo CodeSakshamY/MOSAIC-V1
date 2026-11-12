@@ -1034,6 +1034,9 @@ isOneToOne: false
             "anonymize_profile":
 { Args: { "target": string }; Returns: undefined
                            },
+"owner_project_save_count":
+{ Args: { "target": string }; Returns: number
+                           },
 "current_member_status":
 { Args: Record<PropertyKey, never>; Returns: string
                            },

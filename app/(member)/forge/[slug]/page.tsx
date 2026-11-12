@@ -8,6 +8,7 @@ import { ContributionHistory } from "@/components/build/ContributionHistory";
 import { CreditsForm } from "@/components/build/CreditsForm";
 import { DocumentationForm } from "@/components/build/DocumentationForm";
 import { Milestones } from "@/components/build/Milestones";
+import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
 import { StatusForm } from "@/components/build/StatusForm";
@@ -83,7 +84,7 @@ async function ProjectView({
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, saveResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult, requestResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, saveResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult, requestResult, followCount, threadCount, saveCount] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -139,6 +140,16 @@ async function ProjectView({
       .select("id, requester_id, message, proposed_contribution, status")
       .eq("project_id", project.id)
       .order("created_at", { ascending: true }),
+    supabase.from("project_follows").select("profile_id", { count: "exact", head: true }).eq("project_id", project.id),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", project.id)
+      .eq("type", "idea")
+      .is("removed_at", null),
+    member?.id === project.owner_id
+      ? supabase.rpc("owner_project_save_count", { target: project.id })
+      : Promise.resolve({ data: null }),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
@@ -373,6 +384,17 @@ async function ProjectView({
               <dd>{forksResult.data?.length ?? 0}</dd>
             </div>
           </dl>
+          {isOwner ? (
+            <ProjectAnalytics
+              followers={followCount.count ?? 0}
+              saves={Number(saveCount.data ?? 0)}
+              forks={forksResult.data?.length ?? 0}
+              updates={logs.length}
+              threads={threadCount.count ?? 0}
+              team={roster.length}
+              requests={requests.filter((request) => request.status === "pending").length}
+            />
+          ) : null}
         </aside>
       </div>
     </article>
