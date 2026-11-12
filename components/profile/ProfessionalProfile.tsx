@@ -7,6 +7,7 @@ import {
   AchievementForm,
   AwardForm,
   CertificateForm,
+  CommunityForm,
   CompetitionForm,
   EducationForm,
   ExperienceForm,
@@ -51,6 +52,7 @@ export async function ProfessionalProfile({
     mergedResult,
     publicationResult,
     competitionResult,
+    communityResult,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -98,6 +100,11 @@ export async function ProfessionalProfile({
     supabase
       .from("profile_competitions")
       .select("id, name, host, year, result, url")
+      .eq("profile_id", profileId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("profile_communities")
+      .select("id, name, role, year")
       .eq("profile_id", profileId)
       .order("created_at", { ascending: false }),
   ]);
@@ -402,6 +409,21 @@ export async function ProfessionalProfile({
           meta: item.year ? String(item.year) : null,
           href: item.url,
           kind: "competition",
+        }))}
+      />
+
+      <RecordSection
+        id="communities"
+        title="Communities"
+        empty="No communities added yet."
+        editable={editable}
+        form={<CommunityForm />}
+        items={(communityResult.data ?? []).map((item) => ({
+          id: item.id,
+          title: item.name,
+          detail: item.role,
+          meta: item.year ? String(item.year) : null,
+          kind: "community",
         }))}
       />
 

@@ -581,6 +581,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"profile_communities": {
+                  Row: {
+                    "created_at": string,"id": string,"name": string,"profile_id": string,"role": string | null,"year": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"name": string,"profile_id": string,"role"?: string | null,"year"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"name"?: string,"profile_id"?: string,"role"?: string | null,"year"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_communities_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profile_competitions": {
                   Row: {
                     "created_at": string,"host": string | null,"id": string,"name": string,"profile_id": string,"result": string | null,"url": string | null,"year": number | null

@@ -178,6 +178,30 @@ export async function addCompetition(_state: { error?: string } | null, formData
   redirect("/profile");
 }
 
+export async function addCommunity(_state: { error?: string } | null, formData: FormData) {
+  const member = await requireOwner();
+  const name = text(formData.get("name"), 80);
+  const role = text(formData.get("role"), 40);
+  const held = year(formData.get("year"));
+  if (!name) return { error: "Add the community name." };
+  if (!held.ok) return { error: held.error };
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("profile_communities")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_id", member.id);
+  if ((count ?? 0) >= 20) return { error: "A profile can list 20 communities." };
+  const { error } = await supabase.from("profile_communities").insert({
+    profile_id: member.id,
+    name,
+    role: role || null,
+    year: held.year,
+  });
+  if (error) return { error: "That community was not saved." };
+  redirect("/profile");
+}
+
 export async function addExperience(_state: { error?: string } | null, formData: FormData) {
   const member = await requireOwner();
   const title = text(formData.get("title"), 120);
@@ -289,6 +313,8 @@ export async function removeProfileItem(formData: FormData) {
     await supabase.from("profile_publications").delete().eq("id", id).eq("profile_id", member.id);
   } else if (kind === "competition") {
     await supabase.from("profile_competitions").delete().eq("id", id).eq("profile_id", member.id);
+  } else if (kind === "community") {
+    await supabase.from("profile_communities").delete().eq("id", id).eq("profile_id", member.id);
   }
   redirect("/profile");
 }

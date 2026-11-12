@@ -5,6 +5,7 @@ import {
   addAchievement,
   addAward,
   addCertificate,
+  addCommunity,
   addCompetition,
   addEducation,
   addExperience,
@@ -21,6 +22,29 @@ function ErrorLine({ error }: { error?: string }) {
     <p className="form-error" role="alert">
       {error}
     </p>
+  );
+}
+
+export function CommunityForm() {
+  const [state, action] = useActionState(addCommunity, null);
+  return (
+    <form className="form-stack" action={action}>
+      <div className="field">
+        <Label htmlFor="community-name">Community</Label>
+        <Input id="community-name" name="name" required maxLength={80} />
+      </div>
+      <div className="field">
+        <Label htmlFor="community-role">Role</Label>
+        <Input id="community-role" name="role" maxLength={40} />
+      </div>
+      <div className="field">
+        <Label htmlFor="community-year">Year</Label>
+        <Input id="community-year" name="year" inputMode="numeric" maxLength={4} />
+      </div>
+      <p className="form-note">List a group you have taken part in. MOSAIC groups are not open yet.</p>
+      <ErrorLine error={state?.error} />
+      <SubmitButton>Add community</SubmitButton>
+    </form>
   );
 }
 
