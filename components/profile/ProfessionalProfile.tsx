@@ -71,7 +71,7 @@ export async function ProfessionalProfile({
       .order("created_at", { ascending: false }),
     supabase
       .from("projects")
-      .select("id, name, slug, description, tagline, subcategory, category, visibility, profile_featured_at")
+      .select("id, name, slug, description, tagline, subcategory, category, visibility, status, profile_featured_at")
       .eq("owner_id", profileId)
       .is("removed_at", null)
       .order("updated_at", { ascending: false }),
@@ -186,9 +186,12 @@ export async function ProfessionalProfile({
   const targetName = new Map((targets.data ?? []).map((project) => [project.id, project]));
 
   const initial = profile.display_name.trim().charAt(0).toUpperCase() || "?";
-  const featured = (ownedResult.data ?? [])
+  const owned = ownedResult.data ?? [];
+  const featured = owned
     .filter((project) => project.visibility === "public" && project.profile_featured_at)
     .sort((left, right) => (right.profile_featured_at ?? "").localeCompare(left.profile_featured_at ?? ""));
+  const completed = owned.filter((project) => project.status === "completed");
+  const current = owned.filter((project) => project.status !== "completed");
 
   return (
     <article className="profile-page">
@@ -416,8 +419,8 @@ export async function ProfessionalProfile({
             ))}
           </ProjectGroup>
         ) : null}
-        <ProjectGroup title="Repositories" empty="No public projects yet.">
-          {(ownedResult.data ?? []).map((project) => (
+        <ProjectGroup title="Repositories" empty="No current projects yet.">
+          {current.map((project) => (
             <li key={project.id} className="repo-row">
               <div className="repo-title">
                 <Link href={`/forge/${project.slug}`}>{project.name}</Link>
@@ -439,6 +442,20 @@ export async function ProfessionalProfile({
             </li>
           ))}
         </ProjectGroup>
+        {completed.length > 0 || editable ? (
+          <ProjectGroup title="Completed" empty="No completed projects yet.">
+            {completed.map((project) => (
+              <li key={project.id} className="repo-row">
+                <div className="repo-title">
+                  <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+                  <span className="repo-visibility">Completed</span>
+                </div>
+                {project.tagline ? <p className="repo-meta">{project.tagline}</p> : null}
+                <p>{project.description}</p>
+              </li>
+            ))}
+          </ProjectGroup>
+        ) : null}
         <ProjectGroup title="Contributions" empty="No contributions yet.">
           {(contributed.data ?? []).map((project) => (
             <li key={project.id} className="repo-row">
