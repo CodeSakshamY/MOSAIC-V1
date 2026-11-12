@@ -23,7 +23,7 @@ export default function PostPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ reported?: string }>;
+  searchParams: Promise<{ reported?: string; comments?: string }>;
 }) {
   return (
     <Suspense fallback={null}>
@@ -37,7 +37,7 @@ async function PostPageContent({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ reported?: string }>;
+  searchParams: Promise<{ reported?: string; comments?: string }>;
 }) {
   const { id } = await params;
   const query = await searchParams;
@@ -137,6 +137,7 @@ async function PostPageContent({
       />
       <section id="comments" aria-label="Comments">
         <h2>Comments</h2>
+        {query.comments === "closed" ? <p>Comments are closed on this post.</p> : null}
         {signedIn ? <CommentForm postId={post.id} /> : <p><Link href={`/profile?next=${encodeURIComponent(`/posts/${post.id}`)}`}>Log in to comment</Link></p>}
         {rows.some((comment) => comment.parent_comment_id === null) ? null : <p>No comments yet.</p>}
         <ul className="repo-list" role="list">

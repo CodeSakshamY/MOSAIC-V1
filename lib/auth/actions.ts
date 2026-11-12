@@ -103,6 +103,19 @@ export async function changePassword(formData: FormData) {
   await updatePassword(null, formData);
 }
 
+export async function requestEmailChange(_state: ActionState, formData: FormData): Promise<ActionState> {
+  const member = await getMember();
+  if (!member) redirect("/profile?next=/settings");
+  const gate = memberGate(member);
+  if (gate) redirect(gate);
+  const email = parseEmail(String(formData.get("email") ?? ""));
+  if (!email.ok) return { error: email.error };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ email: email.email });
+  if (error) return { error: "That email change was not started." };
+  return { notice: `Check ${email.email} to confirm the new address. The current address stays until then.` };
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();

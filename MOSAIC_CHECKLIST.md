@@ -216,7 +216,7 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 - [ ] Collaboration-request conversations
 - [ ] Project-specific discussions as messages
 - [ ] Community discussions as messages
-- [ ] Notifications for replies and mentions
+- [x] Notifications for replies and mentions
 - [ ] Basic one-to-one messaging
 - [ ] Group conversations for project teams
 - [ ] Message attachments, link sharing, conversation search
@@ -234,12 +234,12 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 
 ## 12. Notifications
 
-- [ ] New followers, reactions, comments, replies, mentions
+- [x] New followers, reactions, comments, replies, mentions
 - [ ] Collaboration requests and updates
-- [ ] Project invitations, updates and new contributors
+- [x] Project invitations, updates and new contributors
 - [ ] Community announcements and invitations
 - [ ] Opportunity and event reminders
-- [ ] Saved project updates
+- [x] Saved project updates
 - [x] System and security notifications
 - [x] Mark as read/unread
 - [x] Notification and email preferences
@@ -282,12 +282,12 @@ Not started. Future phase.
 - [x] Edit profile
 - [x] Change username
 - [x] Password change while signed in
-- [ ] Account settings page with real controls
-- [ ] Email settings
+- [x] Account settings page with real controls
+- [x] Email settings
 - [ ] Two-factor authentication
 - [ ] Connected accounts
 - [x] Privacy controls and profile visibility
-- [ ] Follow and interaction controls
+- [x] Follow and interaction controls
 - [ ] Feed and interest preferences
 - [ ] Notification preferences
 - [x] Blocked and muted accounts
@@ -315,16 +315,16 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Responsive web application
 - [x] Mobile navigation
 - [ ] PWA support
-- [ ] Search indexing
+- [x] Search indexing
 - [ ] Background jobs
 - [ ] Email delivery beyond local development mail
 - [x] Rate limiting
 - [x] Database migrations
 - [ ] Error monitoring, analytics, automated backups, logging, performance monitoring
-- [ ] SEO for public projects and profiles
+- [x] SEO for public projects and profiles
 - [x] Skip link and dark colour scheme
 - [x] Secure file uploads that check the file bytes
-- [ ] Spam and abuse prevention beyond the report tables
+- [x] Spam and abuse prevention beyond the report tables
 
 ## Launch phase 1, the functional core
 
