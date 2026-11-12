@@ -3,11 +3,11 @@
 import { Share2 } from "lucide-react";
 import { useState } from "react";
 
-export function ShareButton({ postId }: { postId: string }) {
+export function ShareButton({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    const url = `${location.origin}/posts/${postId}`;
+    const url = `${location.origin}${path}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);

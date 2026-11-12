@@ -17,6 +17,7 @@ import { UpdateHistory } from "@/components/build/UpdateHistory";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { ToolsForm } from "@/components/build/ToolsForm";
+import { ShareButton } from "@/components/feed/ShareButton";
 import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
 import { toggleProjectSave } from "@/lib/projects/follow";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
@@ -257,6 +258,7 @@ async function ProjectView({
             </button>
           </form>
         ) : null}
+        <ShareButton path={`/forge/${project.slug}`} />
         {!isOwner && member ? (
           <form action={forkProject}>
             <input type="hidden" name="projectId" value={project.id} />
