@@ -27,6 +27,7 @@ const views = [
   { id: "research", label: "Research" },
   { id: "posts", label: "Posts" },
   { id: "reels", label: "Reels" },
+  { id: "experiments", label: "Experiments" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -43,9 +44,12 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("research", filters)} aria-current={view === "research" ? "page" : undefined}>
           Research
         </Link>
+        <Link href={hrefFor("experiments", filters)} aria-current={view === "experiments" ? "page" : undefined}>
+          Experiments
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
-        {views.slice(3).map((item) => (
+        {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
           <Link key={item.id} href={hrefFor(item.id, filters)} aria-current={view === item.id ? "page" : undefined}>
             {item.label}
           </Link>
@@ -58,6 +62,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
       {view === "research" ? <ResearchList /> : null}
+      {view === "experiments" ? <ExperimentList /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -281,6 +286,42 @@ async function ResearchList() {
         ))}
       </ul>
       {(projects ?? []).length === 0 && (papers ?? []).length === 0 ? <p>No research yet.</p> : null}
+    </section>
+  );
+}
+
+async function ExperimentList() {
+  const supabase = await createClient();
+  const { data: logs } = await supabase
+    .from("build_logs")
+    .select("id, title, project_id, created_at")
+    .eq("kind", "experiment")
+    .is("removed_at", null)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const projectIds = [...new Set((logs ?? []).map((log) => log.project_id))];
+  const { data: projects } = projectIds.length
+    ? await supabase.from("projects").select("id, name, slug").in("id", projectIds).eq("visibility", "public").is("removed_at", null)
+    : { data: [] };
+  const byId = new Map((projects ?? []).map((project) => [project.id, project]));
+  const rows = (logs ?? []).flatMap((log) => {
+    const project = byId.get(log.project_id);
+    return project ? [{ ...log, project }] : [];
+  });
+  return (
+    <section aria-labelledby="discover-experiments-heading">
+      <h2 id="discover-experiments-heading">Experiments</h2>
+      {rows.length === 0 ? <p>No experiments yet.</p> : null}
+      <ul className="repo-list" role="list">
+        {rows.map((log) => (
+          <li key={log.id} className="repo-row">
+            <div className="repo-title">
+              <Link href={`/forge/${log.project.slug}`}>{log.title}</Link>
+              <span className="repo-visibility">{log.project.name}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

@@ -163,7 +163,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Discover projects
 - [x] Discover builders
 - [x] Discover research
-- [ ] Discover experiments
+- [x] Discover experiments
 - [ ] Discover communities
 - [ ] Discover opportunities
 - [ ] Discover events
