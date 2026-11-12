@@ -89,6 +89,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       </nav>
       <div className="discover-tools">
         {view === "people" || view === "projects" || view === "everything" ? <DiscoverSearch view={view} filters={filters} /> : null}
+        {view === "projects" ? <ProjectSort filters={filters} /> : null}
         {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" ? null : <TypeFilters view={view} filters={filters} />}
       </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
@@ -128,6 +129,7 @@ function hrefFor(view: View, filters: DiscoverFilters, type: ProjectCategory | n
     params.set("type", type);
   }
   if (view === "projects" && filters.status) params.set("status", filters.status);
+  if (view === "projects" && filters.sort !== "latest") params.set("sort", filters.sort);
   const query = params.toString();
   return query ? `/discover?${query}` : "/discover";
 }
@@ -680,7 +682,7 @@ async function ProjectList({ filters }: { filters: DiscoverFilters }) {
   const supabase = await createClient();
   let query = supabase
     .from("projects")
-    .select("id, name, slug, description, tagline, subcategory, category, cover_image_url")
+    .select("id, name, slug, description, tagline, subcategory, category, cover_image_url, updated_at")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("updated_at", { ascending: false })
@@ -689,7 +691,22 @@ async function ProjectList({ filters }: { filters: DiscoverFilters }) {
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.q) query = query.or(`name.ilike.%${filters.q}%,description.ilike.%${filters.q}%,tagline.ilike.%${filters.q}%`);
   const { data } = await query;
-  const projects = data ?? [];
+  let projects = data ?? [];
+  if (filters.sort === "popular" && projects.length > 0) {
+    const { data: follows } = await supabase.from("project_follows").select("project_id").in("project_id", projects.map((project) => project.id));
+    const counts = new Map<string, number>();
+    for (const row of follows ?? []) counts.set(row.project_id, (counts.get(row.project_id) ?? 0) + 1);
+    projects = [...projects].sort(
+      (a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0) || b.updated_at.localeCompare(a.updated_at),
+    );
+  } else if (filters.sort === "relevance" && filters.q) {
+    const needle = filters.q.toLowerCase();
+    projects = [...projects].sort(
+      (a, b) =>
+        Number(!a.name.toLowerCase().includes(needle)) - Number(!b.name.toLowerCase().includes(needle)) ||
+        b.updated_at.localeCompare(a.updated_at),
+    );
+  }
   if (projects.length === 0) {
     return (
       <p className="repo-empty">
@@ -1138,6 +1155,26 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
       ) : null}
     </form>
     </FilterMenu>
+  );
+}
+
+function ProjectSort({ filters }: { filters: DiscoverFilters }) {
+  const sorts = [
+    { id: "latest", label: "Latest" },
+    { id: "relevance", label: "Relevance" },
+    { id: "popular", label: "Popularity" },
+  ] as const;
+  return (
+    <nav className="repo-filters" aria-label="Sort">
+      {sorts.map((item) => (
+        <Link key={item.id} href={hrefFor("projects", { ...filters, sort: item.id })} aria-current={filters.sort === item.id ? "page" : undefined}>
+          {item.label}
+        </Link>
+      ))}
+      <p className="form-note">
+        Latest follows the last update. Relevance puts a project whose name matches your search ahead of a description match. Popularity is how many people follow the project.
+      </p>
+    </nav>
   );
 }
 

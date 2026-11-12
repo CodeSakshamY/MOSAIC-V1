@@ -15,6 +15,7 @@ describe("readDiscoverFilters", () => {
         looking: "teammates",
         type: "Software",
         status: "prototype",
+        sort: "popular",
         q: " Sensor% ",
       }),
     ).toEqual({
@@ -29,6 +30,7 @@ describe("readDiscoverFilters", () => {
       looking: "teammates",
       type: "Software",
       status: "prototype",
+      sort: "popular",
     });
   });
 
@@ -45,6 +47,7 @@ describe("readDiscoverFilters", () => {
         looking: "nope",
         type: "robotics",
         status: "famous",
+        sort: "trending",
       }),
     ).toEqual({
       q: "",
@@ -58,6 +61,7 @@ describe("readDiscoverFilters", () => {
       looking: "",
       type: null,
       status: null,
+      sort: "latest",
     });
   });
 });

@@ -15,7 +15,11 @@ export type DiscoverFilters = {
   looking: LookingFor | "";
   type: ProjectCategory | null;
   status: ProjectStatus | null;
+  sort: DiscoverSort;
 };
+
+export const discoverSorts = ["latest", "relevance", "popular"] as const;
+export type DiscoverSort = (typeof discoverSorts)[number];
 
 const skillPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -39,6 +43,7 @@ export function readDiscoverFilters(input: {
   looking?: string;
   type?: string;
   status?: string;
+  sort?: string;
 }): DiscoverFilters {
   const q = (input.q ?? "").trim().replace(/[%_\\]/g, "").replace(/\s+/g, " ").slice(0, 80);
   const age = ageGroups.find((group) => group.value === input.age)?.value ?? null;
@@ -55,7 +60,8 @@ export function readDiscoverFilters(input: {
   const looking = lookingForOptions.find((option) => option.value === input.looking)?.value ?? "";
   const type = input.type && isProjectCategory(input.type) ? input.type : null;
   const status = input.status && isProjectStatus(input.status) ? input.status : null;
-  return { q, age, place, skill, discipline, interest, experience, availability, looking, type, status };
+  const sort = discoverSorts.find((item) => item === input.sort) ?? "latest";
+  return { q, age, place, skill, discipline, interest, experience, availability, looking, type, status, sort };
 }
 
 export function peopleFilterActive(filters: DiscoverFilters) {
