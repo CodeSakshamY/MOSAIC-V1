@@ -32,6 +32,7 @@ const views = [
   { id: "opportunities", label: "Opportunities" },
   { id: "events", label: "Events" },
   { id: "competitions", label: "Competitions" },
+  { id: "hackathons", label: "Hackathons" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -63,6 +64,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("competitions", filters)} aria-current={view === "competitions" ? "page" : undefined}>
           Competitions
         </Link>
+        <Link href={hrefFor("hackathons", filters)} aria-current={view === "hackathons" ? "page" : undefined}>
+          Hackathons
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -83,6 +87,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "opportunities" ? <OpportunityList /> : null}
       {view === "events" ? <EventList /> : null}
       {view === "competitions" ? <CompetitionList /> : null}
+      {view === "hackathons" ? <HackathonList /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -456,6 +461,38 @@ async function CompetitionList() {
               {item.host ? <span className="repo-visibility">{item.host}</span> : null}
             </div>
             {item.result ? <p>{item.result}</p> : null}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+async function HackathonList() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("opportunities")
+    .select("id, title, organizer, official_url")
+    .eq("is_published", true)
+    .eq("category", "hackathon")
+    .is("removed_at", null)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const rows = data ?? [];
+  return (
+    <section aria-labelledby="discover-hackathons-heading">
+      <h2 id="discover-hackathons-heading">Hackathons</h2>
+      {rows.length === 0 ? <p>No hackathons yet.</p> : null}
+      <ul className="repo-list" role="list">
+        {rows.map((item) => (
+          <li key={item.id} className="repo-row">
+            <div className="repo-title">
+              <strong>{item.title}</strong>
+              <span className="repo-visibility">{item.organizer}</span>
+            </div>
+            <p>
+              <a href={item.official_url}>Official link</a>
+            </p>
           </li>
         ))}
       </ul>
