@@ -272,6 +272,21 @@ async function ProjectView({
   const authorNames = new Map(
     (authorRows ?? []).map((person) => [person.id, person.display_name || person.username]),
   );
+  const authorUsernames = new Map((authorRows ?? []).map((person) => [person.id, person.username]));
+  const requesterIds = [...new Set(requests.map((request) => request.requester_id))];
+  const { data: applicantProjects } = requesterIds.length
+    ? await supabase
+        .from("projects")
+        .select("owner_id, name, slug")
+        .in("owner_id", requesterIds)
+        .eq("visibility", "public")
+        .is("removed_at", null)
+        .order("updated_at", { ascending: false })
+    : { data: [] };
+  const projectByApplicant = new Map<string, { name: string; slug: string }>();
+  for (const item of applicantProjects ?? []) {
+    if (!projectByApplicant.has(item.owner_id)) projectByApplicant.set(item.owner_id, { name: item.name, slug: item.slug });
+  }
   const updates = logs.map((log) => ({
     id: log.id,
     title: log.title,
@@ -337,10 +352,12 @@ async function ProjectView({
   const collaboration = requests.map((request) => ({
     id: request.id,
     name: authorNames.get(request.requester_id) ?? "builder",
+    username: authorUsernames.get(request.requester_id) ?? null,
     message: request.message,
     proposed: request.proposed_contribution,
     status: request.status,
     mine: request.requester_id === member?.id,
+    project: projectByApplicant.get(request.requester_id) ?? null,
   }));
   const canRequest =
     Boolean(member) &&

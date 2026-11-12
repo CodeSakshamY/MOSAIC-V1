@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requestContribution, reviewContribution, withdrawContribution } from "@/lib/projects/actions";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +12,16 @@ export function Collaboration({
   projectId: string;
   isOwner: boolean;
   canRequest: boolean;
-  requests: { id: string; name: string; message: string; proposed: string; status: string; mine: boolean }[];
+  requests: {
+    id: string;
+    name: string;
+    username: string | null;
+    message: string;
+    proposed: string;
+    status: string;
+    mine: boolean;
+    project: { name: string; slug: string } | null;
+  }[];
 }) {
   const pendingMine = requests.find((request) => request.mine && request.status === "pending");
   const pending = requests.filter((request) => request.status === "pending" && !request.mine);
@@ -24,8 +34,14 @@ export function Collaboration({
       {pending.map((request) => (
         <article key={request.id}>
           <p>
-            <strong>Application</strong> from {request.name}
+            <strong>Application</strong> from{" "}
+            {request.username ? <Link href={`/people/${request.username}`}>{request.name}</Link> : request.name}
           </p>
+          {request.project ? (
+            <p>
+              Project: <Link href={`/forge/${request.project.slug}`}>{request.project.name}</Link>
+            </p>
+          ) : null}
           <p>{request.message}</p>
           <p className="repo-meta">{request.proposed}</p>
           <form action={reviewContribution}>
