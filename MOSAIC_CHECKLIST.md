@@ -193,7 +193,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [ ] Mark as applied, shortlisted or completed
 - [ ] Community-submitted opportunities
 - [x] Report outdated or misleading listings
-- [ ] Opportunity verification and moderation
+- [x] Opportunity verification and moderation
 
 ## 9. Communities
 

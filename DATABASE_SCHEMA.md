@@ -651,6 +651,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `073_close_account_storage.sql` | Closing an account still finishes when storage refuses a direct file delete. |
 | `074_other_sessions.sql` | Signing out other sessions ends older logins on their next request. |
 | `075_opportunity_reports.sql` | A listing can be reported as outdated or misleading. |
+| `076_opportunity_moderation.sql` | The announcer can withdraw a listing. Only a trusted writer can mark it checked. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

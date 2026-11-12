@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember } from "@/lib/auth/session";
 import { opportunityCategoryLabel } from "@/lib/opportunities/categories";
-import { toggleOpportunitySave } from "@/lib/opportunities/actions";
+import { toggleOpportunitySave, withdrawOpportunity } from "@/lib/opportunities/actions";
 import { reportOpportunity } from "@/lib/safety/actions";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,7 +31,7 @@ export default async function OpportunityDetailPage({
   const supabase = await createClient();
   const { data } = await supabase
     .from("opportunities")
-    .select("id, title, organizer, official_url, deadline, description, category, eligibility, country, state, created_by")
+    .select("id, title, organizer, official_url, deadline, description, category, eligibility, country, state, created_by, is_verified")
     .eq("slug", slug)
     .eq("is_published", true)
     .is("removed_at", null)
@@ -51,6 +51,15 @@ export default async function OpportunityDetailPage({
         <a href={data.official_url}>Official application link</a>
       </p>
       <p className="form-note">{data.deadline ? `Deadline ${data.deadline.slice(0, 10)}` : "No deadline was provided."}</p>
+      {data.is_verified ? <p>Checked</p> : null}
+      {member && member.id === data.created_by ? (
+        <form action={withdrawOpportunity}>
+          <input type="hidden" name="opportunityId" value={data.id} />
+          <button className="text-button" type="submit">
+            Withdraw listing
+          </button>
+        </form>
+      ) : null}
       {signedIn ? (
         <form action={toggleOpportunitySave}>
           <input type="hidden" name="opportunityId" value={data.id} />

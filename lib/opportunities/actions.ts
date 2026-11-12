@@ -124,3 +124,23 @@ export async function toggleOpportunitySave(formData: FormData) {
   revalidatePath(back);
   redirect(back);
 }
+
+export async function withdrawOpportunity(formData: FormData) {
+  const member = await getMember();
+  if (!member) redirect("/profile?next=/opportunities");
+  const gate = memberGate(member);
+  if (gate) redirect(gate);
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(opportunityId)) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("opportunities")
+    .update({ is_published: false })
+    .eq("id", opportunityId)
+    .eq("created_by", member.id)
+    .eq("is_published", true);
+  if (error) return;
+  revalidatePath("/opportunities");
+  revalidatePath("/discover");
+  redirect("/opportunities");
+}
