@@ -141,7 +141,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Publish a teammate requirement
 - [x] Specify required skills
 - [x] Specify responsibilities and expected contribution
-- [ ] Specify project stage
+- [x] Specify project stage
 - [ ] Specify time commitment
 - [ ] Specify remote or in-person preference
 - [ ] Receive collaboration applications
