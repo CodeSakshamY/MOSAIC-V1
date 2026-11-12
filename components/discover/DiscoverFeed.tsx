@@ -30,6 +30,7 @@ const views = [
   { id: "experiments", label: "Experiments" },
   { id: "communities", label: "Communities" },
   { id: "opportunities", label: "Opportunities" },
+  { id: "events", label: "Events" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -55,6 +56,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("opportunities", filters)} aria-current={view === "opportunities" ? "page" : undefined}>
           Opportunities
         </Link>
+        <Link href={hrefFor("events", filters)} aria-current={view === "events" ? "page" : undefined}>
+          Events
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -73,6 +77,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "experiments" ? <ExperimentList /> : null}
       {view === "communities" ? <CommunityList /> : null}
       {view === "opportunities" ? <OpportunityList /> : null}
+      {view === "events" ? <EventList /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -386,6 +391,38 @@ async function OpportunityList() {
             <p>
               <a href={item.official_url}>Official link</a>
             </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+async function EventList() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("opportunities")
+    .select("id, title, official_url, start_date, is_online, category")
+    .eq("is_published", true)
+    .is("removed_at", null)
+    .order("created_at", { ascending: false })
+    .limit(30);
+  const rows = (data ?? []).filter((item) => item.category === "workshop" || item.category === "maker_event");
+  return (
+    <section aria-labelledby="discover-events-heading">
+      <h2 id="discover-events-heading">Events</h2>
+      {rows.length === 0 ? <p>No events yet.</p> : null}
+      <ul className="repo-list" role="list">
+        {rows.map((item) => (
+          <li key={item.id} className="repo-row">
+            <div className="repo-title">
+              <strong>{item.title}</strong>
+              <span className="repo-visibility">{item.is_online ? "Online" : "In person"}</span>
+            </div>
+            <p>
+              <a href={item.official_url}>Registration link</a>
+            </p>
+            <p className="form-note">{item.start_date ? `Date ${item.start_date.slice(0, 10)}` : "No date was provided."}</p>
           </li>
         ))}
       </ul>
