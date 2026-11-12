@@ -16,6 +16,7 @@ import {
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
 import { CollaborationForm } from "@/components/profile/CollaborationForm";
 import { InterestsForm } from "@/components/profile/InterestsForm";
+import { ProfileSectionForm } from "@/components/profile/ProfileSectionForm";
 import { ProfileLinkForm } from "@/components/profile/ProfileLinkForm";
 import { LookingForForm } from "@/components/profile/LookingForForm";
 import { collaborationLabel } from "@/lib/profile/collaboration";
@@ -61,6 +62,7 @@ export async function ProfessionalProfile({
     communityResult,
     linkResult,
     buildLogResult,
+    sectionResult,
   ] = await Promise.all([
     supabase
       .from("profile_directory")
@@ -123,6 +125,11 @@ export async function ProfessionalProfile({
       .is("removed_at", null)
       .order("created_at", { ascending: false })
       .limit(30),
+    supabase
+      .from("profile_sections")
+      .select("id, title, body")
+      .eq("profile_id", profileId)
+      .order("created_at", { ascending: true }),
   ]);
 
   const profile = profileResult.data;
@@ -489,6 +496,20 @@ export async function ProfessionalProfile({
           title: item.label,
           href: item.url,
           kind: "link",
+        }))}
+      />
+
+      <RecordSection
+        id="sections"
+        title="Sections"
+        empty="No extra sections yet."
+        editable={editable}
+        form={<ProfileSectionForm />}
+        items={(sectionResult.data ?? []).map((item) => ({
+          id: item.id,
+          title: item.title,
+          body: item.body,
+          kind: "section",
         }))}
       />
 

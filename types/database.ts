@@ -747,6 +747,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"profile_sections": {
+                  Row: {
+                    "body": string,"created_at": string,"id": string,"profile_id": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"id"?: string,"profile_id": string,"title": string
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"id"?: string,"profile_id"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_sections_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profile_skills": {
                   Row: {
                     "created_at": string,"proficiency": number | null,"profile_id": string,"skill_id": string

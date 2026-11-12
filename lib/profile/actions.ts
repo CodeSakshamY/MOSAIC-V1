@@ -114,6 +114,29 @@ export async function saveProfileVisibility(formData: FormData) {
   redirect("/profile");
 }
 
+export async function addProfileSection(_state: { error?: string } | null, formData: FormData) {
+  const member = await requireOwner();
+  const title = text(formData.get("title"), 80);
+  const body = text(formData.get("body"), 2000);
+  if (!title) return { error: "Add a title." };
+  if (!body) return { error: "Write the section." };
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("profile_sections")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_id", member.id);
+  if ((count ?? 0) >= 5) return { error: "A profile can have 5 sections." };
+  const { error } = await supabase.from("profile_sections").insert({
+    profile_id: member.id,
+    title,
+    body,
+  });
+  if (error) return { error: "That section was not saved." };
+  revalidatePath("/profile");
+  if (member.username) revalidatePath(`/people/${member.username}`);
+  redirect("/profile");
+}
+
 export async function featureProject(formData: FormData) {
   const member = await requireOwner();
   const projectId = String(formData.get("projectId") ?? "");
@@ -383,6 +406,8 @@ export async function removeProfileItem(formData: FormData) {
     await supabase.from("profile_communities").delete().eq("id", id).eq("profile_id", member.id);
   } else if (kind === "link") {
     await supabase.from("profile_links").delete().eq("id", id).eq("profile_id", member.id);
+  } else if (kind === "section") {
+    await supabase.from("profile_sections").delete().eq("id", id).eq("profile_id", member.id);
   }
   redirect("/profile");
 }

@@ -112,7 +112,7 @@ Public builder identity. Created by a trigger when `auth.users` gains a row.
 
 Email, phone, date of birth, street address, and coordinates are not columns.
 
-Public reads of a profile row are the owner, or a public profile that is not deleted. `profile_directory` is what the app reads. It keeps the name and username when a profile is private, and it returns the other columns only to the owner or when `visibility` is public. Discover lists public profiles. Education, skills, interests, experience, certificates, awards, research, competitions, communities, and extra links are readable only for a public profile or by the owner. Public projects and posts stay readable at their own addresses. `profile_certificates.verified_at` and `profile_awards.verified_at` stay empty unless a trusted writer sets them.
+Public reads of a profile row are the owner, or a public profile that is not deleted. `profile_directory` is what the app reads. It keeps the name and username when a profile is private, and it returns the other columns only to the owner or when `visibility` is public. Discover lists public profiles. Education, skills, interests, experience, certificates, awards, research, competitions, communities, and extra links are readable only for a public profile or by the owner. Public projects and posts stay readable at their own addresses. `profile_certificates.verified_at` and `profile_awards.verified_at` stay empty unless a trusted writer sets them. A profile can have up to 5 extra sections, with a title of 1–80 characters and a body of 1–2000.
 
 ### profile_private
 
@@ -632,6 +632,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `058_profile_visibility.sql` | Public or private profiles. The API reads `profile_directory`. |
 | `059_profile_select.sql` | A profile row is readable by its owner, or by anyone when the profile is public. |
 | `060_verified_credentials.sql` | `verified_at` on certificates and awards, writable by a trusted writer. |
+| `061_profile_sections.sql` | Up to 5 titled sections on a profile. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
