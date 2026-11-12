@@ -192,7 +192,7 @@ PK `(project_id, skill_id, relation)`. A project can both use Python and be seek
 | `joined_at` | Nullable until active. |
 | `created_at`, `updated_at` | |
 
-A trigger after insert on `projects` inserts the owner as `role = owner`, `status = active`, `joined_at = now()`. Exactly one active owner is enforced by a deferred constraint trigger.
+A trigger after insert on `projects` inserts the owner as `role = owner`, `status = active`, `joined_at = now()`. Exactly one active owner is enforced by a deferred constraint trigger. The project page lists those joins, and each build log, as the contribution history.
 
 ### contribution_requests
 

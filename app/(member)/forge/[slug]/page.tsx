@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { ContributionHistory } from "@/components/build/ContributionHistory";
 import { DocumentationForm } from "@/components/build/DocumentationForm";
 import { Milestones } from "@/components/build/Milestones";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
@@ -118,7 +119,7 @@ async function ProjectView({
       .order("created_at", { ascending: false }),
     supabase
       .from("project_members")
-      .select("profile_id, role")
+      .select("profile_id, role, joined_at")
       .eq("project_id", project.id)
       .eq("status", "active"),
   ]);
@@ -161,6 +162,26 @@ async function ProjectView({
     })
     .filter((person) => person.username)
     .sort((left, right) => roleOrder.indexOf(left.role) - roleOrder.indexOf(right.role) || left.name.localeCompare(right.name));
+  const roleLabels: Record<string, string> = {
+    owner: "Owner",
+    maintainer: "Maintainer",
+    contributor: "Contributor",
+  };
+  const contributions = [
+    ...roster.flatMap((person) => {
+      if (!person.joined_at) return [];
+      const name = authorNames.get(person.profile_id) ?? "builder";
+      const role = roleLabels[person.role] ?? person.role;
+      return [{ id: `join-${person.profile_id}`, at: person.joined_at, text: `${name} joined as ${role}` }];
+    }),
+    ...logs.map((log) => ({
+      id: `log-${log.id}`,
+      at: log.created_at,
+      text: `${authorNames.get(log.author_id) ?? "builder"} recorded ${log.title}`,
+    })),
+  ]
+    .sort((left, right) => left.at.localeCompare(right.at) || left.text.localeCompare(right.text))
+    .map((entry) => ({ id: entry.id, text: entry.text, when: formatWhen(entry.at) }));
   const onProject = Boolean(membershipResult.data);
   const typeNote = projectTypeNotes[project.category as ProjectCategory];
 
@@ -253,6 +274,7 @@ async function ProjectView({
               </section>
               <UpdateHistory updates={updates} />
               <ProjectTeam members={team} />
+              <ContributionHistory entries={contributions} />
               <Milestones
                 projectId={project.id}
                 milestones={milestoneResult.data ?? []}
