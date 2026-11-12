@@ -28,7 +28,7 @@ Enums are used for sets the product owns. Adding a value is a migration.
 | `post_type` | `project`, `build_log`, `idea`, `help`, `achievement`, `opportunity` |
 | `visibility` | `public`, `private` |
 | `reaction_type` | `interesting`, `inspired`, `build`, `contribute` |
-| `opportunity_category` | `hackathon`, `robotics_competition`, `science_fair`, `research_program`, `olympiad`, `scholarship`, `fellowship`, `internship`, `grant`, `maker_event`, `startup_competition`, `innovation_challenge`, `workshop` |
+| `opportunity_category` | `hackathon`, `robotics_competition`, `science_fair`, `research_program`, `olympiad`, `scholarship`, `fellowship`, `internship`, `grant`, `maker_event`, `startup_competition`, `innovation_challenge`, `workshop`, `conference`, `startup_program`, `incubator`, `open_source`, `volunteering`, `mentorship` |
 | `community_category` | `technology`, `discipline`, `city`, `institution`, `research`, `project` |
 | `community_role` | `owner`, `moderator`, `member` |
 | `notification_type` | `new_follower`, `comment`, `reply`, `contribution_request`, `contribution_accepted`, `contribution_rejected`, `project_update`, `community_activity` |
@@ -646,6 +646,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `068_project_discussion.sql` | A flat project discussion, separate from titled threads. |
 | `069_project_invites.sql` | An owner can invite a builder onto a project. |
 | `070_collections.sql` | A builder can name a collection and put public projects in it. |
+| `071_opportunity_categories.sql` | Conferences, startup programmes, incubators, open source, volunteering, and mentorship can be announced. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

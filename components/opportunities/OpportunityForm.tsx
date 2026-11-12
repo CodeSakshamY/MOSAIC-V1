@@ -2,19 +2,10 @@
 
 import { useActionState } from "react";
 import { announceOpportunity } from "@/lib/opportunities/actions";
+import { opportunityCategories } from "@/lib/opportunities/categories";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-const categories = [
-  { value: "hackathon", label: "Hackathon" },
-  { value: "internship", label: "Internship" },
-  { value: "fellowship", label: "Fellowship" },
-  { value: "scholarship", label: "Scholarship" },
-  { value: "grant", label: "Grant" },
-  { value: "workshop", label: "Workshop" },
-  { value: "research_program", label: "Research programme" },
-];
 
 export function OpportunityForm() {
   const [state, action] = useActionState(announceOpportunity, null);
@@ -31,7 +22,7 @@ export function OpportunityForm() {
       <div className="field">
         <Label htmlFor="opportunity-category">Category</Label>
         <select id="opportunity-category" name="category" className="field-select" defaultValue="hackathon">
-          {categories.map((category) => (
+          {opportunityCategories.map((category) => (
             <option key={category.value} value={category.value}>
               {category.label}
             </option>

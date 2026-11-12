@@ -4,18 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { parseWebsite } from "@/lib/auth/validation";
+import { isOpportunityCategory } from "@/lib/opportunities/categories";
 import { projectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
-
-const categories = [
-  "hackathon",
-  "internship",
-  "fellowship",
-  "scholarship",
-  "grant",
-  "workshop",
-  "research_program",
-] as const;
 
 export async function announceOpportunity(_state: { error?: string } | null, formData: FormData) {
   const member = await getMember();
@@ -31,7 +22,7 @@ export async function announceOpportunity(_state: { error?: string } | null, for
   if (title.length < 3) return { error: "Add a title." };
   if (!organizer) return { error: "Add the organiser." };
   if (!description) return { error: "Describe the opportunity." };
-  if (!categories.some((item) => item === category)) return { error: "Choose a category." };
+  if (!isOpportunityCategory(category)) return { error: "Choose a category." };
   if (!link.ok || !link.website) return { error: link.ok ? "Add the official https link." : link.error };
   let deadline: string | null = null;
   if (deadlineText) {
@@ -46,7 +37,7 @@ export async function announceOpportunity(_state: { error?: string } | null, for
     slug,
     organizer,
     description,
-    category: category as (typeof categories)[number],
+    category,
     official_url: link.website,
     deadline,
     is_published: true,

@@ -3,6 +3,7 @@ import { EventForm } from "@/components/opportunities/EventForm";
 import { OpportunityForm } from "@/components/opportunities/OpportunityForm";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember } from "@/lib/auth/session";
+import { opportunityCategoryLabel } from "@/lib/opportunities/categories";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -57,7 +58,7 @@ export default async function OpportunitiesPage() {
           <li key={item.id} className="repo-row">
             <div className="repo-title">
               <strong>{item.title}</strong>
-              <span className="repo-visibility">{item.organizer}</span>
+              <span className="repo-visibility">{opportunityCategoryLabel(item.category)} · {item.organizer}</span>
             </div>
             <p>{item.description}</p>
             <p>

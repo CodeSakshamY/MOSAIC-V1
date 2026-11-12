@@ -184,7 +184,7 @@ Status is what a person can do in the app today. A database table with no screen
 
 ## 8. Opportunities
 
-- [ ] Hackathons, competitions, internships, programmes, fellowships, scholarships, workshops, conferences, fairs, startup programmes, incubators, open source, volunteering, mentorship, grants
+- [x] Hackathons, competitions, internships, programmes, fellowships, scholarships, workshops, conferences, fairs, startup programmes, incubators, open source, volunteering, mentorship, grants
 - [ ] Filters by eligibility, discipline, country and region
 - [ ] Application deadlines that are never invented
 - [ ] Opportunity details and official application links
