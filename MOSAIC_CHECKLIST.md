@@ -148,7 +148,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Review applicant profiles and projects
 - [x] Accept or decline applicants
 - [x] Add contributors to projects
-- [ ] Assign project roles
+- [x] Assign project roles
 - [ ] Display team members publicly
 - [ ] Track contributions
 - [ ] Credit contributors

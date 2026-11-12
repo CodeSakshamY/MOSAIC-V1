@@ -504,7 +504,7 @@ async function ProjectView({
                 {isOwner ? <CreditsForm projectId={project.id} credits={project.credits} /> : null}
               </section>
               <UpdateHistory slug={project.slug} signedIn={Boolean(member)} updates={updates} />
-              <ProjectTeam members={team} />
+              <ProjectTeam projectId={project.id} editable={isOwner} members={team} />
               <RelatedProjects projects={related} />
               <ProjectLineage entries={lineage} />
               <ContributionHistory entries={contributions} />

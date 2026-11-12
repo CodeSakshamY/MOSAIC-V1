@@ -319,6 +319,31 @@ export async function saveProjectCollaboration(formData: FormData) {
   revalidatePath(`/forge/${project.slug}`);
 }
 
+export async function assignProjectRole(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const profileId = String(formData.get("profileId") ?? "");
+  const role = formData.get("role") === "maintainer" ? "maintainer" : formData.get("role") === "contributor" ? "contributor" : "";
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(profileId) || !role) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id || profileId === member.id) return;
+  const { error } = await supabase
+    .from("project_members")
+    .update({ role })
+    .eq("project_id", projectId)
+    .eq("profile_id", profileId)
+    .eq("status", "active")
+    .neq("role", "owner");
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function updateTimeline(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");
