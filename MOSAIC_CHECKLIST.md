@@ -56,7 +56,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Contribution history
 - [x] Credits and acknowledgements
 - [x] Project discussions (threads and replies)
-- [ ] Collaboration requests on the project
+- [x] Collaboration requests on the project
 - [x] Follow/watch a project
 - [ ] Save a project
 - [ ] Share a project

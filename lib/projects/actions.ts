@@ -274,6 +274,74 @@ export async function updateCredits(formData: FormData) {
   revalidatePath(`/forge/${project.slug}`);
 }
 
+export async function requestContribution(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const message = String(formData.get("message") ?? "").trim();
+  const proposal = String(formData.get("proposal") ?? "").trim();
+  if (!projectIdPattern.test(projectId) || message.length < 1 || message.length > 1000) return;
+  if (proposal.length < 1 || proposal.length > 1000) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id === member.id) return;
+  const { error } = await supabase.from("contribution_requests").insert({
+    project_id: projectId,
+    requester_id: member.id,
+    message,
+    proposed_contribution: proposal,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function reviewContribution(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const requestId = String(formData.get("requestId") ?? "");
+  const decision = formData.get("decision") === "accepted" ? "accepted" : formData.get("decision") === "rejected" ? "rejected" : "";
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(requestId) || !decision) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("contribution_requests")
+    .update({ status: decision })
+    .eq("id", requestId)
+    .eq("project_id", projectId)
+    .eq("status", "pending");
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function withdrawContribution(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const requestId = String(formData.get("requestId") ?? "");
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(requestId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase.from("projects").select("slug").eq("id", projectId).maybeSingle();
+  if (!project) return;
+  const { error } = await supabase
+    .from("contribution_requests")
+    .update({ status: "withdrawn" })
+    .eq("id", requestId)
+    .eq("project_id", projectId)
+    .eq("requester_id", member.id)
+    .eq("status", "pending");
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function addMilestone(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { Collaboration } from "@/components/build/Collaboration";
 import { ContributionHistory } from "@/components/build/ContributionHistory";
 import { CreditsForm } from "@/components/build/CreditsForm";
 import { DocumentationForm } from "@/components/build/DocumentationForm";
@@ -74,13 +75,13 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult, requestResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -123,6 +124,11 @@ async function ProjectView({
       .select("profile_id, role, joined_at")
       .eq("project_id", project.id)
       .eq("status", "active"),
+    supabase
+      .from("contribution_requests")
+      .select("id, requester_id, message, proposed_contribution, status")
+      .eq("project_id", project.id)
+      .order("created_at", { ascending: true }),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
@@ -136,7 +142,14 @@ async function ProjectView({
   const timeline = projectTimelineText(project.starts_on, project.ends_on);
   const logs = logResult.data ?? [];
   const roster = memberResult.data ?? [];
-  const authorIds = [...new Set([...logs.map((log) => log.author_id), ...roster.map((person) => person.profile_id)])];
+  const requests = requestResult.data ?? [];
+  const authorIds = [
+    ...new Set([
+      ...logs.map((log) => log.author_id),
+      ...roster.map((person) => person.profile_id),
+      ...requests.map((request) => request.requester_id),
+    ]),
+  ];
   const { data: authorRows } = authorIds.length
     ? await supabase.from("profiles").select("id, display_name, username").in("id", authorIds)
     : { data: [] };
@@ -163,6 +176,20 @@ async function ProjectView({
     })
     .filter((person) => person.username)
     .sort((left, right) => roleOrder.indexOf(left.role) - roleOrder.indexOf(right.role) || left.name.localeCompare(right.name));
+  const onProject = Boolean(membershipResult.data);
+  const collaboration = requests.map((request) => ({
+    id: request.id,
+    name: authorNames.get(request.requester_id) ?? "builder",
+    message: request.message,
+    proposed: request.proposed_contribution,
+    status: request.status,
+    mine: request.requester_id === member?.id,
+  }));
+  const canRequest =
+    Boolean(member) &&
+    !isOwner &&
+    !onProject &&
+    (project.visibility === "public" || project.looking_for_contributors);
   const roleLabels: Record<string, string> = {
     owner: "Owner",
     maintainer: "Maintainer",
@@ -183,7 +210,6 @@ async function ProjectView({
   ]
     .sort((left, right) => left.at.localeCompare(right.at) || left.text.localeCompare(right.text))
     .map((entry) => ({ id: entry.id, text: entry.text, when: formatWhen(entry.at) }));
-  const onProject = Boolean(membershipResult.data);
   const typeNote = projectTypeNotes[project.category as ProjectCategory];
 
   return (
@@ -281,6 +307,12 @@ async function ProjectView({
               <UpdateHistory updates={updates} />
               <ProjectTeam members={team} />
               <ContributionHistory entries={contributions} />
+              <Collaboration
+                projectId={project.id}
+                isOwner={isOwner}
+                canRequest={canRequest}
+                requests={collaboration}
+              />
               <Milestones
                 projectId={project.id}
                 milestones={milestoneResult.data ?? []}
