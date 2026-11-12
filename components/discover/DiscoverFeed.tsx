@@ -24,6 +24,7 @@ const views = [
   { id: "people", label: "People" },
   { id: "projects", label: "Projects" },
   { id: "ideas", label: "Ideas" },
+  { id: "research", label: "Research" },
   { id: "posts", label: "Posts" },
   { id: "reels", label: "Reels" },
 ] as const;
@@ -39,6 +40,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
             {item.label}
           </Link>
         ))}
+        <Link href={hrefFor("research", filters)} aria-current={view === "research" ? "page" : undefined}>
+          Research
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.slice(3).map((item) => (
@@ -53,6 +57,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
+      {view === "research" ? <ResearchList /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -238,6 +243,46 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
 
 function firstImage(urls: string[] | null | undefined) {
   return (urls ?? []).find((url) => url && !isVideoUrl(url));
+}
+
+async function ResearchList() {
+  const supabase = await createClient();
+  const [{ data: projects }, { data: papers }] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("id, name, slug, description")
+      .eq("category", "Research")
+      .eq("visibility", "public")
+      .is("removed_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(20),
+    supabase.from("profile_publications").select("id, title").order("created_at", { ascending: false }).limit(20),
+  ]);
+  return (
+    <section aria-labelledby="discover-research-heading">
+      <h2 id="discover-research-heading">Research</h2>
+      <ul className="repo-list" role="list">
+        {(projects ?? []).map((project) => (
+          <li key={project.id} className="repo-row">
+            <div className="repo-title">
+              <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+              <span className="repo-visibility">Project</span>
+            </div>
+            <p>{project.description}</p>
+          </li>
+        ))}
+        {(papers ?? []).map((paper) => (
+          <li key={paper.id} className="repo-row">
+            <div className="repo-title">
+              <strong>{paper.title}</strong>
+              <span className="repo-visibility">Publication</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {(projects ?? []).length === 0 && (papers ?? []).length === 0 ? <p>No research yet.</p> : null}
+    </section>
+  );
 }
 
 async function ProjectList({ filters }: { filters: DiscoverFilters }) {
