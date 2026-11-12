@@ -242,7 +242,7 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 - [ ] Saved project updates
 - [ ] System and security notifications
 - [x] Mark as read/unread
-- [ ] Notification and email preferences
+- [x] Notification and email preferences
 
 ## 13. Search
 

@@ -8,6 +8,8 @@ import { ThemePicker } from "@/components/settings/ThemePicker";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember } from "@/lib/auth/session";
 import { signOutOtherSessions } from "@/lib/auth/actions";
+import { saveNotifyFollows } from "@/lib/profile/actions";
+import { createClient } from "@/lib/supabase/server";
 import { themeFromId } from "@/lib/theme/themes";
 
 export const instant = false;
@@ -25,12 +27,27 @@ export default async function SettingsPage({
   const theme = themeFromId(saved);
   const member = await getMember();
   const params = await searchParams;
+  const supabase = await createClient();
+  const { data: prefs } = member
+    ? await supabase.from("profiles").select("notify_follows").eq("id", member.id).maybeSingle()
+    : { data: null };
 
   return (
     <SectionPage title="Settings" lede="The colour scheme stays on this device. Blocked accounts and hidden posts are listed below.">
       <ThemePicker current={theme.id} />
       {member ? <BlockedAccounts userId={member.id} /> : null}
       {member ? <MutedAccounts userId={member.id} /> : null}
+      {member ? (
+        <form action={saveNotifyFollows}>
+          <h2 id="notifications-heading">Notifications</h2>
+          <label>
+            <input id="notify-follows" type="checkbox" name="notify" value="1" defaultChecked={prefs?.notify_follows !== false} /> Tell me when someone follows me
+          </label>
+          <button className="text-button" type="submit">
+            Save notification preference
+          </button>
+        </form>
+      ) : null}
       {member ? <HiddenPosts userId={member.id} /> : null}
       {member?.username ? <DeleteAccount /> : null}
       {member ? (
