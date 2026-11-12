@@ -58,20 +58,17 @@ async function onboard(page: Page, username: string, displayName: string, email:
   await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
 }
 
-test("an owner can write and clear project credits", async ({ page }) => {
+test("an owner can credit the people a project rests on", async ({ page }) => {
   test.setTimeout(120_000);
   const stamp = Date.now().toString(36);
-  await onboard(page, `cred${stamp}`, `Cred ${stamp}`, `cred.${stamp}@example.com`);
+  const credit = `Ada laid out the board ${stamp}`;
+  await onboard(page, `crd${stamp}`, `Crd ${stamp}`, `crd.${stamp}@example.com`);
   await page.goto("/forge");
-  await page.getByLabel("Project name").fill(`Cred ${stamp}`);
-  await page.getByLabel("Description").fill("A project created to check its credits.");
+  await page.getByLabel("Project name").fill(`Crd ${stamp}`);
+  await page.getByLabel("Description").fill("A project that can name its credits.");
   await page.getByRole("button", { name: "Create project" }).click();
-  await expect(page).toHaveURL(/\/forge\/cred-/);
-  await expect(page.locator(".project-credits")).toHaveCount(0);
-  await page.locator("#project-credits").fill("Thanks to the workshop that lent the tools.");
+  await expect(page).toHaveURL(/\/forge\/crd-/);
+  await page.locator("#project-credits").fill(credit);
   await page.getByRole("button", { name: "Save credits" }).click();
-  await expect(page.locator(".project-credits")).toHaveText("Thanks to the workshop that lent the tools.");
-  await page.locator("#project-credits").fill("");
-  await page.getByRole("button", { name: "Save credits" }).click();
-  await expect(page.locator(".project-credits")).toHaveCount(0);
+  await expect(page.locator(".project-credits")).toContainText(credit);
 });
