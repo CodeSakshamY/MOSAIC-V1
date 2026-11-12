@@ -587,6 +587,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `044_project_versions.sql` | Up to 20 named versions on a project. |
 | `045_build_log_files.sql` | A build log can include photos, short videos, and PDFs. |
 | `046_build_log_milestone.sql` | A build log can be recorded as a milestone. |
+| `047_build_log_problem.sql` | A build log can record a problem. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
