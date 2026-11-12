@@ -138,7 +138,7 @@ Status is what a person can do in the app today. A database table with no screen
 ## 6. Collaboration and team formation
 
 - [x] Mark a project as open to collaborators
-- [ ] Publish a teammate requirement
+- [x] Publish a teammate requirement
 - [ ] Specify required skills
 - [ ] Specify responsibilities and expected contribution
 - [ ] Specify project stage

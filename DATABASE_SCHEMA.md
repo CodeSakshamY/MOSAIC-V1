@@ -636,6 +636,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `062_project_showcase_posts.sql` | A builder can post a showcase of a public project they own. |
 | `063_opportunity_announcements.sql` | A builder can announce an opportunity. Verification stays off. |
 | `064_post_link.sql` | A feed post can store one optional https attachment. |
+| `065_teammate_requirement.sql` | The owner can publish what a teammate would do. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
