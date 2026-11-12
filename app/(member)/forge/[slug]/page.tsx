@@ -9,6 +9,7 @@ import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
 import { StatusForm } from "@/components/build/StatusForm";
 import { TimelineForm } from "@/components/build/TimelineForm";
+import { UpdateHistory } from "@/components/build/UpdateHistory";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { ToolsForm } from "@/components/build/ToolsForm";
@@ -76,7 +77,7 @@ async function ProjectView({
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -108,6 +109,12 @@ async function ProjectView({
       .eq("project_id", project.id)
       .order("happens_on", { ascending: true })
       .order("created_at", { ascending: true }),
+    supabase
+      .from("build_logs")
+      .select("id, title, content, created_at, author_id")
+      .eq("project_id", project.id)
+      .is("removed_at", null)
+      .order("created_at", { ascending: false }),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
@@ -119,6 +126,21 @@ async function ProjectView({
   const tools = skills.filter((skill) => usedIds.has(skill.id));
   const needed = skills.filter((skill) => neededIds.has(skill.id));
   const timeline = projectTimelineText(project.starts_on, project.ends_on);
+  const logs = logResult.data ?? [];
+  const authorIds = [...new Set(logs.map((log) => log.author_id))];
+  const { data: authorRows } = authorIds.length
+    ? await supabase.from("profiles").select("id, display_name, username").in("id", authorIds)
+    : { data: [] };
+  const authorNames = new Map(
+    (authorRows ?? []).map((person) => [person.id, person.display_name || person.username]),
+  );
+  const updates = logs.map((log) => ({
+    id: log.id,
+    title: log.title,
+    content: log.content,
+    when: formatWhen(log.created_at),
+    author: authorNames.get(log.author_id) ?? "builder",
+  }));
   const onProject = Boolean(membershipResult.data);
   const typeNote = projectTypeNotes[project.category as ProjectCategory];
 
@@ -209,6 +231,7 @@ async function ProjectView({
                   <DocumentationForm projectId={project.id} documentation={project.detailed_description} />
                 ) : null}
               </section>
+              <UpdateHistory updates={updates} />
               <Milestones
                 projectId={project.id}
                 milestones={milestoneResult.data ?? []}
