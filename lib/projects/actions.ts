@@ -344,6 +344,23 @@ export async function assignProjectRole(formData: FormData) {
   revalidatePath(`/forge/${project.slug}`);
 }
 
+export async function addProjectDiscussion(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const body = String(formData.get("body") ?? "").trim().slice(0, 1000);
+  if (!projectIdPattern.test(projectId) || body.length < 1) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase.from("projects").select("slug").eq("id", projectId).is("removed_at", null).maybeSingle();
+  if (!project) return;
+  const { error } = await supabase.from("project_discussion").insert({
+    project_id: projectId,
+    author_id: member.id,
+    body,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function updateTimeline(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");

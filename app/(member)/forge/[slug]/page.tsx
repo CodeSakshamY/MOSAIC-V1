@@ -15,6 +15,7 @@ import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
+import { ProjectDiscussion } from "@/components/build/ProjectDiscussion";
 import { ProjectCollaborationForm } from "@/components/build/ProjectCollaborationForm";
 import { TimeCommitmentForm } from "@/components/build/TimeCommitmentForm";
 import { TeammateResponsibilitiesForm } from "@/components/build/TeammateResponsibilitiesForm";
@@ -508,6 +509,7 @@ async function ProjectView({
               <RelatedProjects projects={related} />
               <ProjectLineage entries={lineage} />
               <ContributionHistory entries={contributions} />
+              <ProjectDiscussion projectId={project.id} />
               <Collaboration
                 projectId={project.id}
                 isOwner={isOwner}

@@ -807,6 +807,18 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"project_discussion": {
+                  Row: {
+                    "author_id": string,"body": string,"created_at": string,"id": string,"project_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "author_id": string,"body": string,"created_at"?: string,"id"?: string,"project_id": string
+                  }
+                  Update: {
+                    "author_id"?: string,"body"?: string,"created_at"?: string,"id"?: string,"project_id"?: string
+                  }
+                  Relationships: []
                 },"project_follows": {
                   Row: {
                     "created_at": string,"profile_id": string,"project_id": string
