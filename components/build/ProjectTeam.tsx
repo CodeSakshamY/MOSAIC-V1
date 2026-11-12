@@ -9,16 +9,21 @@ const roleLabels: Record<string, string> = {
 
 export function ProjectTeam({
   projectId,
+  slug,
   editable,
   members,
 }: {
   projectId: string;
+  slug: string;
   editable: boolean;
   members: { id: string; name: string; username: string; role: string }[];
 }) {
   return (
     <section className="project-team" aria-labelledby="project-team-heading">
       <h2 id="project-team-heading">Team</h2>
+      <p>
+        <Link href={`/forge/${slug}/team`}>Team page</Link>
+      </p>
       {members.length === 0 ? <p className="repo-empty">No one is on this project yet.</p> : null}
       <ul className="repo-list">
         {members.map((person) => (

@@ -152,7 +152,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Display team members publicly
 - [x] Track contributions
 - [x] Credit contributors
-- [ ] Create team pages
+- [x] Create team pages
 - [ ] Team activity feed
 - [ ] Project-specific discussion space beyond the current threads
 - [ ] Invite people to collaborate
