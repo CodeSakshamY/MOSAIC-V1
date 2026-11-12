@@ -31,6 +31,7 @@ const views = [
   { id: "communities", label: "Communities" },
   { id: "opportunities", label: "Opportunities" },
   { id: "events", label: "Events" },
+  { id: "competitions", label: "Competitions" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -59,6 +60,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("events", filters)} aria-current={view === "events" ? "page" : undefined}>
           Events
         </Link>
+        <Link href={hrefFor("competitions", filters)} aria-current={view === "competitions" ? "page" : undefined}>
+          Competitions
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -78,6 +82,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "communities" ? <CommunityList /> : null}
       {view === "opportunities" ? <OpportunityList /> : null}
       {view === "events" ? <EventList /> : null}
+      {view === "competitions" ? <CompetitionList /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -423,6 +428,34 @@ async function EventList() {
               <a href={item.official_url}>Registration link</a>
             </p>
             <p className="form-note">{item.start_date ? `Date ${item.start_date.slice(0, 10)}` : "No date was provided."}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+async function CompetitionList() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profile_competitions")
+    .select("id, name, host, result")
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const rows = data ?? [];
+  return (
+    <section aria-labelledby="discover-competitions-heading">
+      <h2 id="discover-competitions-heading">Competitions</h2>
+      <p className="form-note">Competitions builders have listed on their profiles.</p>
+      {rows.length === 0 ? <p>No competitions yet.</p> : null}
+      <ul className="repo-list" role="list">
+        {rows.map((item) => (
+          <li key={item.id} className="repo-row">
+            <div className="repo-title">
+              <strong>{item.name}</strong>
+              {item.host ? <span className="repo-visibility">{item.host}</span> : null}
+            </div>
+            {item.result ? <p>{item.result}</p> : null}
           </li>
         ))}
       </ul>

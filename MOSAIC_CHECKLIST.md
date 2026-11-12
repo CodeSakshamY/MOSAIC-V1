@@ -167,7 +167,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Discover communities
 - [x] Discover opportunities
 - [x] Discover events
-- [ ] Discover competitions
+- [x] Discover competitions
 - [ ] Discover hackathons
 - [ ] Discover open-source projects
 - [ ] Discover trending technologies
