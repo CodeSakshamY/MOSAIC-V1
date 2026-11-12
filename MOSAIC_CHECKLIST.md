@@ -293,7 +293,7 @@ Not started. Future phase.
 - [ ] Blocked and muted accounts
 - [x] Download account data
 - [x] Delete account
-- [ ] Session management
+- [x] Session management
 - [x] Theme preferences
 - [ ] Language preferences
 

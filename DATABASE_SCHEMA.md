@@ -649,6 +649,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `071_opportunity_categories.sql` | Conferences, startup programmes, incubators, open source, volunteering, and mentorship can be announced. |
 | `072_close_own_account.sql` | A person can close their own account. |
 | `073_close_account_storage.sql` | Closing an account still finishes when storage refuses a direct file delete. |
+| `074_other_sessions.sql` | Signing out other sessions ends older logins on their next request. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

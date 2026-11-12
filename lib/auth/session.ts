@@ -1,4 +1,5 @@
 import "server-only";
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +24,15 @@ export async function getMember(existing?: Client): Promise<Member | null> {
   const { data, error } = await supabase.auth.getClaims();
   const id = data?.claims.sub;
   if (error || !id) return null;
+  const iat = typeof data.claims.iat === "number" ? data.claims.iat : null;
+  const { data: floor } = await supabase.from("profile_session_floor").select("valid_after").eq("profile_id", id).maybeSingle();
+  if (floor && iat && Date.parse(floor.valid_after) > iat * 1000) {
+    const kept = (await cookies()).get("mosaic-kept")?.value;
+    if (kept !== String(iat)) {
+      await supabase.auth.signOut();
+      return null;
+    }
+  }
 
   const email = typeof data.claims.email === "string" ? data.claims.email : null;
   const [profileResult, privateResult, statusResult] = await Promise.all([

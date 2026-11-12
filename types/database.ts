@@ -955,6 +955,18 @@ isOneToOne: false
                     "collection_id"?: string,"created_at"?: string,"project_id"?: string
                   }
                   Relationships: []
+                },"profile_session_floor": {
+                  Row: {
+                    "profile_id": string,"valid_after": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "profile_id": string,"valid_after": string
+                  }
+                  Update: {
+                    "profile_id"?: string,"valid_after"?: string
+                  }
+                  Relationships: []
                 },"project_invites": {
                   Row: {
                     "created_at": string,"id": string,"invited_by": string,"invitee_id": string,"project_id": string,"status": string

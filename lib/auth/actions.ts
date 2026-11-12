@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMember, memberGate } from "@/lib/auth/session";
@@ -101,6 +102,24 @@ export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/");
+}
+
+export async function signOutOtherSessions() {
+  const member = await getMember();
+  if (!member) redirect("/profile?next=/settings");
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const iat = typeof data?.claims.iat === "number" ? String(data.claims.iat) : "";
+  if (!iat) redirect("/settings?sessions=failed");
+  const cookieStore = await cookies();
+  cookieStore.set("mosaic-kept", iat, { httpOnly: true, sameSite: "lax", path: "/", secure: process.env.NODE_ENV === "production" });
+  const { error } = await supabase.from("profile_session_floor").upsert({
+    profile_id: member.id,
+    valid_after: new Date().toISOString(),
+  });
+  if (error) redirect("/settings?sessions=failed");
+  await supabase.auth.signOut({ scope: "others" });
+  redirect("/settings?sessions=closed");
 }
 
 export async function closeAccount(_state: ActionState, formData: FormData): Promise<ActionState> {
