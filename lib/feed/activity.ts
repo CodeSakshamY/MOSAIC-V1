@@ -13,7 +13,7 @@ export type PostActivity = {
 
 export function emptyActivity(): PostActivity {
   return {
-    counts: { like: 0, upvote: 0, downvote: 0, comment: 0, repost: 0 },
+    counts: { like: 0, upvote: 0, downvote: 0, interesting: 0, comment: 0, repost: 0 },
     mine: new Set(),
     saved: false,
     reposted: false,

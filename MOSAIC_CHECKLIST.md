@@ -23,7 +23,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Image, video, document and link attachments
 - [x] Rich project previews embedded in posts
 - [x] Like or appreciation reactions
-- [ ] Interesting reaction
+- [x] Interesting reaction
 - [ ] Inspired reaction
 - [x] Save/bookmark posts
 - [x] Comment and threaded replies
