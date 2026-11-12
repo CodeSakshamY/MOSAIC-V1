@@ -18,6 +18,7 @@ import { SkillsForm } from "@/components/build/SkillsForm";
 import { InviteForm } from "@/components/build/InviteForm";
 import { ProjectDiscussion } from "@/components/build/ProjectDiscussion";
 import { ProjectCollaborationForm } from "@/components/build/ProjectCollaborationForm";
+import { GithubForm } from "@/components/build/GithubForm";
 import { TimeCommitmentForm } from "@/components/build/TimeCommitmentForm";
 import { TeammateResponsibilitiesForm } from "@/components/build/TeammateResponsibilitiesForm";
 import { TeammateRequirementForm } from "@/components/build/TeammateRequirementForm";
@@ -92,7 +93,7 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, teammate_requirement, teammate_responsibilities, time_commitment, collaboration_type, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, teammate_requirement, teammate_responsibilities, time_commitment, collaboration_type, github_url, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
@@ -450,6 +451,12 @@ async function ProjectView({
       ) : null}
       {project.time_commitment ? <p className="repo-meta">Time: {project.time_commitment}</p> : null}
       {isOwner ? <TimeCommitmentForm projectId={project.id} commitment={project.time_commitment} /> : null}
+      {project.github_url ? (
+        <p className="repo-meta">
+          <a href={project.github_url}>Repository</a>
+        </p>
+      ) : null}
+      {isOwner ? <GithubForm projectId={project.id} githubUrl={project.github_url} /> : null}
       {project.collaboration_type ? (
         <p className="repo-meta">Meets: {collaborationLabel(project.collaboration_type)}</p>
       ) : null}

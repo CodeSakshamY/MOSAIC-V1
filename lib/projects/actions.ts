@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
-import { parseUsername } from "@/lib/auth/validation";
+import { parseUsername, parseWebsite } from "@/lib/auth/validation";
 import { isCollaborationPreference } from "@/lib/profile/collaboration";
 import { parseProjectDay } from "@/lib/projects/timeline";
 import { isReactionType } from "@/lib/feed/reactions";
@@ -295,6 +295,29 @@ export async function saveTimeCommitment(formData: FormData) {
     .eq("owner_id", member.id);
   if (error) return;
   revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function saveGithubUrl(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const parsed = parseWebsite(String(formData.get("github") ?? ""));
+  if (!projectIdPattern.test(projectId) || !parsed.ok) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ github_url: parsed.website })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/discover");
 }
 
 export async function saveProjectCollaboration(formData: FormData) {

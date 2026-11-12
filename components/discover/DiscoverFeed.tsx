@@ -33,6 +33,7 @@ const views = [
   { id: "events", label: "Events" },
   { id: "competitions", label: "Competitions" },
   { id: "hackathons", label: "Hackathons" },
+  { id: "opensource", label: "Open source" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -67,6 +68,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("hackathons", filters)} aria-current={view === "hackathons" ? "page" : undefined}>
           Hackathons
         </Link>
+        <Link href={hrefFor("opensource", filters)} aria-current={view === "opensource" ? "page" : undefined}>
+          Open source
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -88,6 +92,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "events" ? <EventList /> : null}
       {view === "competitions" ? <CompetitionList /> : null}
       {view === "hackathons" ? <HackathonList /> : null}
+      {view === "opensource" ? <OpenSourceList /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -492,6 +497,38 @@ async function HackathonList() {
             </div>
             <p>
               <a href={item.official_url}>Official link</a>
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+async function OpenSourceList() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("projects")
+    .select("id, name, slug, github_url")
+    .eq("visibility", "public")
+    .not("github_url", "is", null)
+    .is("removed_at", null)
+    .order("updated_at", { ascending: false })
+    .limit(20);
+  const rows = (data ?? []).flatMap((project) => (project.github_url ? [project] : []));
+  return (
+    <section aria-labelledby="discover-opensource-heading">
+      <h2 id="discover-opensource-heading">Open source</h2>
+      <p className="form-note">Public projects with a GitHub link their owner saved.</p>
+      {rows.length === 0 ? <p>No open-source projects yet.</p> : null}
+      <ul className="repo-list" role="list">
+        {rows.map((project) => (
+          <li key={project.id} className="repo-row">
+            <div className="repo-title">
+              <Link href={`/forge/${project.slug}`}>{project.name}</Link>
+            </div>
+            <p>
+              <a href={project.github_url ?? undefined}>Repository</a>
             </p>
           </li>
         ))}
