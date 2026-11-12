@@ -527,6 +527,10 @@ Besides primary keys and unique constraints:
 
 Feed candidate generation uses the posts time index and joins; it does not seq-scan. The Phase 6 migration adds `feed_candidates` and an `explain` check is part of that phase's test note.
 
+### profile_publications
+
+A builder can list up to 20 papers or notes. `title` is 1–160. `venue` is optional, 1–120. `year` is optional, 1950–2100. `url` is an optional https link up to 300 characters. `summary` is optional, 1–500. Select follows the same visibility as the profile. Insert and delete stay with that member. `ON DELETE CASCADE` with the profile.
+
 ## Storage
 
 `014_storage_policies.sql` creates the buckets.
@@ -608,6 +612,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `051_build_log_follows.sql` | Follow one build log. Comments on it notify the follower. |
 | `052_major_milestones.sql` | The owner can mark a dated milestone as major. |
 | `053_profile_featured_projects.sql` | The owner can feature up to 3 public projects on their profile. |
+| `054_profile_publications.sql` | A builder can list research and publications on their profile. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

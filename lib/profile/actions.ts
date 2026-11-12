@@ -118,6 +118,36 @@ export async function addEducation(_state: { error?: string } | null, formData: 
   redirect("/profile");
 }
 
+export async function addPublication(_state: { error?: string } | null, formData: FormData) {
+  const member = await requireOwner();
+  const title = text(formData.get("title"), 160);
+  const venue = text(formData.get("venue"), 120);
+  const summary = text(formData.get("summary"), 500);
+  const published = year(formData.get("year"));
+  const link = parseWebsite(String(formData.get("url") ?? ""));
+  if (!title) return { error: "Add a title." };
+  if (!published.ok) return { error: published.error };
+  if (!link.ok) return { error: link.error };
+  if (link.website && link.website.length > 300) return { error: "Keep the link to 300 characters." };
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("profile_publications")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_id", member.id);
+  if ((count ?? 0) >= 20) return { error: "A profile can list 20 publications." };
+  const { error } = await supabase.from("profile_publications").insert({
+    profile_id: member.id,
+    title,
+    venue: venue || null,
+    year: published.year,
+    url: link.website,
+    summary: summary || null,
+  });
+  if (error) return { error: "That publication was not saved." };
+  redirect("/profile");
+}
+
 export async function addExperience(_state: { error?: string } | null, formData: FormData) {
   const member = await requireOwner();
   const title = text(formData.get("title"), 120);
@@ -225,6 +255,8 @@ export async function removeProfileItem(formData: FormData) {
     await supabase.from("profile_certificates").delete().eq("id", id).eq("profile_id", member.id);
   } else if (kind === "award") {
     await supabase.from("profile_awards").delete().eq("id", id).eq("profile_id", member.id);
+  } else if (kind === "publication") {
+    await supabase.from("profile_publications").delete().eq("id", id).eq("profile_id", member.id);
   }
   redirect("/profile");
 }

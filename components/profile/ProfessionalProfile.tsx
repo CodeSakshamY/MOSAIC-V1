@@ -9,6 +9,7 @@ import {
   CertificateForm,
   EducationForm,
   ExperienceForm,
+  PublicationForm,
 } from "@/components/profile/RecordForms";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
 import { InterestsForm } from "@/components/profile/InterestsForm";
@@ -47,6 +48,7 @@ export async function ProfessionalProfile({
     ownedResult,
     memberResult,
     mergedResult,
+    publicationResult,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -86,6 +88,11 @@ export async function ProfessionalProfile({
       .select("id, title, status, target_project_id")
       .eq("author_id", profileId)
       .eq("status", "merged"),
+    supabase
+      .from("profile_publications")
+      .select("id, title, venue, year, url, summary")
+      .eq("profile_id", profileId)
+      .order("created_at", { ascending: false }),
   ]);
 
   const profile = profileResult.data;
@@ -356,6 +363,23 @@ export async function ProfessionalProfile({
               ? [{ id: "summary", title: profile.education, kind: "summary" }]
               : []
         }
+      />
+
+      <RecordSection
+        id="research"
+        title="Research"
+        empty="No research added yet."
+        editable={editable}
+        form={<PublicationForm />}
+        items={(publicationResult.data ?? []).map((item) => ({
+          id: item.id,
+          title: item.title,
+          detail: item.venue,
+          meta: item.year ? String(item.year) : null,
+          href: item.url,
+          body: item.summary,
+          kind: "publication",
+        }))}
       />
 
       <RecordSection

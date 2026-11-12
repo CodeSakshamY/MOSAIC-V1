@@ -7,6 +7,7 @@ import {
   addCertificate,
   addEducation,
   addExperience,
+  addPublication,
 } from "@/lib/profile/actions";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,36 @@ function ErrorLine({ error }: { error?: string }) {
     <p className="form-error" role="alert">
       {error}
     </p>
+  );
+}
+
+export function PublicationForm() {
+  const [state, action] = useActionState(addPublication, null);
+  return (
+    <form className="form-stack" action={action}>
+      <div className="field">
+        <Label htmlFor="publication-title">Title</Label>
+        <Input id="publication-title" name="title" required maxLength={160} />
+      </div>
+      <div className="field">
+        <Label htmlFor="publication-venue">Venue</Label>
+        <Input id="publication-venue" name="venue" maxLength={120} />
+      </div>
+      <div className="field">
+        <Label htmlFor="publication-year">Year</Label>
+        <Input id="publication-year" name="year" inputMode="numeric" maxLength={4} />
+      </div>
+      <div className="field">
+        <Label htmlFor="publication-url">Link</Label>
+        <Input id="publication-url" name="url" type="url" placeholder="https://" maxLength={300} />
+      </div>
+      <div className="field">
+        <Label htmlFor="publication-summary">Summary</Label>
+        <Textarea id="publication-summary" name="summary" maxLength={500} rows={3} />
+      </div>
+      <ErrorLine error={state?.error} />
+      <SubmitButton>Add publication</SubmitButton>
+    </form>
   );
 }
 

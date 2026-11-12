@@ -94,7 +94,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Current projects (repositories you own)
 - [x] Featured projects
 - [x] Completed projects as their own list
-- [ ] Research and publications
+- [x] Research and publications
 - [x] Achievements and awards, including photos
 - [ ] Competitions participated in
 - [ ] Communities joined
