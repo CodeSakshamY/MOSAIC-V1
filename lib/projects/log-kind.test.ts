@@ -6,7 +6,9 @@ describe("build log kinds", () => {
     expect(isBuildLogKind("milestone")).toBe(true);
     expect(isBuildLogKind("problem")).toBe(true);
     expect(isBuildLogKind("experiment")).toBe(true);
-    expect(isBuildLogKind("failure")).toBe(false);
-    expect(buildLogKindLabel("experiment")).toBe("Experiment");
+    expect(isBuildLogKind("lesson")).toBe(true);
+    expect(isBuildLogKind("explanation")).toBe(true);
+    expect(isBuildLogKind("note")).toBe(false);
+    expect(buildLogKindLabel("explanation")).toBe("Explanation");
   });
 });

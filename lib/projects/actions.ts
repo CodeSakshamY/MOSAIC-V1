@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
 import { parseProjectDay } from "@/lib/projects/timeline";
+import { isReactionType } from "@/lib/feed/reactions";
 import { isBuildLogKind } from "@/lib/projects/log-kind";
 import { isProjectCategory, isProjectSlug, isProjectStatus, isProjectSubcategory, projectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
@@ -362,10 +363,12 @@ export async function addMilestone(formData: FormData) {
     .select("id", { count: "exact", head: true })
     .eq("project_id", projectId);
   if ((count ?? 0) >= 12) return;
+  const major = formData.get("major") === "1";
   const { error } = await supabase.from("project_milestones").insert({
     project_id: projectId,
     title,
     happens_on: happensOn,
+    major,
   });
   if (error) return;
   revalidatePath(`/forge/${project.slug}`);
@@ -385,6 +388,29 @@ export async function removeMilestone(formData: FormData) {
     .maybeSingle();
   if (!project || project.owner_id !== member.id) return;
   await supabase.from("project_milestones").delete().eq("id", milestoneId).eq("project_id", projectId);
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function highlightMilestone(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const milestoneId = String(formData.get("milestoneId") ?? "");
+  const major = formData.get("major") === "1";
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(milestoneId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("project_milestones")
+    .update({ major })
+    .eq("id", milestoneId)
+    .eq("project_id", projectId);
+  if (error) return;
   revalidatePath(`/forge/${project.slug}`);
 }
 
@@ -589,6 +615,103 @@ export async function createCommit(_state: ActionState, formData: FormData): Pro
   });
   if (error) return { error: "That commit was not saved. Only people on the project can commit." };
   redirect(`/forge/${slug}?tab=commits`);
+}
+
+export async function commentOnUpdate(formData: FormData) {
+  const member = await requireMember();
+  const postId = String(formData.get("postId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  const content = String(formData.get("content") ?? "").trim();
+  if (!projectIdPattern.test(postId) || !isProjectSlug(slug) || content.length < 1 || content.length > 2000) return;
+  const supabase = await createClient();
+  const { data: post } = await supabase
+    .from("posts")
+    .select("id")
+    .eq("id", postId)
+    .eq("type", "build_log")
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!post) return;
+  const { error } = await supabase.from("comments").insert({
+    post_id: postId,
+    author_id: member.id,
+    content,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${slug}`);
+}
+
+export async function reactToUpdate(formData: FormData) {
+  const member = await requireMember();
+  const postId = String(formData.get("postId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  const type = String(formData.get("type") ?? "");
+  if (!projectIdPattern.test(postId) || !isProjectSlug(slug) || !isReactionType(type)) return;
+  const supabase = await createClient();
+  const { data: post } = await supabase
+    .from("posts")
+    .select("id")
+    .eq("id", postId)
+    .eq("type", "build_log")
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!post) return;
+  const { data: existing } = await supabase
+    .from("reactions")
+    .select("id")
+    .eq("user_id", member.id)
+    .eq("post_id", postId)
+    .eq("type", type)
+    .maybeSingle();
+  if (existing) {
+    const { error } = await supabase.from("reactions").delete().eq("id", existing.id).eq("user_id", member.id);
+    if (error) return;
+  } else {
+    if (type === "upvote" || type === "downvote") {
+      await supabase
+        .from("reactions")
+        .delete()
+        .eq("user_id", member.id)
+        .eq("post_id", postId)
+        .eq("type", type === "upvote" ? "downvote" : "upvote");
+    }
+    const { error } = await supabase.from("reactions").insert({
+      user_id: member.id,
+      post_id: postId,
+      type,
+    });
+    if (error) return;
+  }
+  revalidatePath(`/forge/${slug}`);
+  revalidatePath("/");
+  revalidatePath("/discover");
+  revalidatePath(`/posts/${postId}`);
+}
+
+export async function toggleFollowUpdate(formData: FormData) {
+  const member = await requireMember();
+  const buildLogId = String(formData.get("buildLogId") ?? "");
+  const slug = String(formData.get("slug") ?? "");
+  if (!projectIdPattern.test(buildLogId) || !isProjectSlug(slug)) return;
+  const supabase = await createClient();
+  const { data: log } = await supabase
+    .from("build_logs")
+    .select("id")
+    .eq("id", buildLogId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!log) return;
+  const { data: existing } = await supabase
+    .from("build_log_follows")
+    .select("profile_id")
+    .eq("profile_id", member.id)
+    .eq("build_log_id", buildLogId)
+    .maybeSingle();
+  const { error } = existing
+    ? await supabase.from("build_log_follows").delete().eq("profile_id", member.id).eq("build_log_id", buildLogId)
+    : await supabase.from("build_log_follows").insert({ profile_id: member.id, build_log_id: buildLogId });
+  if (error) return;
+  revalidatePath(`/forge/${slug}`);
 }
 
 export async function openPullRequest(_state: ActionState, formData: FormData): Promise<ActionState> {

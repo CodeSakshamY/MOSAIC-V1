@@ -104,6 +104,7 @@ Public builder identity. Created by a trigger when `auth.users` gains a row.
 | `website_url` | Nullable, `https` only. |
 | `looking_for` | `text[]`, default `'{}'`, closed set above. |
 | `collaboration_preference` | Nullable `collaboration_type`. Used by people filters. |
+| `visibility` | `public` or `private`, default `public`. |
 | `onboarding_complete` | Boolean, default false. |
 | `is_demo` | Boolean, default false. |
 | `deleted_at` | Nullable. Set by the anonymize function. |
@@ -111,7 +112,7 @@ Public builder identity. Created by a trigger when `auth.users` gains a row.
 
 Email, phone, date of birth, street address, and coordinates are not columns.
 
-Public read excludes rows with `deleted_at` set, except the owner may still read their own row. Search excludes deleted and suspended profiles. Suspension itself lives in `account_sanctions`, so a public profile read does not need a reason column.
+Public reads of a profile row are the owner, or a public profile that is not deleted. `profile_directory` is what the app reads. It keeps the name and username when a profile is private, and it returns the other columns only to the owner or when `visibility` is public. Discover lists public profiles. Education, skills, interests, experience, certificates, awards, research, competitions, communities, and extra links are readable only for a public profile or by the owner. Public projects and posts stay readable at their own addresses. `profile_certificates.verified_at` and `profile_awards.verified_at` stay empty unless a trusted writer sets them. A profile can have up to 5 extra sections, with a title of 1–80 characters and a body of 1–2000.
 
 ### profile_private
 
@@ -164,6 +165,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `collaboration_type` | Nullable. |
 | `parent_project_id` | Nullable FK → `projects(id)` `ON DELETE SET NULL`. Check `parent_project_id <> id`. |
 | `featured_at` | Nullable. Writable only by staff. A trigger rejects other updates. |
+| `profile_featured_at` | Nullable. The owner can set this on a public project. A profile can feature 3. A private project cannot keep it. |
 | `is_demo` | Boolean, default false. |
 | `removed_at` | Nullable. Moderator removal. |
 | `created_at`, `updated_at` | |
@@ -176,7 +178,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 
 ### project_milestones
 
-`id`, `project_id`, `title`, `happens_on`, `created_at`. Up to 12 rows. `title` is 1–80. `happens_on` is a date from 2000-01-01 through 2100-12-31. The same title cannot repeat on the same day. Inserts and deletes are limited to the owner. `ON DELETE CASCADE` with the project.
+`id`, `project_id`, `title`, `happens_on`, `major`, `created_at`. Up to 12 rows. `title` is 1–80. `happens_on` is a date from 2000-01-01 through 2100-12-31. The same title cannot repeat on the same day. `major` defaults to false. The owner can set it when adding a milestone or change it later. Other columns stay fixed after insert. Inserts and deletes are limited to the owner. `ON DELETE CASCADE` with the project.
 
 ### project_skills
 
@@ -222,7 +224,20 @@ Accepting a request, in one transaction, sets status `accepted` and inserts `pro
 | `content` | 1–8000. |
 | `media_urls` | `text[]`, default `'{}'`, max 4 elements, each an `https` URL on our storage host. |
 | `removed_at` | Nullable. |
+| `kind` | `update`, `milestone`, `problem`, `experiment`, `lesson`, or `explanation`. |
 | `created_at`, `updated_at` | |
+
+### build_log_follows
+
+A member follows one build log. A later comment on that update notifies them, unless they wrote the comment or already receive it as the post author.
+
+| Column | Notes |
+| --- | --- |
+| `profile_id` | FK → `profiles` `ON DELETE CASCADE`. Part of the primary key. |
+| `build_log_id` | FK → `build_logs` `ON DELETE CASCADE`. Part of the primary key. |
+| `created_at` | |
+
+Select is the follower, or anyone who can view the project. Insert and delete stay with the follower, and insert also requires the log to be visible.
 
 ### posts
 
@@ -513,6 +528,22 @@ Besides primary keys and unique constraints:
 
 Feed candidate generation uses the posts time index and joins; it does not seq-scan. The Phase 6 migration adds `feed_candidates` and an `explain` check is part of that phase's test note.
 
+### profile_publications
+
+A builder can list up to 20 papers or notes. `title` is 1–160. `venue` is optional, 1–120. `year` is optional, 1950–2100. `url` is an optional https link up to 300 characters. `summary` is optional, 1–500. Select follows the same visibility as the profile. Insert and delete stay with that member. `ON DELETE CASCADE` with the profile.
+
+### profile_competitions
+
+A builder can list up to 20 competitions. `name` is 1–160. `host` and `result` are optional, 1–120 and 1–80. `year` is optional, 1950–2100. `url` is an optional https link up to 300 characters. The result is text the builder writes. Select, insert, and delete follow the publication rules.
+
+### profile_communities
+
+A builder can list up to 20 groups they have taken part in. `name` is 1–80. `role` is optional, 1–40. `year` is optional, 1950–2100. This list is not a MOSAIC group. Select, insert, and delete follow the publication rules.
+
+### profile_links
+
+Up to 8 extra https links. `label` is 1–40. `url` is at most 300 characters. The same URL cannot be saved twice on one profile. GitHub and the website stay on `profiles`. Select, insert, and delete follow the publication rules.
+
 ## Storage
 
 `014_storage_policies.sql` creates the buckets.
@@ -589,6 +620,19 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `046_build_log_milestone.sql` | A build log can be recorded as a milestone. |
 | `047_build_log_problem.sql` | A build log can record a problem. |
 | `048_build_log_experiment.sql` | A build log can record an experiment. |
+| `049_build_log_lesson.sql` | A build log can record a failed attempt. |
+| `050_build_log_explanation.sql` | A build log can be a technical explanation. |
+| `051_build_log_follows.sql` | Follow one build log. Comments on it notify the follower. |
+| `052_major_milestones.sql` | The owner can mark a dated milestone as major. |
+| `053_profile_featured_projects.sql` | The owner can feature up to 3 public projects on their profile. |
+| `054_profile_publications.sql` | A builder can list research and publications on their profile. |
+| `055_profile_competitions.sql` | A builder can list competitions they took part in. |
+| `056_profile_communities.sql` | A builder can list communities they have taken part in. |
+| `057_profile_links.sql` | Extra https links on a profile, including LinkedIn. |
+| `058_profile_visibility.sql` | Public or private profiles. The API reads `profile_directory`. |
+| `059_profile_select.sql` | A profile row is readable by its owner, or by anyone when the profile is public. |
+| `060_verified_credentials.sql` | `verified_at` on certificates and awards, writable by a trusted writer. |
+| `061_profile_sections.sql` | Up to 5 titled sections on a profile. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

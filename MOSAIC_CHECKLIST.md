@@ -74,14 +74,14 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Record milestones
 - [x] Share problems encountered
 - [x] Document experiments
-- [ ] Share failed attempts and lessons learned
-- [ ] Add technical explanations as a distinct log type
+- [x] Share failed attempts and lessons learned
+- [x] Add technical explanations as a distinct log type
 - [x] Link updates to a specific project
 - [x] Display those updates in chronological order on the project
-- [ ] Comment on an individual update
-- [ ] React to build logs
-- [ ] Follow build-log updates
-- [ ] Highlight major milestones on project pages
+- [x] Comment on an individual update
+- [x] React to build logs
+- [x] Follow build-log updates
+- [x] Highlight major milestones on project pages
 
 ## 4. Builder profiles
 
@@ -89,35 +89,35 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Profile picture and banner
 - [x] Name and short bio
 - [x] Location at city and state, optional
-- [ ] Interests and disciplines shown and editable
+- [x] Interests and disciplines shown and editable
 - [x] Skills shown when chosen during onboarding
 - [x] Current projects (repositories you own)
-- [ ] Featured projects
-- [ ] Completed projects as their own list
-- [ ] Research and publications
+- [x] Featured projects
+- [x] Completed projects as their own list
+- [x] Research and publications
 - [x] Achievements and awards, including photos
-- [ ] Competitions participated in
-- [ ] Communities joined
-- [ ] Collaboration interests
-- [ ] Looking-for status
+- [x] Competitions participated in
+- [x] Communities joined
+- [x] Collaboration interests
+- [x] Looking-for status
 - [x] GitHub and personal website
-- [ ] LinkedIn and other external links
+- [x] LinkedIn and other external links
 - [x] Education, optional
 - [x] Follow/unfollow
 - [x] Followers and following
 - [x] Contribution history (projects contributed to, merged pull requests)
-- [ ] Activity timeline
-- [ ] Profile visibility settings
-- [ ] Verified achievement or credential indicators
-- [ ] Profile completion indicator
-- [ ] Custom profile sections
+- [x] Activity timeline
+- [x] Profile visibility settings
+- [x] Verified achievement or credential indicators
+- [x] Profile completion indicator
+- [x] Custom profile sections
 
 ## 5. People and networking
 
 - [x] Search builders by name or username
-- [ ] Filter by discipline
+- [x] Filter by discipline
 - [x] Filter by skills and technologies
-- [ ] Filter by interests
+- [x] Filter by interests
 - [ ] Filter by project experience
 - [ ] Filter by availability for collaboration
 - [x] Filter by broad location or institution

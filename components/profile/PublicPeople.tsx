@@ -4,9 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 export async function PublicPeople() {
   const supabase = await createClient();
   const { data } = await supabase
-    .from("profiles")
+    .from("profile_directory")
     .select("username, display_name, education, city, state")
     .eq("onboarding_complete", true)
+    .eq("visibility", "public")
     .not("username", "is", null)
     .order("display_name")
     .limit(30);

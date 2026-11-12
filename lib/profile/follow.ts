@@ -17,7 +17,7 @@ export async function toggleFollow(formData: FormData) {
 
   const supabase = await createClient();
   const { data: target } = await supabase
-    .from("profiles")
+    .from("profile_directory")
     .select("id, username, deleted_at")
     .eq("username", parsed.username)
     .maybeSingle();

@@ -76,7 +76,7 @@ async function destination(
   row: { type: string; actor_id: string | null; post_id: string | null; project_id: string | null },
 ) {
   if (row.type === "new_follower" && row.actor_id) {
-    const { data } = await supabase.from("profiles").select("username").eq("id", row.actor_id).maybeSingle();
+    const { data } = await supabase.from("profile_directory").select("username").eq("id", row.actor_id).maybeSingle();
     if (data?.username) return `/people/${data.username}`;
   }
   if (row.post_id && (row.type === "comment" || row.type === "reply" || row.type === "project_update")) {

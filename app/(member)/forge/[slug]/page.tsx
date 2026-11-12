@@ -9,7 +9,7 @@ import { Collaboration } from "@/components/build/Collaboration";
 import { ContributionHistory } from "@/components/build/ContributionHistory";
 import { CreditsForm } from "@/components/build/CreditsForm";
 import { DocumentationForm } from "@/components/build/DocumentationForm";
-import { Milestones } from "@/components/build/Milestones";
+import { Milestones, MajorMilestones } from "@/components/build/Milestones";
 import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
@@ -91,7 +91,7 @@ async function ProjectView({
   if (!project) notFound();
 
   const [ownerResult, parentResult, forksResult, membershipResult, watchResult, saveResult, galleryResult, skillsResult, skillLinks, milestoneResult, versionResult, logResult, memberResult, requestResult, followCount, threadCount, saveCount] = await Promise.all([
-    supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
+    supabase.from("profile_directory").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -126,7 +126,7 @@ async function ProjectView({
     supabase.from("project_skills").select("skill_id, relation").eq("project_id", project.id).in("relation", ["uses", "seeking"]),
     supabase
       .from("project_milestones")
-      .select("id, title, happens_on")
+      .select("id, title, happens_on, major")
       .eq("project_id", project.id)
       .order("happens_on", { ascending: true })
       .order("created_at", { ascending: true }),
@@ -228,15 +228,40 @@ async function ProjectView({
     ...roster.map((person) => ({ project_id: project.id, profile_id: person.profile_id, role: person.role })),
     ...(branchMembers ?? []),
   ];
+  const logIds = logs.map((log) => log.id);
+  const { data: logPosts } = logIds.length
+    ? await supabase.from("posts").select("id, build_log_id").in("build_log_id", logIds).eq("type", "build_log").is("removed_at", null)
+    : { data: [] };
+  const postIds = (logPosts ?? []).map((post) => post.id);
+  const { data: followRows } = logIds.length && member
+    ? await supabase.from("build_log_follows").select("build_log_id").eq("profile_id", member.id).in("build_log_id", logIds)
+    : { data: [] };
+  const { data: reactionRows } = postIds.length
+    ? await supabase
+        .from("reactions")
+        .select("post_id, user_id, type")
+        .in("post_id", postIds)
+        .in("type", ["like", "upvote", "downvote"])
+    : { data: [] };
+  const { data: commentRows } = postIds.length
+    ? await supabase
+        .from("comments")
+        .select("id, post_id, author_id, content")
+        .in("post_id", postIds)
+        .is("parent_comment_id", null)
+        .is("removed_at", null)
+        .order("created_at", { ascending: true })
+    : { data: [] };
   const authorIds = [
     ...new Set([
       ...logs.map((log) => log.author_id),
       ...lineageMembers.map((person) => person.profile_id),
       ...requests.map((request) => request.requester_id),
+      ...(commentRows ?? []).map((comment) => comment.author_id),
     ]),
   ];
   const { data: authorRows } = authorIds.length
-    ? await supabase.from("profiles").select("id, display_name, username").in("id", authorIds)
+    ? await supabase.from("profile_directory").select("id, display_name, username").in("id", authorIds)
     : { data: [] };
   const authorNames = new Map(
     (authorRows ?? []).map((person) => [person.id, person.display_name || person.username]),
@@ -249,6 +274,25 @@ async function ProjectView({
     author: authorNames.get(log.author_id) ?? "builder",
     media: log.media_urls,
     kind: log.kind,
+    following: (followRows ?? []).some((row) => row.build_log_id === log.id),
+    postId: (logPosts ?? []).find((post) => post.build_log_id === log.id)?.id ?? null,
+    reactions: (["like", "upvote", "downvote"] as const).map((type) => ({
+      type,
+      count: (reactionRows ?? []).filter((row) => row.post_id === (logPosts ?? []).find((post) => post.build_log_id === log.id)?.id && row.type === type).length,
+      pressed: (reactionRows ?? []).some(
+        (row) =>
+          row.user_id === member?.id &&
+          row.type === type &&
+          row.post_id === (logPosts ?? []).find((post) => post.build_log_id === log.id)?.id,
+      ),
+    })),
+    comments: (commentRows ?? [])
+      .filter((comment) => (logPosts ?? []).some((post) => post.id === comment.post_id && post.build_log_id === log.id))
+      .map((comment) => ({
+        id: comment.id,
+        author: authorNames.get(comment.author_id) ?? "builder",
+        content: comment.content,
+      })),
   }));
   const roleOrder = ["owner", "maintainer", "contributor"];
   const team = roster
@@ -392,6 +436,7 @@ async function ProjectView({
         <div>
           {tab === "overview" ? (
             <>
+              <MajorMilestones milestones={(milestoneResult.data ?? []).filter((milestone) => milestone.major)} />
               <ProjectMedia
                 projectId={project.id}
                 cover={project.cover_image_url}
@@ -416,7 +461,7 @@ async function ProjectView({
                 {project.credits ? <p className="project-credits">{project.credits}</p> : <p className="form-note">No credits yet.</p>}
                 {isOwner ? <CreditsForm projectId={project.id} credits={project.credits} /> : null}
               </section>
-              <UpdateHistory updates={updates} />
+              <UpdateHistory slug={project.slug} signedIn={Boolean(member)} updates={updates} />
               <ProjectTeam members={team} />
               <RelatedProjects projects={related} />
               <ProjectLineage entries={lineage} />

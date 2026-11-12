@@ -107,6 +107,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"build_log_follows": {
+                  Row: {
+                    "build_log_id": string,"created_at": string,"profile_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "build_log_id": string,"created_at"?: string,"profile_id": string
+                  }
+                  Update: {
+                    "build_log_id"?: string,"created_at"?: string,"profile_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "build_log_follows_build_log_id_fkey"
+      columns: ["build_log_id"]
+isOneToOne: false
+      referencedRelation: "build_logs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "build_log_follows_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"build_logs": {
                   Row: {
                     "author_id": string,"content": string,"created_at": string,"id": string,"kind": Database["public"]['Enums']["build_log_kind"],"media_urls": (string)[],"project_id": string,"removed_at": string | null,"title": string,"updated_at": string
@@ -517,14 +543,14 @@ isOneToOne: false
                   ]
                 },"profile_awards": {
                   Row: {
-                    "created_at": string,"id": string,"image_url": string | null,"issuer": string,"profile_id": string,"title": string,"year": number | null
+                    "created_at": string,"id": string,"image_url": string | null,"issuer": string,"profile_id": string,"title": string,"verified_at": string | null,"year": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer": string,"profile_id": string,"title": string,"year"?: number | null
+                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer": string,"profile_id": string,"title": string,"verified_at"?: string | null,"year"?: number | null
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer"?: string,"profile_id"?: string,"title"?: string,"year"?: number | null
+                    "created_at"?: string,"id"?: string,"image_url"?: string | null,"issuer"?: string,"profile_id"?: string,"title"?: string,"verified_at"?: string | null,"year"?: number | null
                   }
                   Relationships: [
                     {
@@ -537,18 +563,58 @@ isOneToOne: false
                   ]
                 },"profile_certificates": {
                   Row: {
-                    "created_at": string,"credential_url": string | null,"id": string,"image_url": string | null,"issuer": string,"name": string,"profile_id": string,"year": number | null
+                    "created_at": string,"credential_url": string | null,"id": string,"image_url": string | null,"issuer": string,"name": string,"profile_id": string,"verified_at": string | null,"year": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer": string,"name": string,"profile_id": string,"year"?: number | null
+                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer": string,"name": string,"profile_id": string,"verified_at"?: string | null,"year"?: number | null
                   }
                   Update: {
-                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer"?: string,"name"?: string,"profile_id"?: string,"year"?: number | null
+                    "created_at"?: string,"credential_url"?: string | null,"id"?: string,"image_url"?: string | null,"issuer"?: string,"name"?: string,"profile_id"?: string,"verified_at"?: string | null,"year"?: number | null
                   }
                   Relationships: [
                     {
       foreignKeyName: "profile_certificates_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"profile_communities": {
+                  Row: {
+                    "created_at": string,"id": string,"name": string,"profile_id": string,"role": string | null,"year": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"name": string,"profile_id": string,"role"?: string | null,"year"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"name"?: string,"profile_id"?: string,"role"?: string | null,"year"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_communities_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"profile_competitions": {
+                  Row: {
+                    "created_at": string,"host": string | null,"id": string,"name": string,"profile_id": string,"result": string | null,"url": string | null,"year": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"host"?: string | null,"id"?: string,"name": string,"profile_id": string,"result"?: string | null,"url"?: string | null,"year"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"host"?: string | null,"id"?: string,"name"?: string,"profile_id"?: string,"result"?: string | null,"url"?: string | null,"year"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_competitions_profile_id_fkey"
       columns: ["profile_id"]
 isOneToOne: false
       referencedRelation: "profiles"
@@ -621,6 +687,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"profile_links": {
+                  Row: {
+                    "created_at": string,"id": string,"label": string,"profile_id": string,"url": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"label": string,"profile_id": string,"url": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"label"?: string,"profile_id"?: string,"url"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_links_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profile_private": {
                   Row: {
                     "created_at": string,"onboarding_step": number,"profile_id": string,"updated_at": string
@@ -637,6 +723,46 @@ isOneToOne: false
       foreignKeyName: "profile_private_profile_id_fkey"
       columns: ["profile_id"]
 isOneToOne: true
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"profile_publications": {
+                  Row: {
+                    "created_at": string,"id": string,"profile_id": string,"summary": string | null,"title": string,"url": string | null,"venue": string | null,"year": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"profile_id": string,"summary"?: string | null,"title": string,"url"?: string | null,"venue"?: string | null,"year"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"profile_id"?: string,"summary"?: string | null,"title"?: string,"url"?: string | null,"venue"?: string | null,"year"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_publications_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"profile_sections": {
+                  Row: {
+                    "body": string,"created_at": string,"id": string,"profile_id": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"id"?: string,"profile_id": string,"title": string
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"id"?: string,"profile_id"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_sections_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
     }
@@ -669,14 +795,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "age_group": Database["public"]['Enums']["age_group"] | null,"avatar_url": string | null,"banner_url": string | null,"bio": string | null,"city": string | null,"collaboration_preference": Database["public"]['Enums']["collaboration_type"] | null,"country": string,"created_at": string,"deleted_at": string | null,"display_name": string,"education": string | null,"github_username": string | null,"id": string,"is_demo": boolean,"looking_for": (string)[],"onboarding_complete": boolean,"state": string | null,"updated_at": string,"username": string | null,"website_url": string | null
+                    "age_group": Database["public"]['Enums']["age_group"] | null,"avatar_url": string | null,"banner_url": string | null,"bio": string | null,"city": string | null,"collaboration_preference": Database["public"]['Enums']["collaboration_type"] | null,"country": string,"created_at": string,"deleted_at": string | null,"display_name": string,"education": string | null,"github_username": string | null,"id": string,"is_demo": boolean,"looking_for": (string)[],"onboarding_complete": boolean,"state": string | null,"updated_at": string,"username": string | null,"visibility": Database["public"]['Enums']["visibility"],"website_url": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name": string,"education"?: string | null,"github_username"?: string | null,"id": string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"website_url"?: string | null
+                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name": string,"education"?: string | null,"github_username"?: string | null,"id": string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"visibility"?: Database["public"]['Enums']["visibility"],"website_url"?: string | null
                   }
                   Update: {
-                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name"?: string,"education"?: string | null,"github_username"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"website_url"?: string | null
+                    "age_group"?: Database["public"]['Enums']["age_group"] | null,"avatar_url"?: string | null,"banner_url"?: string | null,"bio"?: string | null,"city"?: string | null,"collaboration_preference"?: Database["public"]['Enums']["collaboration_type"] | null,"country"?: string,"created_at"?: string,"deleted_at"?: string | null,"display_name"?: string,"education"?: string | null,"github_username"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for"?: (string)[],"onboarding_complete"?: boolean,"state"?: string | null,"updated_at"?: string,"username"?: string | null,"visibility"?: Database["public"]['Enums']["visibility"],"website_url"?: string | null
                   }
                   Relationships: [
                     
@@ -775,14 +901,14 @@ isOneToOne: false
                   ]
                 },"project_milestones": {
                   Row: {
-                    "created_at": string,"happens_on": string,"id": string,"project_id": string,"title": string
+                    "created_at": string,"happens_on": string,"id": string,"major": boolean,"project_id": string,"title": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"happens_on": string,"id"?: string,"project_id": string,"title": string
+                    "created_at"?: string,"happens_on": string,"id"?: string,"major"?: boolean,"project_id": string,"title": string
                   }
                   Update: {
-                    "created_at"?: string,"happens_on"?: string,"id"?: string,"project_id"?: string,"title"?: string
+                    "created_at"?: string,"happens_on"?: string,"id"?: string,"major"?: boolean,"project_id"?: string,"title"?: string
                   }
                   Relationships: [
                     {
@@ -879,14 +1005,14 @@ isOneToOne: false
                   ]
                 },"projects": {
                   Row: {
-                    "category": string,"collaboration_type": Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url": string | null,"created_at": string,"demo_url": string | null,"description": string,"detailed_description": string | null,"credits": string | null,"documentation_url": string | null,"featured_at": string | null,"github_url": string | null,"id": string,"is_demo": boolean,"looking_for_contributors": boolean,"name": string,"owner_id": string,"parent_project_id": string | null,"problem": string | null,"removed_at": string | null,"slug": string,"solution": string | null,"starts_on": string | null,"ends_on": string | null,"status": Database["public"]['Enums']["project_status"],"subcategory": string | null,"tagline": string | null,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"]
+                    "category": string,"collaboration_type": Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url": string | null,"created_at": string,"demo_url": string | null,"description": string,"detailed_description": string | null,"credits": string | null,"documentation_url": string | null,"featured_at": string | null,"profile_featured_at": string | null,"github_url": string | null,"id": string,"is_demo": boolean,"looking_for_contributors": boolean,"name": string,"owner_id": string,"parent_project_id": string | null,"problem": string | null,"removed_at": string | null,"slug": string,"solution": string | null,"starts_on": string | null,"ends_on": string | null,"status": Database["public"]['Enums']["project_status"],"subcategory": string | null,"tagline": string | null,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "category": string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description": string,"detailed_description"?: string | null,"credits"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name": string,"owner_id": string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug": string,"solution"?: string | null,"starts_on"?: string | null,"ends_on"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"subcategory"?: string | null,"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
+                    "category": string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description": string,"detailed_description"?: string | null,"credits"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"profile_featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name": string,"owner_id": string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug": string,"solution"?: string | null,"starts_on"?: string | null,"ends_on"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"subcategory"?: string | null,"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
                   }
                   Update: {
-                    "category"?: string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description"?: string,"detailed_description"?: string | null,"credits"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name"?: string,"owner_id"?: string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug"?: string,"solution"?: string | null,"starts_on"?: string | null,"ends_on"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"subcategory"?: string | null,"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
+                    "category"?: string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description"?: string,"detailed_description"?: string | null,"credits"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"profile_featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name"?: string,"owner_id"?: string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug"?: string,"solution"?: string | null,"starts_on"?: string | null,"ends_on"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"subcategory"?: string | null,"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
                   }
                   Relationships: [
                     {
@@ -1048,7 +1174,28 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "profile_directory": {
+              Row: {
+                "age_group": Database["public"]['Enums']["age_group"] | null
+                "avatar_url": string | null
+                "banner_url": string | null
+                "bio": string | null
+                "city": string | null
+                "collaboration_preference": Database["public"]['Enums']["collaboration_type"] | null
+                "deleted_at": string | null
+                "display_name": string
+                "education": string | null
+                "github_username": string | null
+                "id": string
+                "looking_for": string[]
+                "onboarding_complete": boolean
+                "state": string | null
+                "username": string | null
+                "visibility": Database["public"]['Enums']["visibility"]
+                "website_url": string | null
+              }
+              Relationships: []
+            }
           }
           Functions: {
             "anonymize_profile":
@@ -1068,7 +1215,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "age_group": "13_15"|"16_17"|"18_24"|"25_34"|"35_plus","build_log_kind": "update"|"milestone"|"problem"|"experiment","collaboration_type": "remote"|"local"|"hybrid","community_category": "technology"|"discipline"|"city"|"institution"|"research"|"project","community_role": "owner"|"moderator"|"member","contribution_status": "pending"|"accepted"|"rejected"|"withdrawn","feed_event_type": "impression"|"dismiss"|"more"|"less","member_role": "owner"|"maintainer"|"contributor","member_status": "pending"|"active"|"rejected","notification_type": "new_follower"|"comment"|"reply"|"contribution_request"|"contribution_accepted"|"contribution_rejected"|"project_update"|"community_activity","opportunity_category": "hackathon"|"robotics_competition"|"science_fair"|"research_program"|"olympiad"|"scholarship"|"fellowship"|"internship"|"grant"|"maker_event"|"startup_competition"|"innovation_challenge"|"workshop","post_type": "project"|"build_log"|"idea"|"help"|"achievement"|"opportunity","project_status": "idea"|"researching"|"in_development"|"prototype"|"testing"|"completed"|"on_hold","reaction_type": "interesting"|"inspired"|"build"|"contribute"|"like"|"upvote"|"downvote","report_reason": "harassment"|"spam"|"inappropriate"|"impersonation"|"unsafe"|"copyright"|"other","report_status": "open"|"reviewing"|"removed"|"dismissed"|"restored","sanction_kind": "suspension","skill_relation": "uses"|"seeking","staff_role": "admin"|"moderator","visibility": "public"|"private"
+            "age_group": "13_15"|"16_17"|"18_24"|"25_34"|"35_plus","build_log_kind": "update"|"milestone"|"problem"|"experiment"|"lesson"|"explanation","collaboration_type": "remote"|"local"|"hybrid","community_category": "technology"|"discipline"|"city"|"institution"|"research"|"project","community_role": "owner"|"moderator"|"member","contribution_status": "pending"|"accepted"|"rejected"|"withdrawn","feed_event_type": "impression"|"dismiss"|"more"|"less","member_role": "owner"|"maintainer"|"contributor","member_status": "pending"|"active"|"rejected","notification_type": "new_follower"|"comment"|"reply"|"contribution_request"|"contribution_accepted"|"contribution_rejected"|"project_update"|"community_activity","opportunity_category": "hackathon"|"robotics_competition"|"science_fair"|"research_program"|"olympiad"|"scholarship"|"fellowship"|"internship"|"grant"|"maker_event"|"startup_competition"|"innovation_challenge"|"workshop","post_type": "project"|"build_log"|"idea"|"help"|"achievement"|"opportunity","project_status": "idea"|"researching"|"in_development"|"prototype"|"testing"|"completed"|"on_hold","reaction_type": "interesting"|"inspired"|"build"|"contribute"|"like"|"upvote"|"downvote","report_reason": "harassment"|"spam"|"inappropriate"|"impersonation"|"unsafe"|"copyright"|"other","report_status": "open"|"reviewing"|"removed"|"dismissed"|"restored","sanction_kind": "suspension","skill_relation": "uses"|"seeking","staff_role": "admin"|"moderator","visibility": "public"|"private"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1188,7 +1335,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "age_group": ["13_15", "16_17", "18_24", "25_34", "35_plus"],"build_log_kind": ["update", "milestone", "problem", "experiment"],"collaboration_type": ["remote", "local", "hybrid"],"community_category": ["technology", "discipline", "city", "institution", "research", "project"],"community_role": ["owner", "moderator", "member"],"contribution_status": ["pending", "accepted", "rejected", "withdrawn"],"feed_event_type": ["impression", "dismiss", "more", "less"],"member_role": ["owner", "maintainer", "contributor"],"member_status": ["pending", "active", "rejected"],"notification_type": ["new_follower", "comment", "reply", "contribution_request", "contribution_accepted", "contribution_rejected", "project_update", "community_activity"],"opportunity_category": ["hackathon", "robotics_competition", "science_fair", "research_program", "olympiad", "scholarship", "fellowship", "internship", "grant", "maker_event", "startup_competition", "innovation_challenge", "workshop"],"post_type": ["project", "build_log", "idea", "help", "achievement", "opportunity"],"project_status": ["idea", "researching", "in_development", "prototype", "testing", "completed", "on_hold"],"reaction_type": ["interesting", "inspired", "build", "contribute", "like", "upvote", "downvote"],"report_reason": ["harassment", "spam", "inappropriate", "impersonation", "unsafe", "copyright", "other"],"report_status": ["open", "reviewing", "removed", "dismissed", "restored"],"sanction_kind": ["suspension"],"skill_relation": ["uses", "seeking"],"staff_role": ["admin", "moderator"],"visibility": ["public", "private"]
+            "age_group": ["13_15", "16_17", "18_24", "25_34", "35_plus"],"build_log_kind": ["update", "milestone", "problem", "experiment", "lesson", "explanation"],"collaboration_type": ["remote", "local", "hybrid"],"community_category": ["technology", "discipline", "city", "institution", "research", "project"],"community_role": ["owner", "moderator", "member"],"contribution_status": ["pending", "accepted", "rejected", "withdrawn"],"feed_event_type": ["impression", "dismiss", "more", "less"],"member_role": ["owner", "maintainer", "contributor"],"member_status": ["pending", "active", "rejected"],"notification_type": ["new_follower", "comment", "reply", "contribution_request", "contribution_accepted", "contribution_rejected", "project_update", "community_activity"],"opportunity_category": ["hackathon", "robotics_competition", "science_fair", "research_program", "olympiad", "scholarship", "fellowship", "internship", "grant", "maker_event", "startup_competition", "innovation_challenge", "workshop"],"post_type": ["project", "build_log", "idea", "help", "achievement", "opportunity"],"project_status": ["idea", "researching", "in_development", "prototype", "testing", "completed", "on_hold"],"reaction_type": ["interesting", "inspired", "build", "contribute", "like", "upvote", "downvote"],"report_reason": ["harassment", "spam", "inappropriate", "impersonation", "unsafe", "copyright", "other"],"report_status": ["open", "reviewing", "removed", "dismissed", "restored"],"sanction_kind": ["suspension"],"skill_relation": ["uses", "seeking"],"staff_role": ["admin", "moderator"],"visibility": ["public", "private"]
           }
         }
 } as const

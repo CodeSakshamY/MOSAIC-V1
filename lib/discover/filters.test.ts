@@ -8,6 +8,8 @@ describe("readDiscoverFilters", () => {
         age: "18_24",
         place: "  Bengaluru ",
         skill: "machine-learning",
+        discipline: "technology",
+        interest: "robotics",
         type: "Software",
         q: " Sensor% ",
       }),
@@ -16,6 +18,8 @@ describe("readDiscoverFilters", () => {
       age: "18_24",
       place: "Bengaluru",
       skill: "machine-learning",
+      discipline: "technology",
+      interest: "robotics",
       type: "Software",
     });
   });
@@ -26,6 +30,8 @@ describe("readDiscoverFilters", () => {
         age: "under_13",
         place: "City%,()",
         skill: "Not A Skill",
+        discipline: "magic",
+        interest: "Not An Interest",
         type: "robotics",
       }),
     ).toEqual({
@@ -33,6 +39,8 @@ describe("readDiscoverFilters", () => {
       age: null,
       place: "City",
       skill: "",
+      discipline: "",
+      interest: "",
       type: null,
     });
   });

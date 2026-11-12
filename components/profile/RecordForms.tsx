@@ -5,8 +5,11 @@ import {
   addAchievement,
   addAward,
   addCertificate,
+  addCommunity,
+  addCompetition,
   addEducation,
   addExperience,
+  addPublication,
 } from "@/lib/profile/actions";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { Input } from "@/components/ui/input";
@@ -19,6 +22,90 @@ function ErrorLine({ error }: { error?: string }) {
     <p className="form-error" role="alert">
       {error}
     </p>
+  );
+}
+
+export function CommunityForm() {
+  const [state, action] = useActionState(addCommunity, null);
+  return (
+    <form className="form-stack" action={action}>
+      <div className="field">
+        <Label htmlFor="community-name">Community</Label>
+        <Input id="community-name" name="name" required maxLength={80} />
+      </div>
+      <div className="field">
+        <Label htmlFor="community-role">Role</Label>
+        <Input id="community-role" name="role" maxLength={40} />
+      </div>
+      <div className="field">
+        <Label htmlFor="community-year">Year</Label>
+        <Input id="community-year" name="year" inputMode="numeric" maxLength={4} />
+      </div>
+      <p className="form-note">List a group you have taken part in. MOSAIC groups are not open yet.</p>
+      <ErrorLine error={state?.error} />
+      <SubmitButton>Add community</SubmitButton>
+    </form>
+  );
+}
+
+export function CompetitionForm() {
+  const [state, action] = useActionState(addCompetition, null);
+  return (
+    <form className="form-stack" action={action}>
+      <div className="field">
+        <Label htmlFor="competition-name">Competition</Label>
+        <Input id="competition-name" name="name" required maxLength={160} />
+      </div>
+      <div className="field">
+        <Label htmlFor="competition-host">Organiser</Label>
+        <Input id="competition-host" name="host" maxLength={120} />
+      </div>
+      <div className="field">
+        <Label htmlFor="competition-year">Year</Label>
+        <Input id="competition-year" name="year" inputMode="numeric" maxLength={4} />
+      </div>
+      <div className="field">
+        <Label htmlFor="competition-result">Result</Label>
+        <Input id="competition-result" name="result" maxLength={80} />
+      </div>
+      <div className="field">
+        <Label htmlFor="competition-url">Link</Label>
+        <Input id="competition-url" name="url" type="url" placeholder="https://" maxLength={300} />
+      </div>
+      <p className="form-note">Write the result yourself. MOSAIC does not rank competitions.</p>
+      <ErrorLine error={state?.error} />
+      <SubmitButton>Add competition</SubmitButton>
+    </form>
+  );
+}
+
+export function PublicationForm() {
+  const [state, action] = useActionState(addPublication, null);
+  return (
+    <form className="form-stack" action={action}>
+      <div className="field">
+        <Label htmlFor="publication-title">Title</Label>
+        <Input id="publication-title" name="title" required maxLength={160} />
+      </div>
+      <div className="field">
+        <Label htmlFor="publication-venue">Venue</Label>
+        <Input id="publication-venue" name="venue" maxLength={120} />
+      </div>
+      <div className="field">
+        <Label htmlFor="publication-year">Year</Label>
+        <Input id="publication-year" name="year" inputMode="numeric" maxLength={4} />
+      </div>
+      <div className="field">
+        <Label htmlFor="publication-url">Link</Label>
+        <Input id="publication-url" name="url" type="url" placeholder="https://" maxLength={300} />
+      </div>
+      <div className="field">
+        <Label htmlFor="publication-summary">Summary</Label>
+        <Textarea id="publication-summary" name="summary" maxLength={500} rows={3} />
+      </div>
+      <ErrorLine error={state?.error} />
+      <SubmitButton>Add publication</SubmitButton>
+    </form>
   );
 }
 
