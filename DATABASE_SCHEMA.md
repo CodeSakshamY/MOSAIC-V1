@@ -19,7 +19,7 @@ Enums are used for sets the product owns. Adding a value is a migration.
 | Enum | Values |
 | --- | --- |
 | `age_group` | `13_15`, `16_17`, `18_24`, `25_34`, `35_plus` |
-| `project_status` | `idea`, `planning`, `prototype`, `building`, `testing`, `working`, `shipped`, `abandoned` |
+| `project_status` | `idea`, `researching`, `in_development`, `prototype`, `testing`, `completed`, `on_hold` |
 | `member_role` | `owner`, `maintainer`, `contributor` |
 | `member_status` | `pending`, `active`, `rejected` |
 | `collaboration_type` | `remote`, `local`, `hybrid` |
@@ -155,7 +155,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `cover_image_url` | Nullable. Public projects only. |
 | `category` | Text, max 60, matching an interest slug where possible. |
 | `subcategory` | Nullable. A closed list under `category`, checked by `is_project_subcategory`. |
-| `status` | `project_status`, default `idea`. |
+| `status` | `project_status`, default `idea`. The owner can set Idea, Researching, In development, Prototype, Testing, Completed, or On hold. |
 | `github_url`, `demo_url`, `documentation_url` | Nullable, `https` only. |
 | `visibility` | Default `public`. |
 | `looking_for_contributors` | Boolean, default false. |
@@ -572,6 +572,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `035_project_subcategories.sql` | Closed subcategory under the project category. |
 | `036_project_tools.sql` | Stop a project at 8 tools it uses. |
 | `037_project_skills_required.sql` | Stop a project at 8 skills it is seeking. |
+| `038_project_status.sql` | Seven project statuses a builder can set. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

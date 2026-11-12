@@ -22,16 +22,25 @@ export const projectTypeNotes: Record<ProjectCategory, string> = {
   Design: "Interfaces, graphics, and form.",
 };
 
-const statusLabels: Record<string, string> = {
-  idea: "Idea",
-  planning: "Planning",
-  prototype: "Prototype",
-  building: "Building",
-  testing: "Testing",
-  working: "Working",
-  shipped: "Shipped",
-  abandoned: "Abandoned",
-};
+export const projectStatuses = [
+  { value: "idea", label: "Idea" },
+  { value: "researching", label: "Researching" },
+  { value: "in_development", label: "In development" },
+  { value: "prototype", label: "Prototype" },
+  { value: "testing", label: "Testing" },
+  { value: "completed", label: "Completed" },
+  { value: "on_hold", label: "On hold" },
+] as const;
+
+export type ProjectStatus = (typeof projectStatuses)[number]["value"];
+
+export function isProjectStatus(value: string): value is ProjectStatus {
+  return projectStatuses.some((item) => item.value === value);
+}
+
+export function projectStatusLabel(status: string) {
+  return projectStatuses.find((item) => item.value === status)?.label ?? status;
+}
 
 export function projectSlug(value: string) {
   return value
@@ -64,8 +73,4 @@ export function isProjectCategory(value: string): value is ProjectCategory {
 
 export function isProjectSubcategory(category: string, subcategory: string) {
   return isProjectCategory(category) && projectSubcategories[category].includes(subcategory);
-}
-
-export function projectStatusLabel(status: string) {
-  return statusLabels[status] ?? status;
 }

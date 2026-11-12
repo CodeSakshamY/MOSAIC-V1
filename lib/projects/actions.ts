@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
-import { isProjectCategory, isProjectSlug, isProjectSubcategory, projectSlug } from "@/lib/projects/slug";
+import { isProjectCategory, isProjectSlug, isProjectStatus, isProjectSubcategory, projectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/auth/actions";
 
@@ -182,6 +182,26 @@ export async function updateTools(formData: FormData) {
 
 export async function updateSkillsRequired(formData: FormData) {
   await replaceProjectSkills(formData, "skill", "seeking");
+}
+
+export async function updateStatus(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!projectIdPattern.test(projectId) || !isProjectStatus(status)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase.from("projects").update({ status }).eq("id", projectId).eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/forge");
+  revalidatePath("/discover");
 }
 
 export async function updateCover(formData: FormData) {

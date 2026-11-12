@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
+import { StatusForm } from "@/components/build/StatusForm";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { ToolsForm } from "@/components/build/ToolsForm";
@@ -12,7 +13,7 @@ import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
-import { isProjectCategory, projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
+import { isProjectCategory, isProjectStatus, projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 
 export const instant = false;
@@ -154,6 +155,7 @@ async function ProjectView({
       ) : null}
       {isOwner ? <ToolsForm projectId={project.id} skills={skills} selected={[...usedIds]} /> : null}
       {isOwner ? <SkillsForm projectId={project.id} skills={skills} selected={[...neededIds]} /> : null}
+      {isOwner && isProjectStatus(project.status) ? <StatusForm projectId={project.id} status={project.status} /> : null}
       {!isOwner && member ? (
         <ReportForm kind="project" target={project.id} reported={reportedState(query.reported)} />
       ) : null}
@@ -209,7 +211,7 @@ async function ProjectView({
             </div>
             <div>
               <dt>Status</dt>
-              <dd>{projectStatusLabel(project.status)}</dd>
+              <dd className="project-status">{projectStatusLabel(project.status)}</dd>
             </div>
             <div>
               <dt>Forks</dt>
