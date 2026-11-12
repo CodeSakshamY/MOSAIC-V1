@@ -59,6 +59,7 @@ export async function ProfessionalProfile({
     competitionResult,
     communityResult,
     linkResult,
+    buildLogResult,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -83,7 +84,7 @@ export async function ProfessionalProfile({
       .order("created_at", { ascending: false }),
     supabase
       .from("projects")
-      .select("id, name, slug, description, tagline, subcategory, category, visibility, status, profile_featured_at")
+      .select("id, name, slug, description, tagline, subcategory, category, visibility, status, profile_featured_at, created_at")
       .eq("owner_id", profileId)
       .is("removed_at", null)
       .order("updated_at", { ascending: false }),
@@ -100,20 +101,27 @@ export async function ProfessionalProfile({
       .eq("status", "merged"),
     supabase
       .from("profile_publications")
-      .select("id, title, venue, year, url, summary")
+      .select("id, title, venue, year, url, summary, created_at")
       .eq("profile_id", profileId)
       .order("created_at", { ascending: false }),
     supabase
       .from("profile_competitions")
-      .select("id, name, host, year, result, url")
+      .select("id, name, host, year, result, url, created_at")
       .eq("profile_id", profileId)
       .order("created_at", { ascending: false }),
     supabase
       .from("profile_communities")
-      .select("id, name, role, year")
+      .select("id, name, role, year, created_at")
       .eq("profile_id", profileId)
       .order("created_at", { ascending: false }),
     supabase.from("profile_links").select("id, label, url").eq("profile_id", profileId).order("created_at", { ascending: true }),
+    supabase
+      .from("build_logs")
+      .select("id, title, created_at, project_id")
+      .eq("author_id", profileId)
+      .is("removed_at", null)
+      .order("created_at", { ascending: false })
+      .limit(30),
   ]);
 
   const profile = profileResult.data;
@@ -220,6 +228,45 @@ export async function ProfessionalProfile({
     .sort((left, right) => (right.profile_featured_at ?? "").localeCompare(left.profile_featured_at ?? ""));
   const completed = owned.filter((project) => project.status === "completed");
   const current = owned.filter((project) => project.status !== "completed");
+  const activity: Array<{ id: string; at: string; text: string; href?: string }> = [
+    ...owned.map((project) => ({
+      id: `project-${project.id}`,
+      at: project.created_at,
+      text: `Started ${project.name}`,
+      href: project.visibility === "public" || editable ? `/forge/${project.slug}` : undefined,
+    })),
+    ...(buildLogResult.data ?? []).map((log) => {
+      const project = owned.find((item) => item.id === log.project_id);
+      return {
+        id: `log-${log.id}`,
+        at: log.created_at,
+        text: project ? `Update on ${project.name}: ${log.title}` : `Update: ${log.title}`,
+        href: project && (project.visibility === "public" || editable) ? `/forge/${project.slug}` : undefined,
+      };
+    }),
+    ...(achievementResult.data ?? []).map((post) => ({
+      id: `achievement-${post.id}`,
+      at: post.created_at,
+      text: `Achievement: ${post.title?.trim() || post.content.slice(0, 80)}`,
+    })),
+    ...(publicationResult.data ?? []).map((item) => ({
+      id: `publication-${item.id}`,
+      at: item.created_at,
+      text: `Research: ${item.title}`,
+    })),
+    ...(competitionResult.data ?? []).map((item) => ({
+      id: `competition-${item.id}`,
+      at: item.created_at,
+      text: `Competition: ${item.name}`,
+    })),
+    ...(communityResult.data ?? []).map((item) => ({
+      id: `community-${item.id}`,
+      at: item.created_at,
+      text: `Community: ${item.name}`,
+    })),
+  ]
+    .sort((left, right) => right.at.localeCompare(left.at))
+    .slice(0, 30);
 
   return (
     <article className="profile-page">
@@ -379,6 +426,22 @@ export async function ProfessionalProfile({
           {editable ? <LookingForForm selected={profile.looking_for} /> : null}
         </section>
       ) : null}
+
+      <section className="profile-section" aria-labelledby="activity-heading">
+        <h2 id="activity-heading">Activity</h2>
+        {activity.length > 0 ? (
+          <ol className="activity-list">
+            {activity.map((event) => (
+              <li key={event.id}>
+                <time dateTime={event.at}>{event.at.slice(0, 10)}</time>
+                {event.href ? <a href={event.href}>{event.text}</a> : <span>{event.text}</span>}
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="form-note">No activity yet.</p>
+        )}
+      </section>
 
       <RecordSection
         id="links"
