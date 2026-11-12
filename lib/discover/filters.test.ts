@@ -14,6 +14,7 @@ describe("readDiscoverFilters", () => {
         availability: "hybrid",
         looking: "teammates",
         type: "Software",
+        status: "prototype",
         q: " Sensor% ",
       }),
     ).toEqual({
@@ -27,6 +28,7 @@ describe("readDiscoverFilters", () => {
       availability: "hybrid",
       looking: "teammates",
       type: "Software",
+      status: "prototype",
     });
   });
 
@@ -42,6 +44,7 @@ describe("readDiscoverFilters", () => {
         availability: "anywhere",
         looking: "nope",
         type: "robotics",
+        status: "famous",
       }),
     ).toEqual({
       q: "",
@@ -54,6 +57,7 @@ describe("readDiscoverFilters", () => {
       availability: "",
       looking: "",
       type: null,
+      status: null,
     });
   });
 });

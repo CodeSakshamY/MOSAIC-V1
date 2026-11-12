@@ -17,7 +17,7 @@ import { emptyActivity, loadActivity } from "@/lib/feed/activity";
 import { hiddenPostIds } from "@/lib/safety/hidden";
 import { ageGroups } from "@/lib/profile/age-groups";
 import { collaborationPreferences } from "@/lib/profile/collaboration";
-import { projectCategories, type ProjectCategory } from "@/lib/projects/slug";
+import { projectCategories, projectStatuses, type ProjectCategory } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 
 const views = [
@@ -89,7 +89,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       </nav>
       <div className="discover-tools">
         {view === "people" || view === "projects" || view === "everything" ? <DiscoverSearch view={view} filters={filters} /> : null}
-        {view === "people" ? <PeopleFilters filters={filters} /> : view === "everything" ? null : <TypeFilters view={view} filters={filters} />}
+        {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" ? null : <TypeFilters view={view} filters={filters} />}
       </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
@@ -127,6 +127,7 @@ function hrefFor(view: View, filters: DiscoverFilters, type: ProjectCategory | n
   } else if (view !== "everything" && type) {
     params.set("type", type);
   }
+  if (view === "projects" && filters.status) params.set("status", filters.status);
   const query = params.toString();
   return query ? `/discover?${query}` : "/discover";
 }
@@ -685,13 +686,14 @@ async function ProjectList({ filters }: { filters: DiscoverFilters }) {
     .order("updated_at", { ascending: false })
     .limit(30);
   if (filters.type) query = query.eq("category", filters.type);
+  if (filters.status) query = query.eq("status", filters.status);
   if (filters.q) query = query.or(`name.ilike.%${filters.q}%,description.ilike.%${filters.q}%,tagline.ilike.%${filters.q}%`);
   const { data } = await query;
   const projects = data ?? [];
   if (projects.length === 0) {
     return (
       <p className="repo-empty">
-        {filters.type ? "No projects match that filter." : filters.q ? "No projects match that search." : "No public projects yet."}
+        {filters.type || filters.status ? "No projects match that filter." : filters.q ? "No projects match that search." : "No public projects yet."}
       </p>
     );
   }
@@ -1135,6 +1137,43 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
         </Link>
       ) : null}
     </form>
+    </FilterMenu>
+  );
+}
+
+function AdvancedProjectFilters({ filters }: { filters: DiscoverFilters }) {
+  const active = Number(Boolean(filters.type)) + Number(Boolean(filters.status));
+  return (
+    <FilterMenu active={active}>
+      <form className="discover-filters" action="/discover">
+        <input type="hidden" name="view" value="projects" />
+        {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
+        <div className="field">
+          <label htmlFor="discover-project-type">Type</label>
+          <select id="discover-project-type" name="type" className="field-select" defaultValue={filters.type ?? ""}>
+            <option value="">Any</option>
+            {projectCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="discover-project-status">Status</label>
+          <select id="discover-project-status" name="status" className="field-select" defaultValue={filters.status ?? ""}>
+            <option value="">Any</option>
+            {projectStatuses.map((status) => (
+              <option key={status.value} value={status.value}>
+                {status.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button className="text-button" type="submit">
+          Apply filters
+        </button>
+      </form>
     </FilterMenu>
   );
 }

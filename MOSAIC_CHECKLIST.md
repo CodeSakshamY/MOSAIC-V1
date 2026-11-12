@@ -173,7 +173,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Discover trending technologies
 - [x] Discover projects by discipline (type filters on Forge and Discover)
 - [x] Search everything across MOSAIC
-- [ ] Advanced filters
+- [x] Advanced filters
 - [ ] Sort by relevance, latest and popularity
 - [ ] Related content recommendations
 - [ ] Curated collections
