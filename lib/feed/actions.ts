@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
+import { parseWebsite } from "@/lib/auth/validation";
 import { isReactionType } from "@/lib/feed/reactions";
 import { createClient } from "@/lib/supabase/server";
 
@@ -181,6 +182,8 @@ export async function createFeedPost(_state: { error?: string } | null, formData
   if (!feedPostTypes.some((item) => item === type)) return { error: "Choose a kind of post." };
   if (!title) return { error: "Add a title." };
   if (!content) return { error: "Write the post." };
+  const attachment = parseWebsite(String(formData.get("attachment") ?? ""));
+  if (!attachment.ok) return { error: attachment.error };
   const supabase = await createClient();
   let projectId: string | null = null;
   if (type === "project") {
@@ -202,6 +205,7 @@ export async function createFeedPost(_state: { error?: string } | null, formData
     title,
     content,
     project_id: projectId,
+    link_url: attachment.website,
     visibility: "public",
     is_demo: false,
   });

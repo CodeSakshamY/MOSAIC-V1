@@ -20,7 +20,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Competition and achievement posts
 - [x] Opportunity announcements
 - [x] Event announcements
-- [ ] Image, video, document and link attachments
+- [x] Image, video, document and link attachments
 - [ ] Rich project previews embedded in posts
 - [x] Like or appreciation reactions
 - [ ] Interesting reaction

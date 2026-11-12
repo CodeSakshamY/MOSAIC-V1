@@ -47,6 +47,11 @@ export function FeedPostForm({ projects }: { projects: { id: string; name: strin
         <Label htmlFor="feed-post-body">Post</Label>
         <Textarea id="feed-post-body" name="content" required maxLength={8000} rows={4} />
       </div>
+      <div className="field">
+        <Label htmlFor="feed-post-attachment">Attachment link</Label>
+        <Input id="feed-post-attachment" name="attachment" type="url" placeholder="https://" maxLength={300} />
+        <p className="form-note">Optional https link to a photo, video, document, or page. Project updates can also upload those files directly.</p>
+      </div>
       {state?.error ? (
         <p className="form-error" role="alert">
           {state.error}

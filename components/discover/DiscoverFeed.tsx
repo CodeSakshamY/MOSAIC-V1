@@ -287,7 +287,7 @@ async function loadPosts(type: ProjectCategory | null) {
   }
   let query = supabase
     .from("posts")
-    .select("id, title, content, type, media_urls, author_id, project_id, build_log_id, opportunity_id, created_at")
+    .select("id, title, content, type, media_urls, link_url, author_id, project_id, build_log_id, opportunity_id, created_at")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("created_at", { ascending: false })
@@ -410,6 +410,16 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
             <span className="repo-visibility">{postKindLabel(post.type, post.logKind, post.opportunityCategory)}</span>
           </div>
           <p className="discover-copy">{post.content}</p>
+          {(post.media_urls ?? []).map((url) => (
+            <p key={url}>
+              <a href={url}>Attachment</a>
+            </p>
+          ))}
+          {post.link_url ? (
+            <p>
+              <a href={post.link_url}>Attachment</a>
+            </p>
+          ) : null}
           {kind === "ideas" ? (
             <div className="idea-photos">
               {(post.media_urls ?? []).filter((url) => url && !isVideoUrl(url)).slice(0, 4).map((url) => (

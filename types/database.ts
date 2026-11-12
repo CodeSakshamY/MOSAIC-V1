@@ -505,14 +505,14 @@ isOneToOne: false
                   ]
                 },"posts": {
                   Row: {
-                    "author_id": string,"build_log_id": string | null,"content": string,"created_at": string,"id": string,"is_demo": boolean,"media_urls": (string)[],"opportunity_id": string | null,"project_id": string | null,"removed_at": string | null,"title": string | null,"type": Database["public"]['Enums']["post_type"],"updated_at": string,"visibility": Database["public"]['Enums']["visibility"]
+                    "author_id": string,"build_log_id": string | null,"content": string,"created_at": string,"id": string,"is_demo": boolean,"link_url": string | null,"media_urls": (string)[],"opportunity_id": string | null,"project_id": string | null,"removed_at": string | null,"title": string | null,"type": Database["public"]['Enums']["post_type"],"updated_at": string,"visibility": Database["public"]['Enums']["visibility"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_id": string,"build_log_id"?: string | null,"content": string,"created_at"?: string,"id"?: string,"is_demo"?: boolean,"media_urls"?: (string)[],"opportunity_id"?: string | null,"project_id"?: string | null,"removed_at"?: string | null,"title"?: string | null,"type": Database["public"]['Enums']["post_type"],"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
+                    "author_id": string,"build_log_id"?: string | null,"content": string,"created_at"?: string,"id"?: string,"is_demo"?: boolean,"link_url"?: string | null,"media_urls"?: (string)[],"opportunity_id"?: string | null,"project_id"?: string | null,"removed_at"?: string | null,"title"?: string | null,"type": Database["public"]['Enums']["post_type"],"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
                   }
                   Update: {
-                    "author_id"?: string,"build_log_id"?: string | null,"content"?: string,"created_at"?: string,"id"?: string,"is_demo"?: boolean,"media_urls"?: (string)[],"opportunity_id"?: string | null,"project_id"?: string | null,"removed_at"?: string | null,"title"?: string | null,"type"?: Database["public"]['Enums']["post_type"],"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
+                    "author_id"?: string,"build_log_id"?: string | null,"content"?: string,"created_at"?: string,"id"?: string,"is_demo"?: boolean,"link_url"?: string | null,"media_urls"?: (string)[],"opportunity_id"?: string | null,"project_id"?: string | null,"removed_at"?: string | null,"title"?: string | null,"type"?: Database["public"]['Enums']["post_type"],"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
                   }
                   Relationships: [
                     {
