@@ -19,11 +19,15 @@ export async function announceOpportunity(_state: { error?: string } | null, for
   const category = String(formData.get("category") ?? "");
   const link = parseWebsite(String(formData.get("url") ?? ""));
   const deadlineText = String(formData.get("deadline") ?? "").trim();
+  const eligibility = String(formData.get("eligibility") ?? "").trim().slice(0, 1000);
+  const region = String(formData.get("region") ?? "").trim().slice(0, 80);
+  const countryText = String(formData.get("country") ?? "").trim();
   if (title.length < 3) return { error: "Add a title." };
   if (!organizer) return { error: "Add the organiser." };
   if (!description) return { error: "Describe the opportunity." };
   if (!isOpportunityCategory(category)) return { error: "Choose a category." };
   if (!link.ok || !link.website) return { error: link.ok ? "Add the official https link." : link.error };
+  if (countryText && !/^[A-Za-z]{2}$/.test(countryText)) return { error: "Use a two-letter country code, or leave it empty." };
   let deadline: string | null = null;
   if (deadlineText) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(deadlineText)) return { error: "Use a real date, or leave the deadline empty." };
@@ -40,6 +44,9 @@ export async function announceOpportunity(_state: { error?: string } | null, for
     category,
     official_url: link.website,
     deadline,
+    eligibility: eligibility || null,
+    country: countryText ? countryText.toUpperCase() : null,
+    state: region || null,
     is_published: true,
     is_verified: false,
     is_demo: false,

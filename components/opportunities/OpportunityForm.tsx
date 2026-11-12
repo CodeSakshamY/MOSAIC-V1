@@ -34,6 +34,20 @@ export function OpportunityForm() {
         <Input id="opportunity-url" name="url" type="url" required placeholder="https://" maxLength={300} />
       </div>
       <div className="field">
+        <Label htmlFor="opportunity-country">Country</Label>
+        <Input id="opportunity-country" name="country" maxLength={2} placeholder="IN" />
+        <p className="form-note">Optional two-letter code.</p>
+      </div>
+      <div className="field">
+        <Label htmlFor="opportunity-region">Region</Label>
+        <Input id="opportunity-region" name="region" maxLength={80} />
+      </div>
+      <div className="field">
+        <Label htmlFor="opportunity-eligibility">Eligibility</Label>
+        <Textarea id="opportunity-eligibility" name="eligibility" maxLength={1000} rows={2} />
+        <p className="form-note">Leave this empty when the official page has the criteria.</p>
+      </div>
+      <div className="field">
         <Label htmlFor="opportunity-deadline">Deadline</Label>
         <Input id="opportunity-deadline" name="deadline" type="date" />
         <p className="form-note">Leave this empty when the organiser has not published a deadline.</p>
