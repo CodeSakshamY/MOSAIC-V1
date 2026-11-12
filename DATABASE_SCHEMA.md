@@ -539,6 +539,10 @@ A builder can list up to 20 competitions. `name` is 1–160. `host` and `result`
 
 A builder can list up to 20 groups they have taken part in. `name` is 1–80. `role` is optional, 1–40. `year` is optional, 1950–2100. This list is not a MOSAIC group. Select, insert, and delete follow the publication rules.
 
+### profile_links
+
+Up to 8 extra https links. `label` is 1–40. `url` is at most 300 characters. The same URL cannot be saved twice on one profile. GitHub and the website stay on `profiles`. Select, insert, and delete follow the publication rules.
+
 ## Storage
 
 `014_storage_policies.sql` creates the buckets.
@@ -623,6 +627,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `054_profile_publications.sql` | A builder can list research and publications on their profile. |
 | `055_profile_competitions.sql` | A builder can list competitions they took part in. |
 | `056_profile_communities.sql` | A builder can list communities they have taken part in. |
+| `057_profile_links.sql` | Extra https links on a profile, including LinkedIn. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

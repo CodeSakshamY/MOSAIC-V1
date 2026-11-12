@@ -687,6 +687,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"profile_links": {
+                  Row: {
+                    "created_at": string,"id": string,"label": string,"profile_id": string,"url": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"label": string,"profile_id": string,"url": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"label"?: string,"profile_id"?: string,"url"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "profile_links_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"profile_private": {
                   Row: {
                     "created_at": string,"onboarding_step": number,"profile_id": string,"updated_at": string

@@ -16,6 +16,7 @@ import {
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
 import { CollaborationForm } from "@/components/profile/CollaborationForm";
 import { InterestsForm } from "@/components/profile/InterestsForm";
+import { ProfileLinkForm } from "@/components/profile/ProfileLinkForm";
 import { LookingForForm } from "@/components/profile/LookingForForm";
 import { collaborationLabel } from "@/lib/profile/collaboration";
 import { lookingForOptions } from "@/lib/auth/looking-for";
@@ -57,6 +58,7 @@ export async function ProfessionalProfile({
     publicationResult,
     competitionResult,
     communityResult,
+    linkResult,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -111,6 +113,7 @@ export async function ProfessionalProfile({
       .select("id, name, role, year")
       .eq("profile_id", profileId)
       .order("created_at", { ascending: false }),
+    supabase.from("profile_links").select("id, label, url").eq("profile_id", profileId).order("created_at", { ascending: true }),
   ]);
 
   const profile = profileResult.data;
@@ -239,13 +242,18 @@ export async function ProfessionalProfile({
         <p>@{profile.username}</p>
         {profile.education ? <p>{profile.education}</p> : null}
         {place ? <p>{place}</p> : null}
-        {profile.github_username || profile.website_url ? (
+        {profile.github_username || profile.website_url || (linkResult.data ?? []).length > 0 ? (
           <p>
             {profile.github_username ? <span>GitHub {profile.github_username}</span> : null}
             {profile.github_username && profile.website_url ? " · " : null}
             {profile.website_url ? (
               <a href={profile.website_url}>{profile.website_url.replace(/^https:\/\//, "")}</a>
             ) : null}
+            {(linkResult.data ?? []).map((link) => (
+              <a key={link.id} href={link.url}>
+                {link.label}
+              </a>
+            ))}
           </p>
         ) : null}
         <div className="follow-row">
@@ -371,6 +379,20 @@ export async function ProfessionalProfile({
           {editable ? <LookingForForm selected={profile.looking_for} /> : null}
         </section>
       ) : null}
+
+      <RecordSection
+        id="links"
+        title="Links"
+        empty="No extra links yet."
+        editable={editable}
+        form={<ProfileLinkForm />}
+        items={(linkResult.data ?? []).map((item) => ({
+          id: item.id,
+          title: item.label,
+          href: item.url,
+          kind: "link",
+        }))}
+      />
 
       <RecordSection
         id="experience"

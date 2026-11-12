@@ -78,6 +78,30 @@ export async function saveLookingFor(_state: { error?: string } | null, formData
   redirect("/profile");
 }
 
+export async function addProfileLink(_state: { error?: string } | null, formData: FormData) {
+  const member = await requireOwner();
+  const label = text(formData.get("label"), 40);
+  const link = parseWebsite(String(formData.get("url") ?? ""));
+  if (!label) return { error: "Add a label, such as LinkedIn." };
+  if (!link.ok || !link.website) return { error: link.ok ? "Add an https link." : link.error };
+  if (link.website.length > 300) return { error: "Keep the link to 300 characters." };
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("profile_links")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_id", member.id);
+  if ((count ?? 0) >= 8) return { error: "A profile can list 8 links." };
+  const { error } = await supabase.from("profile_links").insert({
+    profile_id: member.id,
+    label,
+    url: link.website,
+  });
+  if (error) return { error: "That link was not saved." };
+  revalidatePath("/profile");
+  if (member.username) revalidatePath(`/people/${member.username}`);
+  redirect("/profile");
+}
+
 export async function featureProject(formData: FormData) {
   const member = await requireOwner();
   const projectId = String(formData.get("projectId") ?? "");
@@ -345,6 +369,8 @@ export async function removeProfileItem(formData: FormData) {
     await supabase.from("profile_competitions").delete().eq("id", id).eq("profile_id", member.id);
   } else if (kind === "community") {
     await supabase.from("profile_communities").delete().eq("id", id).eq("profile_id", member.id);
+  } else if (kind === "link") {
+    await supabase.from("profile_links").delete().eq("id", id).eq("profile_id", member.id);
   }
   redirect("/profile");
 }

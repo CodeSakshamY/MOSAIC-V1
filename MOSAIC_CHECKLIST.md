@@ -101,7 +101,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Collaboration interests
 - [x] Looking-for status
 - [x] GitHub and personal website
-- [ ] LinkedIn and other external links
+- [x] LinkedIn and other external links
 - [x] Education, optional
 - [x] Follow/unfollow
 - [x] Followers and following
