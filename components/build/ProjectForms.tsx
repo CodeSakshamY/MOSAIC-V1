@@ -7,6 +7,7 @@ import {
   replyToThread,
   startThread,
 } from "@/lib/projects/actions";
+import { buildLogKindLabel, buildLogKinds } from "@/lib/projects/log-kind";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,21 @@ export function CommitForm({ projectId, slug }: { projectId: string; slug: strin
       <div className="field">
         <Label htmlFor="commit-body">What changed</Label>
         <Textarea id="commit-body" name="content" required rows={4} />
+      </div>
+      <div className="field">
+        <Label htmlFor="commit-kind">Record</Label>
+        <select id="commit-kind" name="kind" defaultValue="update">
+          {buildLogKinds.map((kind) => (
+            <option key={kind} value={kind}>
+              {buildLogKindLabel(kind)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <Label htmlFor="commit-file">Files</Label>
+        <Input id="commit-file" name="file" type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,application/pdf" />
+        <p className="form-note">Optional. Up to 4 photos, short videos, or PDFs.</p>
       </div>
       <ErrorLine state={state} />
       <SubmitButton>Commit</SubmitButton>

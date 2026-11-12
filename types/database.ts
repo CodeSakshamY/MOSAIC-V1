@@ -109,14 +109,14 @@ isOneToOne: false
                   ]
                 },"build_logs": {
                   Row: {
-                    "author_id": string,"content": string,"created_at": string,"id": string,"media_urls": (string)[],"project_id": string,"removed_at": string | null,"title": string,"updated_at": string
+                    "author_id": string,"content": string,"created_at": string,"id": string,"kind": Database["public"]['Enums']["build_log_kind"],"media_urls": (string)[],"project_id": string,"removed_at": string | null,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_id": string,"content": string,"created_at"?: string,"id"?: string,"media_urls"?: (string)[],"project_id": string,"removed_at"?: string | null,"title": string,"updated_at"?: string
+                    "author_id": string,"content": string,"created_at"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["build_log_kind"],"media_urls"?: (string)[],"project_id": string,"removed_at"?: string | null,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "author_id"?: string,"content"?: string,"created_at"?: string,"id"?: string,"media_urls"?: (string)[],"project_id"?: string,"removed_at"?: string | null,"title"?: string,"updated_at"?: string
+                    "author_id"?: string,"content"?: string,"created_at"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["build_log_kind"],"media_urls"?: (string)[],"project_id"?: string,"removed_at"?: string | null,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -707,6 +707,52 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_saves": {
+                  Row: {
+                    "created_at": string,"profile_id": string,"project_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"profile_id": string,"project_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"profile_id"?: string,"project_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_saves_profile_id_fkey"
+      columns: ["profile_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_saves_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"project_versions": {
+                  Row: {
+                    "created_at": string,"id": string,"note": string | null,"project_id": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"note"?: string | null,"project_id": string,"title": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"note"?: string | null,"project_id"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_versions_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project_gallery": {
                   Row: {
                     "created_at": string,"id": string,"image_url": string,"project_id": string
@@ -833,14 +879,14 @@ isOneToOne: false
                   ]
                 },"projects": {
                   Row: {
-                    "category": string,"collaboration_type": Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url": string | null,"created_at": string,"demo_url": string | null,"description": string,"detailed_description": string | null,"documentation_url": string | null,"featured_at": string | null,"github_url": string | null,"id": string,"is_demo": boolean,"looking_for_contributors": boolean,"name": string,"owner_id": string,"parent_project_id": string | null,"problem": string | null,"removed_at": string | null,"slug": string,"solution": string | null,"starts_on": string | null,"ends_on": string | null,"status": Database["public"]['Enums']["project_status"],"subcategory": string | null,"tagline": string | null,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"]
+                    "category": string,"collaboration_type": Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url": string | null,"created_at": string,"demo_url": string | null,"description": string,"detailed_description": string | null,"credits": string | null,"documentation_url": string | null,"featured_at": string | null,"github_url": string | null,"id": string,"is_demo": boolean,"looking_for_contributors": boolean,"name": string,"owner_id": string,"parent_project_id": string | null,"problem": string | null,"removed_at": string | null,"slug": string,"solution": string | null,"starts_on": string | null,"ends_on": string | null,"status": Database["public"]['Enums']["project_status"],"subcategory": string | null,"tagline": string | null,"updated_at": string,"visibility": Database["public"]['Enums']["visibility"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "category": string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description": string,"detailed_description"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name": string,"owner_id": string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug": string,"solution"?: string | null,"starts_on"?: string | null,"ends_on"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"subcategory"?: string | null,"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
+                    "category": string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description": string,"detailed_description"?: string | null,"credits"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name": string,"owner_id": string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug": string,"solution"?: string | null,"starts_on"?: string | null,"ends_on"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"subcategory"?: string | null,"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
                   }
                   Update: {
-                    "category"?: string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description"?: string,"detailed_description"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name"?: string,"owner_id"?: string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug"?: string,"solution"?: string | null,"starts_on"?: string | null,"ends_on"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"subcategory"?: string | null,"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
+                    "category"?: string,"collaboration_type"?: Database["public"]['Enums']["collaboration_type"] | null,"cover_image_url"?: string | null,"created_at"?: string,"demo_url"?: string | null,"description"?: string,"detailed_description"?: string | null,"credits"?: string | null,"documentation_url"?: string | null,"featured_at"?: string | null,"github_url"?: string | null,"id"?: string,"is_demo"?: boolean,"looking_for_contributors"?: boolean,"name"?: string,"owner_id"?: string,"parent_project_id"?: string | null,"problem"?: string | null,"removed_at"?: string | null,"slug"?: string,"solution"?: string | null,"starts_on"?: string | null,"ends_on"?: string | null,"status"?: Database["public"]['Enums']["project_status"],"subcategory"?: string | null,"tagline"?: string | null,"updated_at"?: string,"visibility"?: Database["public"]['Enums']["visibility"]
                   }
                   Relationships: [
                     {
@@ -1008,6 +1054,9 @@ isOneToOne: false
             "anonymize_profile":
 { Args: { "target": string }; Returns: undefined
                            },
+"owner_project_save_count":
+{ Args: { "target": string }; Returns: number
+                           },
 "current_member_status":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -1019,7 +1068,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "age_group": "13_15"|"16_17"|"18_24"|"25_34"|"35_plus","collaboration_type": "remote"|"local"|"hybrid","community_category": "technology"|"discipline"|"city"|"institution"|"research"|"project","community_role": "owner"|"moderator"|"member","contribution_status": "pending"|"accepted"|"rejected"|"withdrawn","feed_event_type": "impression"|"dismiss"|"more"|"less","member_role": "owner"|"maintainer"|"contributor","member_status": "pending"|"active"|"rejected","notification_type": "new_follower"|"comment"|"reply"|"contribution_request"|"contribution_accepted"|"contribution_rejected"|"project_update"|"community_activity","opportunity_category": "hackathon"|"robotics_competition"|"science_fair"|"research_program"|"olympiad"|"scholarship"|"fellowship"|"internship"|"grant"|"maker_event"|"startup_competition"|"innovation_challenge"|"workshop","post_type": "project"|"build_log"|"idea"|"help"|"achievement"|"opportunity","project_status": "idea"|"researching"|"in_development"|"prototype"|"testing"|"completed"|"on_hold","reaction_type": "interesting"|"inspired"|"build"|"contribute"|"like"|"upvote"|"downvote","report_reason": "harassment"|"spam"|"inappropriate"|"impersonation"|"unsafe"|"copyright"|"other","report_status": "open"|"reviewing"|"removed"|"dismissed"|"restored","sanction_kind": "suspension","skill_relation": "uses"|"seeking","staff_role": "admin"|"moderator","visibility": "public"|"private"
+            "age_group": "13_15"|"16_17"|"18_24"|"25_34"|"35_plus","build_log_kind": "update"|"milestone"|"problem"|"experiment","collaboration_type": "remote"|"local"|"hybrid","community_category": "technology"|"discipline"|"city"|"institution"|"research"|"project","community_role": "owner"|"moderator"|"member","contribution_status": "pending"|"accepted"|"rejected"|"withdrawn","feed_event_type": "impression"|"dismiss"|"more"|"less","member_role": "owner"|"maintainer"|"contributor","member_status": "pending"|"active"|"rejected","notification_type": "new_follower"|"comment"|"reply"|"contribution_request"|"contribution_accepted"|"contribution_rejected"|"project_update"|"community_activity","opportunity_category": "hackathon"|"robotics_competition"|"science_fair"|"research_program"|"olympiad"|"scholarship"|"fellowship"|"internship"|"grant"|"maker_event"|"startup_competition"|"innovation_challenge"|"workshop","post_type": "project"|"build_log"|"idea"|"help"|"achievement"|"opportunity","project_status": "idea"|"researching"|"in_development"|"prototype"|"testing"|"completed"|"on_hold","reaction_type": "interesting"|"inspired"|"build"|"contribute"|"like"|"upvote"|"downvote","report_reason": "harassment"|"spam"|"inappropriate"|"impersonation"|"unsafe"|"copyright"|"other","report_status": "open"|"reviewing"|"removed"|"dismissed"|"restored","sanction_kind": "suspension","skill_relation": "uses"|"seeking","staff_role": "admin"|"moderator","visibility": "public"|"private"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1139,7 +1188,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "age_group": ["13_15", "16_17", "18_24", "25_34", "35_plus"],"collaboration_type": ["remote", "local", "hybrid"],"community_category": ["technology", "discipline", "city", "institution", "research", "project"],"community_role": ["owner", "moderator", "member"],"contribution_status": ["pending", "accepted", "rejected", "withdrawn"],"feed_event_type": ["impression", "dismiss", "more", "less"],"member_role": ["owner", "maintainer", "contributor"],"member_status": ["pending", "active", "rejected"],"notification_type": ["new_follower", "comment", "reply", "contribution_request", "contribution_accepted", "contribution_rejected", "project_update", "community_activity"],"opportunity_category": ["hackathon", "robotics_competition", "science_fair", "research_program", "olympiad", "scholarship", "fellowship", "internship", "grant", "maker_event", "startup_competition", "innovation_challenge", "workshop"],"post_type": ["project", "build_log", "idea", "help", "achievement", "opportunity"],"project_status": ["idea", "researching", "in_development", "prototype", "testing", "completed", "on_hold"],"reaction_type": ["interesting", "inspired", "build", "contribute", "like", "upvote", "downvote"],"report_reason": ["harassment", "spam", "inappropriate", "impersonation", "unsafe", "copyright", "other"],"report_status": ["open", "reviewing", "removed", "dismissed", "restored"],"sanction_kind": ["suspension"],"skill_relation": ["uses", "seeking"],"staff_role": ["admin", "moderator"],"visibility": ["public", "private"]
+            "age_group": ["13_15", "16_17", "18_24", "25_34", "35_plus"],"build_log_kind": ["update", "milestone", "problem", "experiment"],"collaboration_type": ["remote", "local", "hybrid"],"community_category": ["technology", "discipline", "city", "institution", "research", "project"],"community_role": ["owner", "moderator", "member"],"contribution_status": ["pending", "accepted", "rejected", "withdrawn"],"feed_event_type": ["impression", "dismiss", "more", "less"],"member_role": ["owner", "maintainer", "contributor"],"member_status": ["pending", "active", "rejected"],"notification_type": ["new_follower", "comment", "reply", "contribution_request", "contribution_accepted", "contribution_rejected", "project_update", "community_activity"],"opportunity_category": ["hackathon", "robotics_competition", "science_fair", "research_program", "olympiad", "scholarship", "fellowship", "internship", "grant", "maker_event", "startup_competition", "innovation_challenge", "workshop"],"post_type": ["project", "build_log", "idea", "help", "achievement", "opportunity"],"project_status": ["idea", "researching", "in_development", "prototype", "testing", "completed", "on_hold"],"reaction_type": ["interesting", "inspired", "build", "contribute", "like", "upvote", "downvote"],"report_reason": ["harassment", "spam", "inappropriate", "impersonation", "unsafe", "copyright", "other"],"report_status": ["open", "reviewing", "removed", "dismissed", "restored"],"sanction_kind": ["suspension"],"skill_relation": ["uses", "seeking"],"staff_role": ["admin", "moderator"],"visibility": ["public", "private"]
           }
         }
 } as const

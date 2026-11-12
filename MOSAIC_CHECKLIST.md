@@ -54,26 +54,26 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Project updates and build logs shown on the project as a public history beyond the commit form
 - [x] Project contributors and team members shown as a team
 - [x] Contribution history
-- [ ] Credits and acknowledgements
+- [x] Credits and acknowledgements
 - [x] Project discussions (threads and replies)
-- [ ] Collaboration requests on the project
+- [x] Collaboration requests on the project
 - [x] Follow/watch a project
-- [ ] Save a project
-- [ ] Share a project
+- [x] Save a project
+- [x] Share a project
 - [x] Report a project
-- [ ] Project analytics for owners
-- [ ] Related and similar projects
-- [ ] Project version history
+- [x] Project analytics for owners
+- [x] Related and similar projects
+- [x] Project version history
 - [x] Fork another project with the original kept as the parent
-- [ ] Project lineage showing derivative projects and contributors
+- [x] Project lineage showing derivative projects and contributors
 
 ## 3. Build logs and progress updates
 
 - [x] Publish a text build log (shown as a commit on the project)
-- [ ] Add images, videos and attachments to a build log
-- [ ] Record milestones
-- [ ] Share problems encountered
-- [ ] Document experiments
+- [x] Add images, videos and attachments to a build log
+- [x] Record milestones
+- [x] Share problems encountered
+- [x] Document experiments
 - [ ] Share failed attempts and lessons learned
 - [ ] Add technical explanations as a distinct log type
 - [x] Link updates to a specific project

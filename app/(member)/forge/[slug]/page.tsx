@@ -3,22 +3,33 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { buildLogKindLabel } from "@/lib/projects/log-kind";
+import { LogMedia } from "@/components/build/LogMedia";
+import { Collaboration } from "@/components/build/Collaboration";
 import { ContributionHistory } from "@/components/build/ContributionHistory";
+import { CreditsForm } from "@/components/build/CreditsForm";
 import { DocumentationForm } from "@/components/build/DocumentationForm";
 import { Milestones } from "@/components/build/Milestones";
+import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
+import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
 import { StatusForm } from "@/components/build/StatusForm";
 import { TimelineForm } from "@/components/build/TimelineForm";
 import { ProjectTeam } from "@/components/build/ProjectTeam";
+import { RelatedProjects } from "@/components/build/RelatedProjects";
 import { UpdateHistory } from "@/components/build/UpdateHistory";
+import { Versions } from "@/components/build/Versions";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { ToolsForm } from "@/components/build/ToolsForm";
+import { ShareButton } from "@/components/feed/ShareButton";
 import { forkProject, reviewPullRequest } from "@/lib/projects/actions";
+import { toggleProjectSave } from "@/lib/projects/follow";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { ReportForm, reportedState } from "@/components/safety/ReportForm";
 import { getMember } from "@/lib/auth/session";
+import { relatedProjects } from "@/lib/projects/related";
 import { isProjectCategory, isProjectStatus, projectStatusLabel, projectTypeNotes, type ProjectCategory } from "@/lib/projects/slug";
 import { projectTimelineText } from "@/lib/projects/timeline";
 import { createClient } from "@/lib/supabase/server";
@@ -73,18 +84,18 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, detailed_description, tagline, subcategory, cover_image_url, visibility, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, saveResult, galleryResult, skillsResult, skillLinks, milestoneResult, versionResult, logResult, memberResult, requestResult, followCount, threadCount, saveCount] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
       : Promise.resolve({ data: null }),
-    supabase.from("projects").select("name, slug").eq("parent_project_id", project.id).is("removed_at", null),
+    supabase.from("projects").select("id, name, slug").eq("parent_project_id", project.id).is("removed_at", null),
     member
       ? supabase
           .from("project_members")
@@ -102,6 +113,14 @@ async function ProjectView({
           .eq("project_id", project.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    member
+      ? supabase
+          .from("project_saves")
+          .select("profile_id")
+          .eq("profile_id", member.id)
+          .eq("project_id", project.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
     supabase.from("project_gallery").select("id, image_url").eq("project_id", project.id).order("created_at", { ascending: true }),
     supabase.from("skills").select("id, name").order("name"),
     supabase.from("project_skills").select("skill_id, relation").eq("project_id", project.id).in("relation", ["uses", "seeking"]),
@@ -112,8 +131,13 @@ async function ProjectView({
       .order("happens_on", { ascending: true })
       .order("created_at", { ascending: true }),
     supabase
+      .from("project_versions")
+      .select("id, title, note, created_at")
+      .eq("project_id", project.id)
+      .order("created_at", { ascending: false }),
+    supabase
       .from("build_logs")
-      .select("id, title, content, created_at, author_id")
+      .select("id, title, content, created_at, author_id, media_urls, kind")
       .eq("project_id", project.id)
       .is("removed_at", null)
       .order("created_at", { ascending: false }),
@@ -122,6 +146,21 @@ async function ProjectView({
       .select("profile_id, role, joined_at")
       .eq("project_id", project.id)
       .eq("status", "active"),
+    supabase
+      .from("contribution_requests")
+      .select("id, requester_id, message, proposed_contribution, status")
+      .eq("project_id", project.id)
+      .order("created_at", { ascending: true }),
+    supabase.from("project_follows").select("profile_id", { count: "exact", head: true }).eq("project_id", project.id),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", project.id)
+      .eq("type", "idea")
+      .is("removed_at", null),
+    member?.id === project.owner_id
+      ? supabase.rpc("owner_project_save_count", { target: project.id })
+      : Promise.resolve({ data: null }),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
@@ -130,12 +169,72 @@ async function ProjectView({
   const links = skillLinks.data ?? [];
   const usedIds = new Set(links.filter((row) => row.relation === "uses").map((row) => row.skill_id));
   const neededIds = new Set(links.filter((row) => row.relation === "seeking").map((row) => row.skill_id));
+  const { data: relatedRows } = await supabase
+    .from("projects")
+    .select("id, name, slug, subcategory, updated_at")
+    .eq("category", project.category)
+    .eq("visibility", "public")
+    .is("removed_at", null)
+    .neq("id", project.id)
+    .order("updated_at", { ascending: false })
+    .limit(40);
+  const relatedIds = (relatedRows ?? []).map((row) => row.id);
+  const { data: relatedSkillRows } = relatedIds.length
+    ? await supabase.from("project_skills").select("project_id, skill_id").in("project_id", relatedIds).eq("relation", "uses")
+    : { data: [] };
+  const related = relatedProjects(
+    { id: project.id, subcategory: project.subcategory, skillIds: [...usedIds] },
+    (relatedRows ?? []).map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      subcategory: row.subcategory,
+      updatedAt: row.updated_at,
+      skillIds: (relatedSkillRows ?? []).filter((skill) => skill.project_id === row.id).map((skill) => skill.skill_id),
+    })),
+  );
   const tools = skills.filter((skill) => usedIds.has(skill.id));
   const needed = skills.filter((skill) => neededIds.has(skill.id));
   const timeline = projectTimelineText(project.starts_on, project.ends_on);
   const logs = logResult.data ?? [];
   const roster = memberResult.data ?? [];
-  const authorIds = [...new Set([...logs.map((log) => log.author_id), ...roster.map((person) => person.profile_id)])];
+  const requests = requestResult.data ?? [];
+  const forks = forksResult.data ?? [];
+  const ancestors: { id: string; name: string; slug: string }[] = [];
+  const seen = new Set<string>([project.id]);
+  let parentId = project.parent_project_id;
+  for (let step = 0; step < 8 && parentId && !seen.has(parentId); step += 1) {
+    seen.add(parentId);
+    const { data: ancestor } = await supabase
+      .from("projects")
+      .select("id, name, slug, parent_project_id")
+      .eq("id", parentId)
+      .is("removed_at", null)
+      .maybeSingle();
+    if (!ancestor) break;
+    ancestors.push({ id: ancestor.id, name: ancestor.name, slug: ancestor.slug });
+    parentId = ancestor.parent_project_id;
+  }
+  ancestors.reverse();
+  const branchIds = [...ancestors.map((item) => item.id), ...forks.map((item) => item.id)];
+  const { data: branchMembers } = branchIds.length
+    ? await supabase
+        .from("project_members")
+        .select("project_id, profile_id, role")
+        .in("project_id", branchIds)
+        .eq("status", "active")
+    : { data: [] };
+  const lineageMembers = [
+    ...roster.map((person) => ({ project_id: project.id, profile_id: person.profile_id, role: person.role })),
+    ...(branchMembers ?? []),
+  ];
+  const authorIds = [
+    ...new Set([
+      ...logs.map((log) => log.author_id),
+      ...lineageMembers.map((person) => person.profile_id),
+      ...requests.map((request) => request.requester_id),
+    ]),
+  ];
   const { data: authorRows } = authorIds.length
     ? await supabase.from("profiles").select("id, display_name, username").in("id", authorIds)
     : { data: [] };
@@ -148,6 +247,8 @@ async function ProjectView({
     content: log.content,
     when: formatWhen(log.created_at),
     author: authorNames.get(log.author_id) ?? "builder",
+    media: log.media_urls,
+    kind: log.kind,
   }));
   const roleOrder = ["owner", "maintainer", "contributor"];
   const team = roster
@@ -167,6 +268,35 @@ async function ProjectView({
     maintainer: "Maintainer",
     contributor: "Contributor",
   };
+  const peopleFor = (projectId: string) =>
+    lineageMembers
+      .filter((person) => person.project_id === projectId)
+      .map((person) => ({
+        name: authorNames.get(person.profile_id) ?? "builder",
+        role: person.role,
+      }))
+      .sort((left, right) => roleOrder.indexOf(left.role) - roleOrder.indexOf(right.role) || left.name.localeCompare(right.name))
+      .map((person) => `${person.name} (${roleLabels[person.role] ?? person.role})`)
+      .join(", ");
+  const lineage = [
+    ...ancestors.map((item) => ({ id: item.id, kind: "Ancestor", name: item.name, slug: item.slug, people: peopleFor(item.id) })),
+    { id: project.id, kind: "This project", name: project.name, slug: project.slug, people: peopleFor(project.id) },
+    ...forks.map((item) => ({ id: item.id, kind: "Fork", name: item.name, slug: item.slug, people: peopleFor(item.id) })),
+  ];
+  const onProject = Boolean(membershipResult.data);
+  const collaboration = requests.map((request) => ({
+    id: request.id,
+    name: authorNames.get(request.requester_id) ?? "builder",
+    message: request.message,
+    proposed: request.proposed_contribution,
+    status: request.status,
+    mine: request.requester_id === member?.id,
+  }));
+  const canRequest =
+    Boolean(member) &&
+    !isOwner &&
+    !onProject &&
+    (project.visibility === "public" || project.looking_for_contributors);
   const contributions = [
     ...roster.flatMap((person) => {
       if (!person.joined_at) return [];
@@ -182,7 +312,6 @@ async function ProjectView({
   ]
     .sort((left, right) => left.at.localeCompare(right.at) || left.text.localeCompare(right.text))
     .map((entry) => ({ id: entry.id, text: entry.text, when: formatWhen(entry.at) }));
-  const onProject = Boolean(membershipResult.data);
   const typeNote = projectTypeNotes[project.category as ProjectCategory];
 
   return (
@@ -212,6 +341,16 @@ async function ProjectView({
           signedIn={Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt)}
           next={`/forge/${project.slug}`}
         />
+        {member ? (
+          <form action={toggleProjectSave}>
+            <input type="hidden" name="projectId" value={project.id} />
+            <input type="hidden" name="next" value={`/forge/${project.slug}`} />
+            <button className="text-button" type="submit" aria-pressed={Boolean(saveResult.data)}>
+              {saveResult.data ? "Saved" : "Save project"}
+            </button>
+          </form>
+        ) : null}
+        <ShareButton path={`/forge/${project.slug}`} />
         {!isOwner && member ? (
           <form action={forkProject}>
             <input type="hidden" name="projectId" value={project.id} />
@@ -272,13 +411,36 @@ async function ProjectView({
                   <DocumentationForm projectId={project.id} documentation={project.detailed_description} />
                 ) : null}
               </section>
+              <section aria-labelledby="project-credits-heading">
+                <h2 id="project-credits-heading">Credits</h2>
+                {project.credits ? <p className="project-credits">{project.credits}</p> : <p className="form-note">No credits yet.</p>}
+                {isOwner ? <CreditsForm projectId={project.id} credits={project.credits} /> : null}
+              </section>
               <UpdateHistory updates={updates} />
               <ProjectTeam members={team} />
+              <RelatedProjects projects={related} />
+              <ProjectLineage entries={lineage} />
               <ContributionHistory entries={contributions} />
+              <Collaboration
+                projectId={project.id}
+                isOwner={isOwner}
+                canRequest={canRequest}
+                requests={collaboration}
+              />
               <Milestones
                 projectId={project.id}
                 milestones={milestoneResult.data ?? []}
                 isOwner={isOwner}
+              />
+              <Versions
+                projectId={project.id}
+                isOwner={isOwner}
+                versions={(versionResult.data ?? []).map((version) => ({
+                  id: version.id,
+                  title: version.title,
+                  note: version.note,
+                  when: formatWhen(version.created_at),
+                }))}
               />
             </>
           ) : null}
@@ -315,6 +477,17 @@ async function ProjectView({
               <dd>{forksResult.data?.length ?? 0}</dd>
             </div>
           </dl>
+          {isOwner ? (
+            <ProjectAnalytics
+              followers={followCount.count ?? 0}
+              saves={Number(saveCount.data ?? 0)}
+              forks={forksResult.data?.length ?? 0}
+              updates={logs.length}
+              threads={threadCount.count ?? 0}
+              team={roster.length}
+              requests={requests.filter((request) => request.status === "pending").length}
+            />
+          ) : null}
         </aside>
       </div>
     </article>
@@ -360,7 +533,7 @@ async function Commits({
   const supabase = await createClient();
   const { data } = await supabase
     .from("build_logs")
-    .select("id, title, content, created_at")
+    .select("id, title, content, media_urls, kind, created_at")
     .eq("project_id", projectId)
     .is("removed_at", null)
     .order("created_at", { ascending: false });
@@ -375,7 +548,9 @@ async function Commits({
         {commits.map((commit) => (
           <li key={commit.id} className="repo-row">
             <strong>{commit.title}</strong>
+            {commit.kind !== "update" ? <span className="repo-visibility">{buildLogKindLabel(commit.kind)}</span> : null}
             <p>{commit.content}</p>
+            <LogMedia urls={commit.media_urls} title={commit.title} />
             <p className="repo-meta">{formatWhen(commit.created_at)}</p>
           </li>
         ))}

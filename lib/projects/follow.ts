@@ -49,3 +49,37 @@ export async function toggleProjectFollow(formData: FormData) {
   revalidatePath("/");
   revalidatePath(back);
 }
+
+export async function toggleProjectSave(formData: FormData) {
+  const projectId = String(formData.get("projectId") ?? "");
+  const back = safeReturn(String(formData.get("next") ?? "")) ?? "/forge";
+  if (!idPattern.test(projectId)) return;
+  const member = await getMember();
+  if (!member) redirect(`/profile?next=${encodeURIComponent(back)}`);
+  const gate = memberGate(member);
+  if (gate) redirect(gate);
+
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("id, slug")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project) return;
+
+  const { data: existing } = await supabase
+    .from("project_saves")
+    .select("profile_id")
+    .eq("profile_id", member.id)
+    .eq("project_id", project.id)
+    .maybeSingle();
+  const { error } = existing
+    ? await supabase.from("project_saves").delete().eq("profile_id", member.id).eq("project_id", project.id)
+    : await supabase.from("project_saves").insert({ profile_id: member.id, project_id: project.id });
+  if (error) return;
+
+  revalidatePath(`/forge/${project.slug}`);
+  revalidatePath("/profile");
+  revalidatePath(back);
+}

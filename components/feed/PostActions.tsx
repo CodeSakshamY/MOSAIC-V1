@@ -64,7 +64,7 @@ export function PostActions({
           <Count value={activity.counts.repost} />
         </Link>
       )}
-      <ShareButton postId={postId} />
+      <ShareButton path={`/posts/${postId}`} />
       {signedIn ? (
         <form action={toggleSave}>
           <input type="hidden" name="postId" value={postId} />

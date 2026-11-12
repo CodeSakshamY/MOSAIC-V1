@@ -1583,8 +1583,16 @@
   font-size: 0.8125rem;
 }
 
-.project-docs {
+.project-docs,
+.project-credits {
   white-space: pre-wrap;
+}
+
+.log-media img,
+.log-media video {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
 .repo-status::before {

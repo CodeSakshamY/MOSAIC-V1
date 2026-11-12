@@ -1,7 +1,10 @@
+import { buildLogKindLabel } from "@/lib/projects/log-kind";
+import { LogMedia } from "@/components/build/LogMedia";
+
 export function UpdateHistory({
   updates,
 }: {
-  updates: { id: string; title: string; content: string; when: string; author: string }[];
+  updates: { id: string; title: string; content: string; when: string; author: string; media: string[]; kind: string }[];
 }) {
   return (
     <section className="project-updates" aria-labelledby="project-updates-heading">
@@ -12,7 +15,9 @@ export function UpdateHistory({
         {updates.map((update) => (
           <li key={update.id}>
             <strong>{update.title}</strong>
+            {update.kind !== "update" ? <span className="repo-visibility">{buildLogKindLabel(update.kind)}</span> : null}
             <p>{update.content}</p>
+            <LogMedia urls={update.media} title={update.title} />
             <p className="repo-meta">
               {update.author}
               <span aria-hidden="true">·</span>

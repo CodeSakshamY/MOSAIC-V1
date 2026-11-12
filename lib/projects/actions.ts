@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
 import { parseProjectDay } from "@/lib/projects/timeline";
+import { isBuildLogKind } from "@/lib/projects/log-kind";
 import { isProjectCategory, isProjectSlug, isProjectStatus, isProjectSubcategory, projectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/auth/actions";
@@ -252,6 +253,96 @@ export async function updateDocumentation(formData: FormData) {
   revalidatePath(`/forge/${project.slug}`);
 }
 
+export async function updateCredits(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const credits = String(formData.get("credits") ?? "").trim();
+  if (!projectIdPattern.test(projectId) || credits.length > 2000) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ credits: credits || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function requestContribution(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const message = String(formData.get("message") ?? "").trim();
+  const proposal = String(formData.get("proposal") ?? "").trim();
+  if (!projectIdPattern.test(projectId) || message.length < 1 || message.length > 1000) return;
+  if (proposal.length < 1 || proposal.length > 1000) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id === member.id) return;
+  const { error } = await supabase.from("contribution_requests").insert({
+    project_id: projectId,
+    requester_id: member.id,
+    message,
+    proposed_contribution: proposal,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function reviewContribution(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const requestId = String(formData.get("requestId") ?? "");
+  const decision = formData.get("decision") === "accepted" ? "accepted" : formData.get("decision") === "rejected" ? "rejected" : "";
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(requestId) || !decision) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("contribution_requests")
+    .update({ status: decision })
+    .eq("id", requestId)
+    .eq("project_id", projectId)
+    .eq("status", "pending");
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function withdrawContribution(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const requestId = String(formData.get("requestId") ?? "");
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(requestId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase.from("projects").select("slug").eq("id", projectId).maybeSingle();
+  if (!project) return;
+  const { error } = await supabase
+    .from("contribution_requests")
+    .update({ status: "withdrawn" })
+    .eq("id", requestId)
+    .eq("project_id", projectId)
+    .eq("requester_id", member.id)
+    .eq("status", "pending");
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function addMilestone(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");
@@ -294,6 +385,51 @@ export async function removeMilestone(formData: FormData) {
     .maybeSingle();
   if (!project || project.owner_id !== member.id) return;
   await supabase.from("project_milestones").delete().eq("id", milestoneId).eq("project_id", projectId);
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function addVersion(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const note = String(formData.get("note") ?? "").trim();
+  if (!projectIdPattern.test(projectId) || title.length < 1 || title.length > 80 || note.length > 1000) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { count } = await supabase
+    .from("project_versions")
+    .select("id", { count: "exact", head: true })
+    .eq("project_id", projectId);
+  if ((count ?? 0) >= 20) return;
+  const { error } = await supabase.from("project_versions").insert({
+    project_id: projectId,
+    title,
+    note: note || null,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function removeVersion(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const versionId = String(formData.get("versionId") ?? "");
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(versionId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  await supabase.from("project_versions").delete().eq("id", versionId).eq("project_id", projectId);
   revalidatePath(`/forge/${project.slug}`);
 }
 
@@ -386,23 +522,21 @@ export async function forkProject(formData: FormData) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const slug = attempt === 0 ? base : projectSlug(`${base}-${attempt + 1}`);
     if (!isProjectSlug(slug)) break;
-    const { data: created, error } = await supabase
-      .from("projects")
-      .insert({
-        owner_id: member.id,
-        name,
-        slug,
-        description: source.description,
-        tagline: source.tagline,
-        subcategory: source.subcategory,
-        category: source.category,
-        visibility: source.visibility,
-        parent_project_id: projectId,
-        status: "idea",
-      })
-      .select("id")
-      .single();
-    if (!error && created) {
+    const { error } = await supabase.from("projects").insert({
+      owner_id: member.id,
+      name,
+      slug,
+      description: source.description,
+      tagline: source.tagline,
+      subcategory: source.subcategory,
+      category: source.category,
+      visibility: source.visibility,
+      parent_project_id: projectId,
+      status: "idea",
+    });
+    if (!error) {
+      const { data: created } = await supabase.from("projects").select("id").eq("slug", slug).maybeSingle();
+      if (!created) break;
       const { data: links } = await supabase
         .from("project_skills")
         .select("skill_id, relation")
@@ -426,15 +560,32 @@ export async function createCommit(_state: ActionState, formData: FormData): Pro
   const slug = String(formData.get("slug") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
+  const kind = String(formData.get("kind") ?? "update");
   if (title.length < 1 || title.length > 120) return { error: "A commit title needs 1–120 characters." };
   if (content.length < 1 || content.length > 8000) return { error: "Describe the change." };
+  if (!isBuildLogKind(kind)) return { error: "Choose what this commit records." };
+  const files = formData.getAll("file").filter((item): item is File => item instanceof File && item.size > 0);
+  if (files.length > 4) return { error: "A commit can have 4 files." };
 
   const supabase = await createClient();
+  const urls: string[] = [];
+  for (const file of files) {
+    const stored = await storeUserFile(supabase, member.id, file, {
+      bucket: "post-media",
+      ...photoLimits.post,
+      allowVideo: true,
+      allowDocument: true,
+    });
+    if (!stored.ok) return { error: stored.error };
+    if (stored.url) urls.push(stored.url);
+  }
   const { error } = await supabase.from("build_logs").insert({
     project_id: projectId,
     author_id: member.id,
     title,
     content,
+    kind,
+    media_urls: urls,
   });
   if (error) return { error: "That commit was not saved. Only people on the project can commit." };
   redirect(`/forge/${slug}?tab=commits`);
