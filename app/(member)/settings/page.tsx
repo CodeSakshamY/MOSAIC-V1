@@ -30,7 +30,7 @@ export default async function SettingsPage({
   const params = await searchParams;
   const supabase = await createClient();
   const { data: prefs } = member
-    ? await supabase.from("profiles").select("notify_follows, visibility, comments_open").eq("id", member.id).maybeSingle()
+    ? await supabase.from("profiles").select("notify_follows, notify_comments, notify_reactions, visibility, comments_open").eq("id", member.id).maybeSingle()
     : { data: null };
 
   return (
@@ -56,6 +56,12 @@ export default async function SettingsPage({
           <h2 id="notifications-heading">Notifications</h2>
           <label>
             <input id="notify-follows" type="checkbox" name="notify" value="1" defaultChecked={prefs?.notify_follows !== false} /> Tell me when someone follows me
+          </label>
+          <label>
+            <input id="notify-comments" type="checkbox" name="notify_comments" value="1" defaultChecked={prefs?.notify_comments !== false} /> Tell me about comments and mentions
+          </label>
+          <label>
+            <input id="notify-reactions" type="checkbox" name="notify_reactions" value="1" defaultChecked={prefs?.notify_reactions !== false} /> Tell me about likes and upvotes
           </label>
           <button className="text-button" type="submit">
             Save notification preference

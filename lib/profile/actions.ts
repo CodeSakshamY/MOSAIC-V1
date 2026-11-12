@@ -117,7 +117,14 @@ export async function saveProfileVisibility(formData: FormData) {
 export async function saveNotifyFollows(formData: FormData) {
   const member = await requireOwner();
   const supabase = await createClient();
-  const { error } = await supabase.from("profiles").update({ notify_follows: formData.get("notify") === "1" }).eq("id", member.id);
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      notify_follows: formData.get("notify") === "1",
+      notify_comments: formData.get("notify_comments") === "1",
+      notify_reactions: formData.get("notify_reactions") === "1",
+    })
+    .eq("id", member.id);
   if (error) return;
   revalidatePath("/settings");
   redirect("/settings");

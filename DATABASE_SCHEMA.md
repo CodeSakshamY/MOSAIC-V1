@@ -663,6 +663,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `085_invite_notices.sql` | A project invitation notifies the invited builder. |
 | `086_join_notices.sql` | Joining a project notifies the owner. |
 | `087_saved_project_notices.sql` | Saving a project sends a notice for the next build log. |
+| `088_notice_preferences.sql` | Comment and reaction notices can be turned off. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
