@@ -129,7 +129,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] View mutual connections
 - [x] Find potential teammates
 - [x] Find mentors and experienced contributors
-- [ ] Find research collaborators
+- [x] Find research collaborators
 - [ ] Find co-founders and student teams
 - [ ] Send structured collaboration requests
 - [ ] Accept or decline requests
