@@ -9,6 +9,7 @@ import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
 import { StatusForm } from "@/components/build/StatusForm";
 import { TimelineForm } from "@/components/build/TimelineForm";
+import { ProjectTeam } from "@/components/build/ProjectTeam";
 import { UpdateHistory } from "@/components/build/UpdateHistory";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
@@ -77,7 +78,7 @@ async function ProjectView({
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -115,6 +116,11 @@ async function ProjectView({
       .eq("project_id", project.id)
       .is("removed_at", null)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("project_members")
+      .select("profile_id, role")
+      .eq("project_id", project.id)
+      .eq("status", "active"),
   ]);
 
   const username = ownerResult.data?.username ?? "builder";
@@ -127,7 +133,8 @@ async function ProjectView({
   const needed = skills.filter((skill) => neededIds.has(skill.id));
   const timeline = projectTimelineText(project.starts_on, project.ends_on);
   const logs = logResult.data ?? [];
-  const authorIds = [...new Set(logs.map((log) => log.author_id))];
+  const roster = memberResult.data ?? [];
+  const authorIds = [...new Set([...logs.map((log) => log.author_id), ...roster.map((person) => person.profile_id)])];
   const { data: authorRows } = authorIds.length
     ? await supabase.from("profiles").select("id, display_name, username").in("id", authorIds)
     : { data: [] };
@@ -141,6 +148,19 @@ async function ProjectView({
     when: formatWhen(log.created_at),
     author: authorNames.get(log.author_id) ?? "builder",
   }));
+  const roleOrder = ["owner", "maintainer", "contributor"];
+  const team = roster
+    .map((person) => {
+      const profile = (authorRows ?? []).find((row) => row.id === person.profile_id);
+      return {
+        id: person.profile_id,
+        name: profile?.display_name || profile?.username || "builder",
+        username: profile?.username ?? "",
+        role: person.role,
+      };
+    })
+    .filter((person) => person.username)
+    .sort((left, right) => roleOrder.indexOf(left.role) - roleOrder.indexOf(right.role) || left.name.localeCompare(right.name));
   const onProject = Boolean(membershipResult.data);
   const typeNote = projectTypeNotes[project.category as ProjectCategory];
 
@@ -232,6 +252,7 @@ async function ProjectView({
                 ) : null}
               </section>
               <UpdateHistory updates={updates} />
+              <ProjectTeam members={team} />
               <Milestones
                 projectId={project.id}
                 milestones={milestoneResult.data ?? []}
