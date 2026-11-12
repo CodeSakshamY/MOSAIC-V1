@@ -24,7 +24,7 @@ export function Collaboration({
       {pending.map((request) => (
         <article key={request.id}>
           <p>
-            <strong>{request.name}</strong> wants to contribute.
+            <strong>Application</strong> from {request.name}
           </p>
           <p>{request.message}</p>
           <p className="repo-meta">{request.proposed}</p>
