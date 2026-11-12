@@ -73,7 +73,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Add images, videos and attachments to a build log
 - [x] Record milestones
 - [x] Share problems encountered
-- [ ] Document experiments
+- [x] Document experiments
 - [ ] Share failed attempts and lessons learned
 - [ ] Add technical explanations as a distinct log type
 - [x] Link updates to a specific project
