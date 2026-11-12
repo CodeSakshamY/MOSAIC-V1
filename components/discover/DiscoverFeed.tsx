@@ -3,6 +3,7 @@ import { FeedPostForm } from "@/components/discover/FeedPostForm";
 import { ReelComposer } from "@/components/discover/ReelComposer";
 import { FilterMenu } from "@/components/filters/FilterMenu";
 import { PostActions } from "@/components/feed/PostActions";
+import { RelatedProjectPeople } from "@/components/profile/RelatedProjectPeople";
 import { SharedPeople } from "@/components/profile/SharedPeople";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
@@ -171,6 +172,7 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
   return (
     <>
       {member?.onboardingComplete ? <SharedPeople memberId={member.id} /> : null}
+      {member?.onboardingComplete ? <RelatedProjectPeople memberId={member.id} /> : null}
       <ul className="repo-list" role="list">
       {people.map((person) => {
         const place = [person.city, person.state].filter(Boolean).join(", ");

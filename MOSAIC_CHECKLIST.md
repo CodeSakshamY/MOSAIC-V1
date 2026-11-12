@@ -123,7 +123,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Filter by broad location or institution
 - [x] Recommended builders
 - [x] Similar-interest discovery
-- [ ] People working on related projects
+- [x] People working on related projects
 - [x] Follow builders
 - [ ] View shared interests
 - [ ] View mutual connections
