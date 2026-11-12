@@ -321,17 +321,31 @@ async function watchedProjects(memberId: string | null, projectIds: string[]) {
   return new Set((data ?? []).map((row) => row.project_id));
 }
 
+async function ownedPublicProjects(memberId: string | undefined, signedIn: boolean) {
+  if (!signedIn || !memberId) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("projects")
+    .select("id, name")
+    .eq("owner_id", memberId)
+    .eq("visibility", "public")
+    .is("removed_at", null)
+    .order("name");
+  return data ?? [];
+}
+
 async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: DiscoverFilters }) {
   const member = await getMember();
   const loaded = (await loadPosts(filters.type)).filter((post) => (kind === "ideas" ? post.type === "idea" : true));
   const hidden = await hiddenPostIds(member?.id ?? null, loaded.map((post) => post.id));
   const posts = loaded.filter((post) => !hidden.has(post.id));
   const signedIn = Boolean(member?.onboardingComplete && !member.suspended && !member.deletedAt);
+  const projects = kind === "posts" ? await ownedPublicProjects(member?.id, signedIn) : [];
   if (posts.length === 0) {
     const filtered = Boolean(filters.type);
     return (
       <>
-        {signedIn && kind === "posts" ? <FeedPostForm /> : null}
+        {signedIn && kind === "posts" ? <FeedPostForm projects={projects} /> : null}
         <p className="repo-empty">
           {kind === "ideas"
             ? filtered
@@ -358,7 +372,7 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
   );
   return (
     <>
-      {signedIn && kind === "posts" ? <FeedPostForm /> : null}
+      {signedIn && kind === "posts" ? <FeedPostForm projects={projects} /> : null}
       <ul className="repo-list" role="list">
       {posts.map((post) => (
         <li key={post.id} className="repo-row">

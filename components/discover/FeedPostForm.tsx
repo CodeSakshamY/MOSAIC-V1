@@ -12,7 +12,7 @@ const kinds = [
   { value: "achievement", label: "Achievement" },
 ] as const;
 
-export function FeedPostForm() {
+export function FeedPostForm({ projects }: { projects: { id: string; name: string }[] }) {
   const [state, action] = useActionState(createFeedPost, null);
   return (
     <form className="form-stack" action={action}>
@@ -24,7 +24,20 @@ export function FeedPostForm() {
               {kind.label}
             </option>
           ))}
+          <option value="project">Showcase</option>
         </select>
+      </div>
+      <div className="field">
+        <Label htmlFor="feed-post-project">Project</Label>
+        <select id="feed-post-project" name="projectId" className="field-select" defaultValue="">
+          <option value="">None</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+        <p className="form-note">Choose one of your public projects when the kind is Showcase.</p>
       </div>
       <div className="field">
         <Label htmlFor="feed-post-title">Title</Label>

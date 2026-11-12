@@ -171,7 +171,7 @@ export async function addComment(formData: FormData) {
   refresh(postId);
 }
 
-const feedPostTypes = ["idea", "help", "achievement"] as const;
+const feedPostTypes = ["idea", "help", "achievement", "project"] as const;
 
 export async function createFeedPost(_state: { error?: string } | null, formData: FormData) {
   const member = await memberOrLogin("/discover?view=posts");
@@ -182,11 +182,26 @@ export async function createFeedPost(_state: { error?: string } | null, formData
   if (!title) return { error: "Add a title." };
   if (!content) return { error: "Write the post." };
   const supabase = await createClient();
+  let projectId: string | null = null;
+  if (type === "project") {
+    projectId = String(formData.get("projectId") ?? "");
+    if (!idPattern.test(projectId)) return { error: "Choose one of your public projects." };
+    const { data: project } = await supabase
+      .from("projects")
+      .select("id, owner_id, visibility")
+      .eq("id", projectId)
+      .is("removed_at", null)
+      .maybeSingle();
+    if (!project || project.owner_id !== member.id || project.visibility !== "public") {
+      return { error: "Choose one of your public projects." };
+    }
+  }
   const { error } = await supabase.from("posts").insert({
     author_id: member.id,
     type: type as (typeof feedPostTypes)[number],
     title,
     content,
+    project_id: projectId,
     visibility: "public",
     is_demo: false,
   });

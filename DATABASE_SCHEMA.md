@@ -633,6 +633,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `059_profile_select.sql` | A profile row is readable by its owner, or by anyone when the profile is public. |
 | `060_verified_credentials.sql` | `verified_at` on certificates and awards, writable by a trusted writer. |
 | `061_profile_sections.sql` | Up to 5 titled sections on a profile. |
+| `062_project_showcase_posts.sql` | A builder can post a showcase of a public project they own. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
