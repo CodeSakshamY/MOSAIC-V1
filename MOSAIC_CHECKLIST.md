@@ -315,7 +315,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Responsive web application
 - [x] Mobile navigation
 - [ ] PWA support
-- [ ] Search indexing
+- [x] Search indexing
 - [ ] Background jobs
 - [ ] Email delivery beyond local development mail
 - [x] Rate limiting
