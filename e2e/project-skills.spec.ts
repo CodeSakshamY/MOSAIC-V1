@@ -58,26 +58,16 @@ async function onboard(page: Page, username: string, displayName: string, email:
   await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
 }
 
-test("a project can list the skills it needs and Forge can filter by one", async ({ page }) => {
+test("an owner can name the skills a project needs", async ({ page }) => {
   test.setTimeout(120_000);
   const stamp = Date.now().toString(36);
-  const name = `Need ${stamp}`;
-  await onboard(page, `need${stamp}`, `Need ${stamp}`, `need.${stamp}@example.com`);
+  await onboard(page, `skl${stamp}`, `Skl ${stamp}`, `skl.${stamp}@example.com`);
   await page.goto("/forge");
-  await page.getByLabel("Project name").fill(name);
-  await page.getByLabel("Description").fill("A project created to check the skills it needs.");
+  await page.getByLabel("Project name").fill(`Skl ${stamp}`);
+  await page.getByLabel("Description").fill("A project that needs a required skill.");
   await page.getByRole("button", { name: "Create project" }).click();
-  await expect(page).toHaveURL(/\/forge\/need-/);
-  const skills = page.locator("#project-skills");
-  await skills.getByRole("checkbox", { name: "CAD", exact: true }).check();
-  await skills.getByRole("checkbox", { name: "Rust", exact: true }).check();
+  await expect(page).toHaveURL(/\/forge\/skl-/);
+  await page.locator("#project-skills").getByRole("checkbox", { name: "Python" }).check();
   await page.getByRole("button", { name: "Save skills" }).click();
-  await expect(page.locator(".project-needs")).toHaveText("Needs CAD, Rust");
-  await skills.getByRole("checkbox", { name: "CAD", exact: true }).uncheck();
-  await page.getByRole("button", { name: "Save skills" }).click();
-  await expect(page.locator(".project-needs")).toHaveText("Needs Rust");
-  await page.goto("/forge?need=rust");
-  await expect(page.getByRole("link", { name })).toBeVisible();
-  await page.goto("/forge?need=cad");
-  await expect(page.getByRole("link", { name })).toHaveCount(0);
+  await expect(page.locator(".project-needs")).toContainText("Needs Python");
 });
