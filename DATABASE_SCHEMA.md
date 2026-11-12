@@ -654,6 +654,8 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `076_opportunity_moderation.sql` | The announcer can withdraw a listing. Only a trusted writer can mark it checked. |
 | `077_mutes.sql` | Muting hides someone's posts from your feed. |
 | `078_notify_follows.sql` | A person can turn off the notification that someone followed them. |
+| `079_security_notice_type.sql` | Notifications can record a security event. |
+| `080_security_notice.sql` | A password change records a notice for that person. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

@@ -95,7 +95,12 @@ export async function updatePassword(
   if (!member) return { error: "Open the reset link from your email, then choose a new password." };
   const { error } = await supabase.auth.updateUser({ password: password.password });
   if (error) return { error: "That password was not saved. Request a new link and try again." };
+  await supabase.rpc("record_security_notice");
   redirect(memberGate(member) ?? "/");
+}
+
+export async function changePassword(formData: FormData) {
+  await updatePassword(null, formData);
 }
 
 export async function signOut() {

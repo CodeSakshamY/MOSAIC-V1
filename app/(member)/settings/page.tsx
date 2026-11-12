@@ -7,7 +7,7 @@ import { DeleteAccount } from "@/components/settings/DeleteAccount";
 import { ThemePicker } from "@/components/settings/ThemePicker";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember } from "@/lib/auth/session";
-import { signOutOtherSessions } from "@/lib/auth/actions";
+import { changePassword, signOutOtherSessions } from "@/lib/auth/actions";
 import { saveNotifyFollows, saveProfileVisibility } from "@/lib/profile/actions";
 import { createClient } from "@/lib/supabase/server";
 import { themeFromId } from "@/lib/theme/themes";
@@ -67,6 +67,16 @@ export default async function SettingsPage({
         <p>
           <a href="/account/export">Download account data</a>
         </p>
+      ) : null}
+      {member ? (
+        <form action={changePassword}>
+          <h2 id="password-heading">Password</h2>
+          <label htmlFor="new-password">New password</label>
+          <input id="new-password" name="password" type="password" required minLength={8} autoComplete="new-password" className="repo-search-input" />
+          <button className="text-button" type="submit">
+            Change password
+          </button>
+        </form>
       ) : null}
       {member ? (
         <form action={signOutOtherSessions}>

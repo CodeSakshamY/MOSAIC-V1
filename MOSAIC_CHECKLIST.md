@@ -240,7 +240,7 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 - [ ] Community announcements and invitations
 - [ ] Opportunity and event reminders
 - [ ] Saved project updates
-- [ ] System and security notifications
+- [x] System and security notifications
 - [x] Mark as read/unread
 - [x] Notification and email preferences
 
