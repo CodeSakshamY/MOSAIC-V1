@@ -204,9 +204,18 @@ export async function ProfessionalProfile({
             .maybeSingle()
         : Promise.resolve({ data: null }),
     ]);
+  const { data: viewerFollows } =
+    viewer && viewer.id !== profileId
+      ? await supabase.from("follows").select("following_id").eq("follower_id", viewer.id).order("created_at", { ascending: false }).limit(40)
+      : { data: [] };
+  const theirFollowing = new Set((followingRows.data ?? []).map((row) => row.following_id));
+  const mutualIds = (viewerFollows ?? [])
+    .map((row) => row.following_id)
+    .filter((id) => theirFollowing.has(id) && id !== profileId);
   const relatedIds = [
     ...(followerRows.data ?? []).map((row) => row.follower_id),
     ...(followingRows.data ?? []).map((row) => row.following_id),
+    ...mutualIds,
   ];
   const { data: relatedProfiles } = relatedIds.length
     ? await supabase
@@ -226,6 +235,10 @@ export async function ProfessionalProfile({
   });
   const following = (followingRows.data ?? []).flatMap((row) => {
     const person = related.get(row.following_id);
+    return person ? [person] : [];
+  });
+  const mutual = mutualIds.flatMap((id) => {
+    const person = related.get(id);
     return person ? [person] : [];
   });
 
@@ -373,6 +386,12 @@ export async function ProfessionalProfile({
 
       <section className="profile-section" aria-labelledby="network-heading">
         <h2 id="network-heading">Network</h2>
+        {!editable && mutual.length > 0 ? (
+          <>
+            <h3 id="mutual-heading">Mutual connections</h3>
+            <PersonLinks people={mutual} empty="No mutual connections yet." />
+          </>
+        ) : null}
         <h3>Followers</h3>
         <PersonLinks people={followers} empty="No followers yet." />
         <h3>Following</h3>
