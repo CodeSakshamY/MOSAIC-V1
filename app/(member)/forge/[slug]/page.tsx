@@ -62,8 +62,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const supabase = await createClient();
-  const { data } = await supabase.from("projects").select("name").eq("slug", slug).maybeSingle();
-  return { title: data?.name ?? slug };
+  const { data } = await supabase.from("projects").select("name, description").eq("slug", slug).maybeSingle();
+  return { title: data?.name ?? slug, description: data?.description || undefined };
 }
 
 export default function ProjectPage({

@@ -321,7 +321,7 @@ The database has reports, sanctions and admin roles. There is no admin screen.
 - [x] Rate limiting
 - [x] Database migrations
 - [ ] Error monitoring, analytics, automated backups, logging, performance monitoring
-- [ ] SEO for public projects and profiles
+- [x] SEO for public projects and profiles
 - [x] Skip link and dark colour scheme
 - [x] Secure file uploads that check the file bytes
 - [x] Spam and abuse prevention beyond the report tables

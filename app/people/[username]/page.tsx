@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { ProfessionalProfile } from "@/components/profile/ProfessionalProfile";
 import { reportedState } from "@/components/safety/ReportForm";
@@ -13,7 +14,13 @@ export async function generateMetadata({
   params: Promise<{ username: string }>;
 }): Promise<Metadata> {
   const { username } = await params;
-  return { title: username };
+  await connection();
+  const supabase = await createClient();
+  const { data } = await supabase.from("profile_directory").select("display_name, bio").eq("username", username).maybeSingle();
+  return {
+    title: data?.display_name || username,
+    description: data?.bio || undefined,
+  };
 }
 
 export default async function PublicProfilePage({
