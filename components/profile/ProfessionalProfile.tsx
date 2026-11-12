@@ -16,7 +16,9 @@ import {
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
 import { CollaborationForm } from "@/components/profile/CollaborationForm";
 import { InterestsForm } from "@/components/profile/InterestsForm";
+import { LookingForForm } from "@/components/profile/LookingForForm";
 import { collaborationLabel } from "@/lib/profile/collaboration";
+import { lookingForOptions } from "@/lib/auth/looking-for";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { toggleBlock } from "@/lib/safety/actions";
 import { createClient } from "@/lib/supabase/server";
@@ -58,7 +60,7 @@ export async function ProfessionalProfile({
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("username, display_name, bio, avatar_url, banner_url, education, city, state, github_username, website_url, collaboration_preference")
+      .select("username, display_name, bio, avatar_url, banner_url, education, city, state, github_username, website_url, collaboration_preference, looking_for")
       .eq("id", profileId)
       .maybeSingle(),
     supabase.from("profile_skills").select("skill_id").eq("profile_id", profileId),
@@ -349,6 +351,24 @@ export async function ProfessionalProfile({
           <h2 id="collaboration-heading">Collaboration</h2>
           <p>{collaborationLabel(profile.collaboration_preference) ?? "No collaboration preference yet."}</p>
           {editable ? <CollaborationForm value={profile.collaboration_preference} /> : null}
+        </section>
+      ) : null}
+
+      {(profile.looking_for.length > 0 || editable) ? (
+        <section className="profile-section" aria-labelledby="looking-for-heading">
+          <h2 id="looking-for-heading">Looking for</h2>
+          {profile.looking_for.length > 0 ? (
+            <ul className="skill-row" role="list">
+              {lookingForOptions
+                .filter((option) => profile.looking_for.includes(option.value))
+                .map((option) => (
+                  <li key={option.value}>{option.label}</li>
+                ))}
+            </ul>
+          ) : (
+            <p className="form-note">No looking-for status yet.</p>
+          )}
+          {editable ? <LookingForForm selected={profile.looking_for} /> : null}
         </section>
       ) : null}
 

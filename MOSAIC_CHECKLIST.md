@@ -99,7 +99,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Competitions participated in
 - [x] Communities joined
 - [x] Collaboration interests
-- [ ] Looking-for status
+- [x] Looking-for status
 - [x] GitHub and personal website
 - [ ] LinkedIn and other external links
 - [x] Education, optional

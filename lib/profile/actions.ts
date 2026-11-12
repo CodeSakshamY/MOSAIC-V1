@@ -13,6 +13,7 @@ import {
   parseWebsite,
 } from "@/lib/auth/validation";
 import { createClient } from "@/lib/supabase/server";
+import { parseLookingFor } from "@/lib/auth/looking-for";
 import { isCollaborationPreference } from "@/lib/profile/collaboration";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
@@ -60,6 +61,18 @@ export async function saveCollaboration(formData: FormData) {
     .update({ collaboration_preference: preference })
     .eq("id", member.id);
   if (error) return;
+  revalidatePath("/profile");
+  if (member.username) revalidatePath(`/people/${member.username}`);
+  redirect("/profile");
+}
+
+export async function saveLookingFor(_state: { error?: string } | null, formData: FormData) {
+  const member = await requireOwner();
+  const looking = parseLookingFor(formData.getAll("lookingFor").map(String));
+  if (!looking.ok) return { error: looking.error };
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update({ looking_for: looking.values }).eq("id", member.id);
+  if (error) return { error: "Those choices were not saved." };
   revalidatePath("/profile");
   if (member.username) revalidatePath(`/people/${member.username}`);
   redirect("/profile");
