@@ -387,6 +387,51 @@ export async function removeMilestone(formData: FormData) {
   revalidatePath(`/forge/${project.slug}`);
 }
 
+export async function addVersion(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const note = String(formData.get("note") ?? "").trim();
+  if (!projectIdPattern.test(projectId) || title.length < 1 || title.length > 80 || note.length > 1000) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { count } = await supabase
+    .from("project_versions")
+    .select("id", { count: "exact", head: true })
+    .eq("project_id", projectId);
+  if ((count ?? 0) >= 20) return;
+  const { error } = await supabase.from("project_versions").insert({
+    project_id: projectId,
+    title,
+    note: note || null,
+  });
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function removeVersion(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const versionId = String(formData.get("versionId") ?? "");
+  if (!projectIdPattern.test(projectId) || !projectIdPattern.test(versionId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  await supabase.from("project_versions").delete().eq("id", versionId).eq("project_id", projectId);
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function updateCover(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");

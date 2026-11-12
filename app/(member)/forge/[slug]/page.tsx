@@ -16,6 +16,7 @@ import { TimelineForm } from "@/components/build/TimelineForm";
 import { ProjectTeam } from "@/components/build/ProjectTeam";
 import { RelatedProjects } from "@/components/build/RelatedProjects";
 import { UpdateHistory } from "@/components/build/UpdateHistory";
+import { Versions } from "@/components/build/Versions";
 import { SubcategoryForm } from "@/components/build/SubcategoryForm";
 import { TaglineForm } from "@/components/build/TaglineForm";
 import { ToolsForm } from "@/components/build/ToolsForm";
@@ -86,7 +87,7 @@ async function ProjectView({
     .maybeSingle();
   if (!project) notFound();
 
-  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, saveResult, galleryResult, skillsResult, skillLinks, milestoneResult, logResult, memberResult, requestResult, followCount, threadCount, saveCount] = await Promise.all([
+  const [ownerResult, parentResult, forksResult, membershipResult, watchResult, saveResult, galleryResult, skillsResult, skillLinks, milestoneResult, versionResult, logResult, memberResult, requestResult, followCount, threadCount, saveCount] = await Promise.all([
     supabase.from("profiles").select("username, display_name").eq("id", project.owner_id).maybeSingle(),
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
@@ -126,6 +127,11 @@ async function ProjectView({
       .eq("project_id", project.id)
       .order("happens_on", { ascending: true })
       .order("created_at", { ascending: true }),
+    supabase
+      .from("project_versions")
+      .select("id, title, note, created_at")
+      .eq("project_id", project.id)
+      .order("created_at", { ascending: false }),
     supabase
       .from("build_logs")
       .select("id, title, content, created_at, author_id")
@@ -375,6 +381,16 @@ async function ProjectView({
                 projectId={project.id}
                 milestones={milestoneResult.data ?? []}
                 isOwner={isOwner}
+              />
+              <Versions
+                projectId={project.id}
+                isOwner={isOwner}
+                versions={(versionResult.data ?? []).map((version) => ({
+                  id: version.id,
+                  title: version.title,
+                  note: version.note,
+                  when: formatWhen(version.created_at),
+                }))}
               />
             </>
           ) : null}

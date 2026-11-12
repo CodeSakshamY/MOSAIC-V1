@@ -733,6 +733,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_versions": {
+                  Row: {
+                    "created_at": string,"id": string,"note": string | null,"project_id": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"note"?: string | null,"project_id": string,"title": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"note"?: string | null,"project_id"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_versions_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project_gallery": {
                   Row: {
                     "created_at": string,"id": string,"image_url": string,"project_id": string

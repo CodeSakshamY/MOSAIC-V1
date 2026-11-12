@@ -63,7 +63,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Report a project
 - [x] Project analytics for owners
 - [x] Related and similar projects
-- [ ] Project version history
+- [x] Project version history
 - [x] Fork another project with the original kept as the parent
 - [ ] Project lineage showing derivative projects and contributors
 
