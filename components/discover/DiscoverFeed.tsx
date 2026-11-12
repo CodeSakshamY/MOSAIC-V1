@@ -47,59 +47,19 @@ type View = (typeof views)[number]["id"];
 export async function DiscoverFeed({ view, filters }: { view: View; filters: DiscoverFilters }) {
   return (
     <div className="discover-feed">
-      <nav className="repo-filters" aria-label="Discover">
-        {views.slice(0, 3).map((item) => (
-          <Link key={item.id} href={hrefFor(item.id, filters)} aria-current={view === item.id ? "page" : undefined}>
-            {item.label}
-          </Link>
-        ))}
-        <Link href={hrefFor("research", filters)} aria-current={view === "research" ? "page" : undefined}>
-          Research
-        </Link>
-        <Link href={hrefFor("experiments", filters)} aria-current={view === "experiments" ? "page" : undefined}>
-          Experiments
-        </Link>
-        <Link href={hrefFor("communities", filters)} aria-current={view === "communities" ? "page" : undefined}>
-          Communities
-        </Link>
-        <Link href={hrefFor("opportunities", filters)} aria-current={view === "opportunities" ? "page" : undefined}>
-          Opportunities
-        </Link>
-        <Link href={hrefFor("events", filters)} aria-current={view === "events" ? "page" : undefined}>
-          Events
-        </Link>
-        <Link href={hrefFor("competitions", filters)} aria-current={view === "competitions" ? "page" : undefined}>
-          Competitions
-        </Link>
-        <Link href={hrefFor("hackathons", filters)} aria-current={view === "hackathons" ? "page" : undefined}>
-          Hackathons
-        </Link>
-        <Link href={hrefFor("opensource", filters)} aria-current={view === "opensource" ? "page" : undefined}>
-          Open source
-        </Link>
-        <Link href={hrefFor("technologies", filters)} aria-current={view === "technologies" ? "page" : undefined}>
-          Technologies
-        </Link>
-        <Link href={hrefFor("everything", filters)} aria-current={view === "everything" ? "page" : undefined}>
-          Search
-        </Link>
-        <Link href={hrefFor("collections", filters)} aria-current={view === "collections" ? "page" : undefined}>
-          Collections
-        </Link>
-        <Link href={hrefFor("picks", filters)} aria-current={view === "picks" ? "page" : undefined}>
-          Editor&apos;s picks
-        </Link>
-        <Link href={hrefFor("emerging", filters)} aria-current={view === "emerging" ? "page" : undefined}>
-          New
-        </Link>
-      </nav>
-      <nav className="repo-filters discover-format" aria-label="Feed format">
-        {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
-          <Link key={item.id} href={hrefFor(item.id, filters)} aria-current={view === item.id ? "page" : undefined}>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+      <form className="discover-section" action="/discover">
+        <label htmlFor="discover-section">Section</label>
+        <select id="discover-section" name="view" className="field-select" defaultValue={view}>
+          {views.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        <button className="text-button" type="submit">
+          Show
+        </button>
+      </form>
       <div className="discover-tools">
         {view === "people" || view === "projects" || view === "everything" ? <DiscoverSearch view={view} filters={filters} /> : null}
         {view === "projects" ? <ProjectSort filters={filters} /> : null}
@@ -121,7 +81,13 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
             </button>
           </form>
         ) : null}
-        {view === "people" ? <PeopleFilters filters={filters} /> : view === "projects" ? <AdvancedProjectFilters filters={filters} /> : view === "everything" || view === "collections" || view === "picks" || view === "emerging" ? null : <TypeFilters view={view} filters={filters} />}
+        {view === "people" ? (
+          <PeopleFilters filters={filters} />
+        ) : view === "projects" ? (
+          <AdvancedProjectFilters filters={filters} />
+        ) : view === "ideas" || view === "posts" || view === "reels" ? (
+          <TypeFilters view={view} filters={filters} />
+        ) : null}
       </div>
       {view === "people" ? <PeopleList filters={filters} /> : null}
       {view === "projects" ? <ProjectList filters={filters} /> : null}
