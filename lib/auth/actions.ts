@@ -102,3 +102,17 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+export async function closeAccount(_state: ActionState, formData: FormData): Promise<ActionState> {
+  const member = await getMember();
+  if (!member) redirect("/profile?next=/settings");
+  const gate = memberGate(member);
+  if (gate) redirect(gate);
+  if (formData.get("confirm") !== "yes") return { error: "Confirm that this closes the account." };
+  const typed = String(formData.get("username") ?? "").trim();
+  if (!member.username || typed !== member.username) return { error: "Type your username to close the account." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("anonymize_profile", { target: member.id });
+  if (error) return { error: "The account was not closed." };
+  redirect("/account/closed");
+}

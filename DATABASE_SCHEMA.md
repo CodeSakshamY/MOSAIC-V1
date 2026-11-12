@@ -647,6 +647,8 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `069_project_invites.sql` | An owner can invite a builder onto a project. |
 | `070_collections.sql` | A builder can name a collection and put public projects in it. |
 | `071_opportunity_categories.sql` | Conferences, startup programmes, incubators, open source, volunteering, and mentorship can be announced. |
+| `072_close_own_account.sql` | A person can close their own account. |
+| `073_close_account_storage.sql` | Closing an account still finishes when storage refuses a direct file delete. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
