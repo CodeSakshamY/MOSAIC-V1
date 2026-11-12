@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { buildLogKindLabel } from "@/lib/projects/log-kind";
 import { LogMedia } from "@/components/build/LogMedia";
 import { Collaboration } from "@/components/build/Collaboration";
 import { ContributionHistory } from "@/components/build/ContributionHistory";
@@ -136,7 +137,7 @@ async function ProjectView({
       .order("created_at", { ascending: false }),
     supabase
       .from("build_logs")
-      .select("id, title, content, created_at, author_id, media_urls")
+      .select("id, title, content, created_at, author_id, media_urls, kind")
       .eq("project_id", project.id)
       .is("removed_at", null)
       .order("created_at", { ascending: false }),
@@ -247,6 +248,7 @@ async function ProjectView({
     when: formatWhen(log.created_at),
     author: authorNames.get(log.author_id) ?? "builder",
     media: log.media_urls,
+    kind: log.kind,
   }));
   const roleOrder = ["owner", "maintainer", "contributor"];
   const team = roster
@@ -531,7 +533,7 @@ async function Commits({
   const supabase = await createClient();
   const { data } = await supabase
     .from("build_logs")
-    .select("id, title, content, media_urls, created_at")
+    .select("id, title, content, media_urls, kind, created_at")
     .eq("project_id", projectId)
     .is("removed_at", null)
     .order("created_at", { ascending: false });
@@ -546,6 +548,7 @@ async function Commits({
         {commits.map((commit) => (
           <li key={commit.id} className="repo-row">
             <strong>{commit.title}</strong>
+            {commit.kind !== "update" ? <span className="repo-visibility">{buildLogKindLabel(commit.kind)}</span> : null}
             <p>{commit.content}</p>
             <LogMedia urls={commit.media_urls} title={commit.title} />
             <p className="repo-meta">{formatWhen(commit.created_at)}</p>

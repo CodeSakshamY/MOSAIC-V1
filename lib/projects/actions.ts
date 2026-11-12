@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
 import { parseProjectDay } from "@/lib/projects/timeline";
+import { isBuildLogKind } from "@/lib/projects/log-kind";
 import { isProjectCategory, isProjectSlug, isProjectStatus, isProjectSubcategory, projectSlug } from "@/lib/projects/slug";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/auth/actions";
@@ -559,8 +560,10 @@ export async function createCommit(_state: ActionState, formData: FormData): Pro
   const slug = String(formData.get("slug") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   const content = String(formData.get("content") ?? "").trim();
+  const kind = String(formData.get("kind") ?? "update");
   if (title.length < 1 || title.length > 120) return { error: "A commit title needs 1–120 characters." };
   if (content.length < 1 || content.length > 8000) return { error: "Describe the change." };
+  if (!isBuildLogKind(kind)) return { error: "Choose what this commit records." };
   const files = formData.getAll("file").filter((item): item is File => item instanceof File && item.size > 0);
   if (files.length > 4) return { error: "A commit can have 4 files." };
 
@@ -581,6 +584,7 @@ export async function createCommit(_state: ActionState, formData: FormData): Pro
     author_id: member.id,
     title,
     content,
+    kind,
     media_urls: urls,
   });
   if (error) return { error: "That commit was not saved. Only people on the project can commit." };
