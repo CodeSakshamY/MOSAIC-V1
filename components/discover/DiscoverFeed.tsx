@@ -34,6 +34,7 @@ const views = [
   { id: "competitions", label: "Competitions" },
   { id: "hackathons", label: "Hackathons" },
   { id: "opensource", label: "Open source" },
+  { id: "technologies", label: "Technologies" },
 ] as const;
 
 type View = (typeof views)[number]["id"];
@@ -71,6 +72,9 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
         <Link href={hrefFor("opensource", filters)} aria-current={view === "opensource" ? "page" : undefined}>
           Open source
         </Link>
+        <Link href={hrefFor("technologies", filters)} aria-current={view === "technologies" ? "page" : undefined}>
+          Technologies
+        </Link>
       </nav>
       <nav className="repo-filters discover-format" aria-label="Feed format">
         {views.filter((item) => item.id === "posts" || item.id === "reels").map((item) => (
@@ -93,6 +97,7 @@ export async function DiscoverFeed({ view, filters }: { view: View; filters: Dis
       {view === "competitions" ? <CompetitionList /> : null}
       {view === "hackathons" ? <HackathonList /> : null}
       {view === "opensource" ? <OpenSourceList /> : null}
+      {view === "technologies" ? <TechnologyList /> : null}
       {view === "ideas" ? <PostList kind="ideas" filters={filters} /> : null}
       {view === "posts" ? <PostList kind="posts" filters={filters} /> : null}
       {view === "reels" ? <ReelGrid filters={filters} /> : null}
@@ -530,6 +535,47 @@ async function OpenSourceList() {
             <p>
               <a href={project.github_url ?? undefined}>Repository</a>
             </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+async function TechnologyList() {
+  const supabase = await createClient();
+  const { data: links } = await supabase.from("project_skills").select("skill_id, project_id").eq("relation", "uses").limit(1000);
+  const projectIds = [...new Set((links ?? []).map((link) => link.project_id))];
+  const { data: projects } = projectIds.length
+    ? await supabase.from("projects").select("id").in("id", projectIds).eq("visibility", "public").is("removed_at", null)
+    : { data: [] };
+  const publicIds = new Set((projects ?? []).map((project) => project.id));
+  const counts = new Map<string, number>();
+  for (const link of links ?? []) {
+    if (!publicIds.has(link.project_id)) continue;
+    counts.set(link.skill_id, (counts.get(link.skill_id) ?? 0) + 1);
+  }
+  const skillIds = [...counts.keys()];
+  const { data: skills } = skillIds.length
+    ? await supabase.from("skills").select("id, name").in("id", skillIds)
+    : { data: [] };
+  const rows = (skills ?? [])
+    .map((skill) => ({ name: skill.name, count: counts.get(skill.id) ?? 0 }))
+    .filter((row) => row.count > 0)
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+    .slice(0, 20);
+  return (
+    <section aria-labelledby="discover-technologies-heading">
+      <h2 id="discover-technologies-heading">Technologies</h2>
+      <p className="form-note">How many public projects list each tool. This is a count, not a score.</p>
+      {rows.length === 0 ? <p>No tools saved yet.</p> : null}
+      <ul className="repo-list" role="list">
+        {rows.map((row) => (
+          <li key={row.name} className="repo-row">
+            <div className="repo-title">
+              <strong>{row.name}</strong>
+              <span className="repo-visibility">{row.count}</span>
+            </div>
           </li>
         ))}
       </ul>
