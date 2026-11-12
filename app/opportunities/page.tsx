@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { EventForm } from "@/components/opportunities/EventForm";
 import { OpportunityForm } from "@/components/opportunities/OpportunityForm";
 import { SectionPage } from "@/components/shell/SectionPage";
@@ -26,7 +27,7 @@ export default async function OpportunitiesPage({
   const supabase = await createClient();
   let query = supabase
     .from("opportunities")
-    .select("id, title, organizer, official_url, deadline, description, category, start_date, is_online, eligibility, country, state")
+    .select("id, title, slug, organizer, official_url, deadline, description, category, start_date, is_online, eligibility, country, state")
     .eq("is_published", true)
     .is("removed_at", null)
     .order("created_at", { ascending: false })
@@ -99,7 +100,9 @@ export default async function OpportunitiesPage({
         {opportunities.map((item) => (
           <li key={item.id} className="repo-row">
             <div className="repo-title">
-              <strong>{item.title}</strong>
+              <strong>
+                <Link href={`/opportunities/${item.slug}`}>{item.title}</Link>
+              </strong>
               <span className="repo-visibility">{opportunityCategoryLabel(item.category)} · {item.organizer}</span>
             </div>
             <p>{item.description}</p>
