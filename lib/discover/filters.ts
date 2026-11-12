@@ -1,3 +1,4 @@
+import { lookingForOptions, type LookingFor } from "@/lib/auth/looking-for";
 import { ageGroups, type AgeGroup } from "@/lib/profile/age-groups";
 import { isCollaborationPreference, type CollaborationPreference } from "@/lib/profile/collaboration";
 import { isProjectCategory, type ProjectCategory } from "@/lib/projects/slug";
@@ -11,6 +12,7 @@ export type DiscoverFilters = {
   interest: string;
   experience: ProjectCategory | null;
   availability: CollaborationPreference | "";
+  looking: LookingFor | "";
   type: ProjectCategory | null;
 };
 
@@ -33,6 +35,7 @@ export function readDiscoverFilters(input: {
   interest?: string;
   experience?: string;
   availability?: string;
+  looking?: string;
   type?: string;
 }): DiscoverFilters {
   const q = (input.q ?? "").trim().replace(/[%_\\]/g, "").replace(/\s+/g, " ").slice(0, 80);
@@ -47,12 +50,13 @@ export function readDiscoverFilters(input: {
   const interest = input.interest && skillPattern.test(input.interest) ? input.interest : "";
   const experience = input.experience && isProjectCategory(input.experience) ? input.experience : null;
   const availability = input.availability && isCollaborationPreference(input.availability) ? input.availability : "";
+  const looking = lookingForOptions.find((option) => option.value === input.looking)?.value ?? "";
   const type = input.type && isProjectCategory(input.type) ? input.type : null;
-  return { q, age, place, skill, discipline, interest, experience, availability, type };
+  return { q, age, place, skill, discipline, interest, experience, availability, looking, type };
 }
 
 export function peopleFilterActive(filters: DiscoverFilters) {
   return Boolean(
-    filters.age || filters.place || filters.skill || filters.discipline || filters.interest || filters.experience || filters.availability,
+    filters.age || filters.place || filters.skill || filters.discipline || filters.interest || filters.experience || filters.availability || filters.looking,
   );
 }

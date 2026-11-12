@@ -8,6 +8,7 @@ import { SharedPeople } from "@/components/profile/SharedPeople";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ProjectFollowButton } from "@/components/projects/ProjectFollowButton";
 import { isVideoUrl } from "@/lib/auth/images";
+import { lookingForOptions } from "@/lib/auth/looking-for";
 import { getMember } from "@/lib/auth/session";
 import { type DiscoverFilters, interestCategories, peopleFilterActive, readDiscoverFilters } from "@/lib/discover/filters";
 import { emptyActivity, loadActivity } from "@/lib/feed/activity";
@@ -158,6 +159,7 @@ async function PeopleList({ filters }: { filters: DiscoverFilters }) {
     query = query.in("id", ids);
   }
   if (filters.availability) query = query.eq("collaboration_preference", filters.availability);
+  if (filters.looking) query = query.contains("looking_for", [filters.looking]);
   const { data } = await query;
   const people = (data ?? []).filter((person) => person.username);
   if (people.length === 0) {
@@ -577,7 +579,8 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
     Number(Boolean(filters.discipline)) +
     Number(Boolean(filters.interest)) +
     Number(Boolean(filters.experience)) +
-    Number(Boolean(filters.availability));
+    Number(Boolean(filters.availability)) +
+    Number(Boolean(filters.looking));
   return (
     <FilterMenu active={active}>
     <form className="discover-filters" action="/discover">
@@ -656,6 +659,17 @@ async function PeopleFilters({ filters }: { filters: DiscoverFilters }) {
           {collaborationPreferences.map((item) => (
             <option key={item.value} value={item.value}>
               {item.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="discover-looking">Looking for</label>
+        <select id="discover-looking" name="looking" className="field-select" defaultValue={filters.looking}>
+          <option value="">Any</option>
+          {lookingForOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
