@@ -291,7 +291,7 @@ Not started. Future phase.
 - [ ] Feed and interest preferences
 - [ ] Notification preferences
 - [ ] Blocked and muted accounts
-- [ ] Download account data
+- [x] Download account data
 - [x] Delete account
 - [ ] Session management
 - [x] Theme preferences

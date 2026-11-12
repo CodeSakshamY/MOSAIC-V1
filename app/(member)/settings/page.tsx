@@ -25,6 +25,11 @@ export default async function SettingsPage() {
       {member ? <BlockedAccounts userId={member.id} /> : null}
       {member ? <HiddenPosts userId={member.id} /> : null}
       {member?.username ? <DeleteAccount /> : null}
+      {member ? (
+        <p>
+          <a href="/account/export">Download account data</a>
+        </p>
+      ) : null}
     </SectionPage>
   );
 }
