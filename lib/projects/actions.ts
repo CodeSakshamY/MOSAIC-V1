@@ -521,23 +521,21 @@ export async function forkProject(formData: FormData) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const slug = attempt === 0 ? base : projectSlug(`${base}-${attempt + 1}`);
     if (!isProjectSlug(slug)) break;
-    const { data: created, error } = await supabase
-      .from("projects")
-      .insert({
-        owner_id: member.id,
-        name,
-        slug,
-        description: source.description,
-        tagline: source.tagline,
-        subcategory: source.subcategory,
-        category: source.category,
-        visibility: source.visibility,
-        parent_project_id: projectId,
-        status: "idea",
-      })
-      .select("id")
-      .single();
-    if (!error && created) {
+    const { error } = await supabase.from("projects").insert({
+      owner_id: member.id,
+      name,
+      slug,
+      description: source.description,
+      tagline: source.tagline,
+      subcategory: source.subcategory,
+      category: source.category,
+      visibility: source.visibility,
+      parent_project_id: projectId,
+      status: "idea",
+    });
+    if (!error) {
+      const { data: created } = await supabase.from("projects").select("id").eq("slug", slug).maybeSingle();
+      if (!created) break;
       const { data: links } = await supabase
         .from("project_skills")
         .select("skill_id, relation")

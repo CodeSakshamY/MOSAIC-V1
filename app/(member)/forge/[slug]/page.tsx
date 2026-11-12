@@ -9,6 +9,7 @@ import { CreditsForm } from "@/components/build/CreditsForm";
 import { DocumentationForm } from "@/components/build/DocumentationForm";
 import { Milestones } from "@/components/build/Milestones";
 import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
+import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
 import { StatusForm } from "@/components/build/StatusForm";
@@ -92,7 +93,7 @@ async function ProjectView({
     project.parent_project_id
       ? supabase.from("projects").select("name, slug").eq("id", project.parent_project_id).maybeSingle()
       : Promise.resolve({ data: null }),
-    supabase.from("projects").select("name, slug").eq("parent_project_id", project.id).is("removed_at", null),
+    supabase.from("projects").select("id, name, slug").eq("parent_project_id", project.id).is("removed_at", null),
     member
       ? supabase
           .from("project_members")
@@ -196,10 +197,39 @@ async function ProjectView({
   const logs = logResult.data ?? [];
   const roster = memberResult.data ?? [];
   const requests = requestResult.data ?? [];
+  const forks = forksResult.data ?? [];
+  const ancestors: { id: string; name: string; slug: string }[] = [];
+  const seen = new Set<string>([project.id]);
+  let parentId = project.parent_project_id;
+  for (let step = 0; step < 8 && parentId && !seen.has(parentId); step += 1) {
+    seen.add(parentId);
+    const { data: ancestor } = await supabase
+      .from("projects")
+      .select("id, name, slug, parent_project_id")
+      .eq("id", parentId)
+      .is("removed_at", null)
+      .maybeSingle();
+    if (!ancestor) break;
+    ancestors.push({ id: ancestor.id, name: ancestor.name, slug: ancestor.slug });
+    parentId = ancestor.parent_project_id;
+  }
+  ancestors.reverse();
+  const branchIds = [...ancestors.map((item) => item.id), ...forks.map((item) => item.id)];
+  const { data: branchMembers } = branchIds.length
+    ? await supabase
+        .from("project_members")
+        .select("project_id, profile_id, role")
+        .in("project_id", branchIds)
+        .eq("status", "active")
+    : { data: [] };
+  const lineageMembers = [
+    ...roster.map((person) => ({ project_id: project.id, profile_id: person.profile_id, role: person.role })),
+    ...(branchMembers ?? []),
+  ];
   const authorIds = [
     ...new Set([
       ...logs.map((log) => log.author_id),
-      ...roster.map((person) => person.profile_id),
+      ...lineageMembers.map((person) => person.profile_id),
       ...requests.map((request) => request.requester_id),
     ]),
   ];
@@ -229,6 +259,26 @@ async function ProjectView({
     })
     .filter((person) => person.username)
     .sort((left, right) => roleOrder.indexOf(left.role) - roleOrder.indexOf(right.role) || left.name.localeCompare(right.name));
+  const roleLabels: Record<string, string> = {
+    owner: "Owner",
+    maintainer: "Maintainer",
+    contributor: "Contributor",
+  };
+  const peopleFor = (projectId: string) =>
+    lineageMembers
+      .filter((person) => person.project_id === projectId)
+      .map((person) => ({
+        name: authorNames.get(person.profile_id) ?? "builder",
+        role: person.role,
+      }))
+      .sort((left, right) => roleOrder.indexOf(left.role) - roleOrder.indexOf(right.role) || left.name.localeCompare(right.name))
+      .map((person) => `${person.name} (${roleLabels[person.role] ?? person.role})`)
+      .join(", ");
+  const lineage = [
+    ...ancestors.map((item) => ({ id: item.id, kind: "Ancestor", name: item.name, slug: item.slug, people: peopleFor(item.id) })),
+    { id: project.id, kind: "This project", name: project.name, slug: project.slug, people: peopleFor(project.id) },
+    ...forks.map((item) => ({ id: item.id, kind: "Fork", name: item.name, slug: item.slug, people: peopleFor(item.id) })),
+  ];
   const onProject = Boolean(membershipResult.data);
   const collaboration = requests.map((request) => ({
     id: request.id,
@@ -243,11 +293,6 @@ async function ProjectView({
     !isOwner &&
     !onProject &&
     (project.visibility === "public" || project.looking_for_contributors);
-  const roleLabels: Record<string, string> = {
-    owner: "Owner",
-    maintainer: "Maintainer",
-    contributor: "Contributor",
-  };
   const contributions = [
     ...roster.flatMap((person) => {
       if (!person.joined_at) return [];
@@ -370,6 +415,7 @@ async function ProjectView({
               <UpdateHistory updates={updates} />
               <ProjectTeam members={team} />
               <RelatedProjects projects={related} />
+              <ProjectLineage entries={lineage} />
               <ContributionHistory entries={contributions} />
               <Collaboration
                 projectId={project.id}
