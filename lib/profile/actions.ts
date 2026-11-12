@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
 import {
@@ -21,6 +22,30 @@ async function requireOwner() {
   const gate = memberGate(member);
   if (gate) redirect(gate);
   return member;
+}
+
+const interestIdPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export async function saveInterests(formData: FormData) {
+  const member = await requireOwner();
+  const ids = [...new Set(formData.getAll("interest").map(String))].filter((id) => interestIdPattern.test(id));
+  const supabase = await createClient();
+  const { data: known } = ids.length
+    ? await supabase.from("interests").select("id").in("id", ids)
+    : { data: [] as { id: string }[] };
+  const valid = (known ?? []).map((row) => row.id);
+  const { error: deleteError } = await supabase.from("profile_interests").delete().eq("profile_id", member.id);
+  if (deleteError) return;
+  if (valid.length > 0) {
+    const { error } = await supabase
+      .from("profile_interests")
+      .insert(valid.map((interest_id) => ({ profile_id: member.id, interest_id })));
+    if (error) return;
+  }
+  revalidatePath("/profile");
+  if (member.username) revalidatePath(`/people/${member.username}`);
+  redirect("/profile");
 }
 
 function year(value: FormDataEntryValue | null) {

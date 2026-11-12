@@ -11,6 +11,7 @@ import {
   ExperienceForm,
 } from "@/components/profile/RecordForms";
 import { ProfileEditForm } from "@/components/profile/ProfileEditForm";
+import { InterestsForm } from "@/components/profile/InterestsForm";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { toggleBlock } from "@/lib/safety/actions";
 import { createClient } from "@/lib/supabase/server";
@@ -37,6 +38,7 @@ export async function ProfessionalProfile({
   const [
     profileResult,
     skillsResult,
+    interestsResult,
     educationResult,
     experienceResult,
     certificateResult,
@@ -52,6 +54,7 @@ export async function ProfessionalProfile({
       .eq("id", profileId)
       .maybeSingle(),
     supabase.from("profile_skills").select("skill_id").eq("profile_id", profileId),
+    supabase.from("profile_interests").select("interest_id").eq("profile_id", profileId),
     supabase.from("profile_education").select("id, school, credential, start_year, end_year").eq("profile_id", profileId),
     supabase
       .from("profile_experience")
@@ -106,12 +109,19 @@ export async function ProfessionalProfile({
       : [];
   const savedIds = savedRows.map((row) => row.project_id);
   const skillIds = (skillsResult.data ?? []).map((row) => row.skill_id);
+  const interestIds = (interestsResult.data ?? []).map((row) => row.interest_id);
   const projectIds = (memberResult.data ?? []).map((row) => row.project_id);
   const targetIds = (mergedResult.data ?? []).map((row) => row.target_project_id);
-  const [skillRows, contributed, targets, savedProjects, followerCount, followingCount, followerRows, followingRows, mine] =
+  const [skillRows, interestRows, interestCatalog, contributed, targets, savedProjects, followerCount, followingCount, followerRows, followingRows, mine] =
     await Promise.all([
       skillIds.length
         ? supabase.from("skills").select("id, name").in("id", skillIds)
+        : Promise.resolve({ data: [] }),
+      interestIds.length
+        ? supabase.from("interests").select("id, name").in("id", interestIds)
+        : Promise.resolve({ data: [] }),
+      editable
+        ? supabase.from("interests").select("id, name").order("name")
         : Promise.resolve({ data: [] }),
       projectIds.length
         ? supabase.from("projects").select("id, name, slug, description, tagline, subcategory, category").in("id", projectIds).is("removed_at", null)
@@ -278,6 +288,30 @@ export async function ProfessionalProfile({
               <li key={skill.id}>{skill.name}</li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {(interestRows.data ?? []).length > 0 || editable ? (
+        <section className="profile-section" aria-labelledby="interests-heading">
+          <h2 id="interests-heading">Interests</h2>
+          {(interestRows.data ?? []).length > 0 ? (
+            <ul className="skill-row" role="list">
+              {(interestRows.data ?? [])
+                .slice()
+                .sort((left, right) => left.name.localeCompare(right.name))
+                .map((interest) => (
+                  <li key={interest.id}>{interest.name}</li>
+                ))}
+            </ul>
+          ) : (
+            <p className="form-note">No interests yet.</p>
+          )}
+          {editable ? (
+            <InterestsForm
+              options={interestCatalog.data ?? []}
+              selected={interestIds}
+            />
+          ) : null}
         </section>
       ) : null}
 

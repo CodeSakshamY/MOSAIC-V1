@@ -89,7 +89,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Profile picture and banner
 - [x] Name and short bio
 - [x] Location at city and state, optional
-- [ ] Interests and disciplines shown and editable
+- [x] Interests and disciplines shown and editable
 - [x] Skills shown when chosen during onboarding
 - [x] Current projects (repositories you own)
 - [ ] Featured projects
