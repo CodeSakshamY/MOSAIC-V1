@@ -131,7 +131,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Find mentors and experienced contributors
 - [x] Find research collaborators
 - [x] Find co-founders and student teams
-- [ ] Send structured collaboration requests
+- [x] Send structured collaboration requests
 - [ ] Accept or decline requests
 - [x] Block and report accounts
 
