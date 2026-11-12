@@ -216,7 +216,7 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 - [ ] Collaboration-request conversations
 - [ ] Project-specific discussions as messages
 - [ ] Community discussions as messages
-- [ ] Notifications for replies and mentions
+- [x] Notifications for replies and mentions
 - [ ] Basic one-to-one messaging
 - [ ] Group conversations for project teams
 - [ ] Message attachments, link sharing, conversation search

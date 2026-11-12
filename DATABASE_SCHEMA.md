@@ -656,6 +656,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `078_notify_follows.sql` | A person can turn off the notification that someone followed them. |
 | `079_security_notice_type.sql` | Notifications can record a security event. |
 | `080_security_notice.sql` | A password change records a notice for that person. |
+| `081_mention_notices.sql` | A comment that names @username notifies that person. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 
