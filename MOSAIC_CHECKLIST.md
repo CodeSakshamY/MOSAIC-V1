@@ -18,7 +18,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Questions and help requests
 - [x] Collaboration requests
 - [x] Competition and achievement posts
-- [ ] Opportunity announcements
+- [x] Opportunity announcements
 - [ ] Event announcements
 - [ ] Image, video, document and link attachments
 - [ ] Rich project previews embedded in posts

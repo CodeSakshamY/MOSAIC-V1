@@ -346,6 +346,7 @@ function postKindLabel(type: string, logKind?: string | null) {
   if (type === "project") return "Showcase";
   if (type === "achievement") return "Achievement";
   if (type === "idea") return "Idea";
+  if (type === "opportunity") return "Opportunity";
   return type.replaceAll("_", " ");
 }
 
