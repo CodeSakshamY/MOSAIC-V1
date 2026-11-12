@@ -36,6 +36,11 @@ export function CommitForm({ projectId, slug }: { projectId: string; slug: strin
         <Label htmlFor="commit-body">What changed</Label>
         <Textarea id="commit-body" name="content" required rows={4} />
       </div>
+      <div className="field">
+        <Label htmlFor="commit-file">Files</Label>
+        <Input id="commit-file" name="file" type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,application/pdf" />
+        <p className="form-note">Optional. Up to 4 photos, short videos, or PDFs.</p>
+      </div>
       <ErrorLine state={state} />
       <SubmitButton>Commit</SubmitButton>
     </form>

@@ -561,13 +561,27 @@ export async function createCommit(_state: ActionState, formData: FormData): Pro
   const content = String(formData.get("content") ?? "").trim();
   if (title.length < 1 || title.length > 120) return { error: "A commit title needs 1–120 characters." };
   if (content.length < 1 || content.length > 8000) return { error: "Describe the change." };
+  const files = formData.getAll("file").filter((item): item is File => item instanceof File && item.size > 0);
+  if (files.length > 4) return { error: "A commit can have 4 files." };
 
   const supabase = await createClient();
+  const urls: string[] = [];
+  for (const file of files) {
+    const stored = await storeUserFile(supabase, member.id, file, {
+      bucket: "post-media",
+      ...photoLimits.post,
+      allowVideo: true,
+      allowDocument: true,
+    });
+    if (!stored.ok) return { error: stored.error };
+    if (stored.url) urls.push(stored.url);
+  }
   const { error } = await supabase.from("build_logs").insert({
     project_id: projectId,
     author_id: member.id,
     title,
     content,
+    media_urls: urls,
   });
   if (error) return { error: "That commit was not saved. Only people on the project can commit." };
   redirect(`/forge/${slug}?tab=commits`);

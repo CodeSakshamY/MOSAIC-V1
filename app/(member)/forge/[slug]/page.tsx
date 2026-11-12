@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { LogMedia } from "@/components/build/LogMedia";
 import { Collaboration } from "@/components/build/Collaboration";
 import { ContributionHistory } from "@/components/build/ContributionHistory";
 import { CreditsForm } from "@/components/build/CreditsForm";
@@ -135,7 +136,7 @@ async function ProjectView({
       .order("created_at", { ascending: false }),
     supabase
       .from("build_logs")
-      .select("id, title, content, created_at, author_id")
+      .select("id, title, content, created_at, author_id, media_urls")
       .eq("project_id", project.id)
       .is("removed_at", null)
       .order("created_at", { ascending: false }),
@@ -245,6 +246,7 @@ async function ProjectView({
     content: log.content,
     when: formatWhen(log.created_at),
     author: authorNames.get(log.author_id) ?? "builder",
+    media: log.media_urls,
   }));
   const roleOrder = ["owner", "maintainer", "contributor"];
   const team = roster
@@ -529,7 +531,7 @@ async function Commits({
   const supabase = await createClient();
   const { data } = await supabase
     .from("build_logs")
-    .select("id, title, content, created_at")
+    .select("id, title, content, media_urls, created_at")
     .eq("project_id", projectId)
     .is("removed_at", null)
     .order("created_at", { ascending: false });
@@ -545,6 +547,7 @@ async function Commits({
           <li key={commit.id} className="repo-row">
             <strong>{commit.title}</strong>
             <p>{commit.content}</p>
+            <LogMedia urls={commit.media_urls} title={commit.title} />
             <p className="repo-meta">{formatWhen(commit.created_at)}</p>
           </li>
         ))}

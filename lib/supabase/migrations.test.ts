@@ -7,7 +7,7 @@ const migrationsDir = "supabase/migrations";
 describe("phase 2 database files", () => {
   it("ships migrations 001 through 016, later additions, and no 017 feed file", () => {
     const files = readdirSync(migrationsDir).filter((file) => file.endsWith(".sql")).sort();
-    expect(files).toHaveLength(43);
+    expect(files).toHaveLength(44);
     expect(files[0]).toBe("001_initial_extensions.sql");
     expect(files[15]).toBe("016_seed_reference.sql");
     expect(files[16]).toBe("018_member_status.sql");
@@ -37,6 +37,7 @@ describe("phase 2 database files", () => {
     expect(files[40]).toBe("042_project_saves.sql");
     expect(files[41]).toBe("043_project_analytics.sql");
     expect(files[42]).toBe("044_project_versions.sql");
+    expect(files[43]).toBe("045_build_log_files.sql");
     expect(files.some((file) => file.startsWith("017_"))).toBe(false);
   });
 

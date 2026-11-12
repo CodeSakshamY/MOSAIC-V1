@@ -1588,6 +1588,13 @@
   white-space: pre-wrap;
 }
 
+.log-media img,
+.log-media video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 .repo-status::before {
   content: "";
   display: inline-block;

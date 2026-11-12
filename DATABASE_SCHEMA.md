@@ -585,6 +585,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `042_project_saves.sql` | A member's private saved projects. Select, insert, and delete stay with that member. |
 | `043_project_analytics.sql` | The owner can count saves. The function returns null for anyone else. |
 | `044_project_versions.sql` | Up to 20 named versions on a project. |
+| `045_build_log_files.sql` | A build log can include photos, short videos, and PDFs. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

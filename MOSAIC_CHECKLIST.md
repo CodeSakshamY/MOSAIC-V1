@@ -70,7 +70,7 @@ Status is what a person can do in the app today. A database table with no screen
 ## 3. Build logs and progress updates
 
 - [x] Publish a text build log (shown as a commit on the project)
-- [ ] Add images, videos and attachments to a build log
+- [x] Add images, videos and attachments to a build log
 - [ ] Record milestones
 - [ ] Share problems encountered
 - [ ] Document experiments
