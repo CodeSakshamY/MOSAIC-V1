@@ -49,7 +49,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Public or private visibility
 - [x] Project timeline
 - [x] Project milestones
-- [ ] Project documentation
+- [x] Project documentation
 - [x] Demo, GitHub, website, paper and video links as first-class fields
 - [ ] Project updates and build logs shown on the project as a public history beyond the commit form
 - [ ] Project contributors and team members shown as a team

@@ -149,7 +149,7 @@ Composite PK `(profile_id, skill_id)` and `(profile_id, interest_id)`.
 | `slug` | Unique case-insensitively. Pattern `^[a-z0-9]+(-[a-z0-9]+)*$`, length 3–60. |
 | `description` | 1–200. The card line. |
 | `tagline` | Nullable, 1–80. One line under the project name. |
-| `detailed_description` | Nullable, max 8000. |
+| `detailed_description` | Nullable, max 8000. The project page writes this as the documentation. |
 | `problem` | Nullable, max 2000. |
 | `solution` | Nullable, max 2000. |
 | `cover_image_url` | Nullable. Public projects only. |

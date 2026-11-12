@@ -1583,6 +1583,10 @@
   font-size: 0.8125rem;
 }
 
+.project-docs {
+  white-space: pre-wrap;
+}
+
 .repo-status::before {
   content: "";
   display: inline-block;

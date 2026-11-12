@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { DocumentationForm } from "@/components/build/DocumentationForm";
 import { Milestones } from "@/components/build/Milestones";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
@@ -69,7 +70,7 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, tagline, subcategory, cover_image_url, visibility, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, tagline, subcategory, cover_image_url, visibility, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
@@ -197,6 +198,17 @@ async function ProjectView({
                 isPublic={project.visibility === "public"}
               />
               <Overview description={project.description} forks={forksResult.data ?? []} />
+              <section aria-labelledby="project-documentation-heading">
+                <h2 id="project-documentation-heading">Documentation</h2>
+                {project.detailed_description ? (
+                  <p className="project-docs">{project.detailed_description}</p>
+                ) : (
+                  <p className="form-note">No documentation yet.</p>
+                )}
+                {isOwner ? (
+                  <DocumentationForm projectId={project.id} documentation={project.detailed_description} />
+                ) : null}
+              </section>
               <Milestones
                 projectId={project.id}
                 milestones={milestoneResult.data ?? []}

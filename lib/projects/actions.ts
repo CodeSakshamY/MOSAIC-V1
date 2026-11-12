@@ -230,6 +230,28 @@ export async function updateTimeline(formData: FormData) {
   revalidatePath("/forge");
 }
 
+export async function updateDocumentation(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const documentation = String(formData.get("documentation") ?? "").trim();
+  if (!projectIdPattern.test(projectId) || documentation.length > 8000) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ detailed_description: documentation || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function addMilestone(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");
