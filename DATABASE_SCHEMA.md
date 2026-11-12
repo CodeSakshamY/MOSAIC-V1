@@ -638,6 +638,7 @@ Creating the demo auth user cannot be done with a plain insert in every environm
 | `064_post_link.sql` | A feed post can store one optional https attachment. |
 | `065_teammate_requirement.sql` | The owner can publish what a teammate would do. |
 | `066_teammate_responsibilities.sql` | The owner can say what contribution they expect. |
+| `067_time_commitment.sql` | The owner can say how much time a teammate would give. |
 
 Later phases append `018_` and upward. They do not edit an applied migration.
 

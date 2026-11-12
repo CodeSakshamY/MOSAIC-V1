@@ -273,6 +273,28 @@ export async function saveTeammateResponsibilities(formData: FormData) {
   revalidatePath(`/forge/${project.slug}`);
 }
 
+export async function saveTimeCommitment(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const commitment = String(formData.get("commitment") ?? "").trim().slice(0, 80);
+  if (!projectIdPattern.test(projectId)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ time_commitment: commitment || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
 export async function updateTimeline(formData: FormData) {
   const member = await requireMember();
   const projectId = String(formData.get("projectId") ?? "");

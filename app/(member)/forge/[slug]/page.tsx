@@ -14,6 +14,7 @@ import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
+import { TimeCommitmentForm } from "@/components/build/TimeCommitmentForm";
 import { TeammateResponsibilitiesForm } from "@/components/build/TeammateResponsibilitiesForm";
 import { TeammateRequirementForm } from "@/components/build/TeammateRequirementForm";
 import { OpenCollaboratorsForm } from "@/components/build/OpenCollaboratorsForm";
@@ -87,7 +88,7 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, teammate_requirement, teammate_responsibilities, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, teammate_requirement, teammate_responsibilities, time_commitment, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
@@ -425,6 +426,8 @@ async function ProjectView({
       {isOwner ? (
         <TeammateResponsibilitiesForm projectId={project.id} responsibilities={project.teammate_responsibilities} />
       ) : null}
+      {project.time_commitment ? <p className="repo-meta">Time: {project.time_commitment}</p> : null}
+      {isOwner ? <TimeCommitmentForm projectId={project.id} commitment={project.time_commitment} /> : null}
       {isOwner ? (
         <TimelineForm projectId={project.id} startsOn={project.starts_on} endsOn={project.ends_on} />
       ) : null}
