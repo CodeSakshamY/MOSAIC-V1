@@ -246,7 +246,7 @@ Later phase. Not started, on purpose. Unrestricted direct messages are out of th
 
 ## 13. Search
 
-- [ ] Search people, projects, posts, communities, opportunities, events, skills and tags
+- [x] Search people, projects, posts, communities, opportunities, events, skills and tags
 - [ ] Search by discipline
 - [ ] Recent and suggested searches
 - [ ] Search filters

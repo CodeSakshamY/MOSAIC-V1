@@ -630,7 +630,7 @@ async function SearchEverything({ filters }: { filters: DiscoverFilters }) {
           .select("id, name, slug")
           .eq("visibility", "public")
           .is("removed_at", null)
-          .ilike("name", `%${term}%`)
+          .or(`name.ilike.%${term}%,subcategory.ilike.%${term}%`)
           .order("updated_at", { ascending: false })
           .limit(8)
       ).data ?? []
@@ -646,12 +646,34 @@ async function SearchEverything({ filters }: { filters: DiscoverFilters }) {
           .limit(8)
       ).data ?? []
     : [];
+  const listings = term
+    ? (
+        await supabase
+          .from("opportunities")
+          .select("id, title, slug, category")
+          .eq("is_published", true)
+          .is("removed_at", null)
+          .ilike("title", `%${term}%`)
+          .order("created_at", { ascending: false })
+          .limit(16)
+      ).data ?? []
+    : [];
+  const opportunities = listings.filter((item) => item.category !== "workshop" && item.category !== "maker_event");
+  const events = listings.filter((item) => item.category === "workshop" || item.category === "maker_event");
+  const skills = term
+    ? (await supabase.from("skills").select("id, name, slug").ilike("name", `%${term}%`).order("name").limit(8)).data ?? []
+    : [];
+  const communities = term
+    ? (await supabase.from("profile_communities").select("name").ilike("name", `%${term}%`).limit(8)).data ?? []
+    : [];
+  const communityNames = [...new Set((communities ?? []).map((row) => row.name))];
+  const total = people.length + projects.length + posts.length + opportunities.length + events.length + skills.length + communityNames.length;
   return (
     <section aria-labelledby="discover-search-heading">
       <h2 id="discover-search-heading">Search</h2>
-      <p className="form-note">People, projects, and posts whose names match the words you type.</p>
+      <p className="form-note">People, projects, posts, opportunities, events, skills, and community names people have typed. MOSAIC groups are not open.</p>
       {!term ? <p>Type a search above.</p> : null}
-      {term && people.length + projects.length + posts.length === 0 ? <p>Nothing matched.</p> : null}
+      {term && total === 0 ? <p>Nothing matched.</p> : null}
       {people.length ? (
         <>
           <h3>People</h3>
@@ -685,6 +707,54 @@ async function SearchEverything({ filters }: { filters: DiscoverFilters }) {
             {posts.map((post) => (
               <li key={post.id} className="repo-row">
                 <Link href={`/posts/${post.id}`}>{post.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {opportunities.length ? (
+        <>
+          <h3>Opportunities</h3>
+          <ul className="repo-list" role="list">
+            {opportunities.map((item) => (
+              <li key={item.id} className="repo-row">
+                <Link href={`/opportunities/${item.slug}`}>{item.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {events.length ? (
+        <>
+          <h3>Events</h3>
+          <ul className="repo-list" role="list">
+            {events.map((item) => (
+              <li key={item.id} className="repo-row">
+                <Link href={`/opportunities/${item.slug}`}>{item.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {skills.length ? (
+        <>
+          <h3>Skills</h3>
+          <ul className="repo-list" role="list">
+            {skills.map((skill) => (
+              <li key={skill.id} className="repo-row">
+                <Link href={`/discover?view=people&skill=${skill.slug}`}>{skill.name}</Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {communityNames.length ? (
+        <>
+          <h3>Communities</h3>
+          <ul className="repo-list" role="list">
+            {communityNames.map((name) => (
+              <li key={name} className="repo-row">
+                {name}
               </li>
             ))}
           </ul>
