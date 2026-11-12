@@ -287,7 +287,7 @@ async function loadPosts(type: ProjectCategory | null) {
   }
   let query = supabase
     .from("posts")
-    .select("id, title, content, type, media_urls, author_id, project_id, created_at")
+    .select("id, title, content, type, media_urls, author_id, project_id, build_log_id, created_at")
     .eq("visibility", "public")
     .is("removed_at", null)
     .order("created_at", { ascending: false })
@@ -300,7 +300,12 @@ async function loadPosts(type: ProjectCategory | null) {
     ? await supabase.from("profile_directory").select("id, username, display_name").in("id", authorIds)
     : { data: [] };
   const names = new Map((authors ?? []).map((author) => [author.id, author]));
-  return posts.map((post) => ({ ...post, author: names.get(post.author_id) }));
+  const logIds = posts.map((post) => post.build_log_id).filter((id): id is string => Boolean(id));
+  const { data: logs } = logIds.length
+    ? await supabase.from("build_logs").select("id, kind").in("id", logIds)
+    : { data: [] };
+  const kinds = new Map((logs ?? []).map((log) => [log.id, log.kind]));
+  return posts.map((post) => ({ ...post, author: names.get(post.author_id), logKind: post.build_log_id ? kinds.get(post.build_log_id) : null }));
 }
 
 async function followedIds(memberId: string | null, authorIds: string[]) {
@@ -334,7 +339,8 @@ async function ownedPublicProjects(memberId: string | undefined, signedIn: boole
   return data ?? [];
 }
 
-function postKindLabel(type: string) {
+function postKindLabel(type: string, logKind?: string | null) {
+  if (type === "build_log" && logKind === "experiment") return "Experiment";
   if (type === "build_log") return "Build in public";
   if (type === "help") return "Question";
   if (type === "project") return "Showcase";
@@ -389,7 +395,7 @@ async function PostList({ kind, filters }: { kind: "posts" | "ideas"; filters: D
             <strong>
               <Link href={`/posts/${post.id}`}>{post.title ?? "Post"}</Link>
             </strong>
-            <span className="repo-visibility">{postKindLabel(post.type)}</span>
+            <span className="repo-visibility">{postKindLabel(post.type, post.logKind)}</span>
           </div>
           <p className="discover-copy">{post.content}</p>
           {kind === "ideas" ? (

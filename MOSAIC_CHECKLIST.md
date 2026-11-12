@@ -13,7 +13,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Recommended communities
 - [x] Project showcase posts
 - [x] Build-in-public updates
-- [ ] Research findings and experiments
+- [x] Research findings and experiments
 - [x] Ideas and concepts
 - [x] Questions and help requests
 - [ ] Collaboration requests
