@@ -4,6 +4,7 @@ import { BlockedAccounts } from "@/components/safety/BlockedAccounts";
 import { MutedAccounts } from "@/components/safety/MutedAccounts";
 import { HiddenPosts } from "@/components/safety/HiddenPosts";
 import { DeleteAccount } from "@/components/settings/DeleteAccount";
+import { EmailChange } from "@/components/settings/EmailChange";
 import { ThemePicker } from "@/components/settings/ThemePicker";
 import { SectionPage } from "@/components/shell/SectionPage";
 import { getMember } from "@/lib/auth/session";
@@ -74,6 +75,7 @@ export default async function SettingsPage({
       ) : null}
       {member ? <HiddenPosts userId={member.id} /> : null}
       {member?.username ? <DeleteAccount /> : null}
+      {member ? <EmailChange email={member.email} /> : null}
       {member ? (
         <p>
           <a href="/account/export">Download account data</a>

@@ -283,7 +283,7 @@ Not started. Future phase.
 - [x] Change username
 - [x] Password change while signed in
 - [x] Account settings page with real controls
-- [ ] Email settings
+- [x] Email settings
 - [ ] Two-factor authentication
 - [ ] Connected accounts
 - [x] Privacy controls and profile visibility
