@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CommitForm, PullRequestForm, ReplyForm, ThreadForm } from "@/components/build/ProjectForms";
+import { collaborationLabel, isCollaborationPreference } from "@/lib/profile/collaboration";
 import { buildLogKindLabel } from "@/lib/projects/log-kind";
 import { LogMedia } from "@/components/build/LogMedia";
 import { Collaboration } from "@/components/build/Collaboration";
@@ -14,6 +15,7 @@ import { ProjectAnalytics } from "@/components/build/ProjectAnalytics";
 import { ProjectLineage } from "@/components/build/ProjectLineage";
 import { ProjectMedia } from "@/components/build/ProjectMedia";
 import { SkillsForm } from "@/components/build/SkillsForm";
+import { ProjectCollaborationForm } from "@/components/build/ProjectCollaborationForm";
 import { TimeCommitmentForm } from "@/components/build/TimeCommitmentForm";
 import { TeammateResponsibilitiesForm } from "@/components/build/TeammateResponsibilitiesForm";
 import { TeammateRequirementForm } from "@/components/build/TeammateRequirementForm";
@@ -88,7 +90,7 @@ async function ProjectView({
   const member = await getMember();
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, teammate_requirement, teammate_responsibilities, time_commitment, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
+    .select("id, name, slug, description, detailed_description, credits, tagline, subcategory, cover_image_url, visibility, looking_for_contributors, teammate_requirement, teammate_responsibilities, time_commitment, collaboration_type, status, starts_on, ends_on, category, updated_at, owner_id, parent_project_id")
     .eq("slug", slug)
     .is("removed_at", null)
     .maybeSingle();
@@ -428,6 +430,15 @@ async function ProjectView({
       ) : null}
       {project.time_commitment ? <p className="repo-meta">Time: {project.time_commitment}</p> : null}
       {isOwner ? <TimeCommitmentForm projectId={project.id} commitment={project.time_commitment} /> : null}
+      {project.collaboration_type ? (
+        <p className="repo-meta">Meets: {collaborationLabel(project.collaboration_type)}</p>
+      ) : null}
+      {isOwner ? (
+        <ProjectCollaborationForm
+          projectId={project.id}
+          value={project.collaboration_type && isCollaborationPreference(project.collaboration_type) ? project.collaboration_type : null}
+        />
+      ) : null}
       {isOwner ? (
         <TimelineForm projectId={project.id} startsOn={project.starts_on} endsOn={project.ends_on} />
       ) : null}

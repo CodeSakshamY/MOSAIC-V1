@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getMember, memberGate } from "@/lib/auth/session";
 import { photoLimits, storeUserFile } from "@/lib/media/store";
+import { isCollaborationPreference } from "@/lib/profile/collaboration";
 import { parseProjectDay } from "@/lib/projects/timeline";
 import { isReactionType } from "@/lib/feed/reactions";
 import { isBuildLogKind } from "@/lib/projects/log-kind";
@@ -289,6 +290,29 @@ export async function saveTimeCommitment(formData: FormData) {
   const { error } = await supabase
     .from("projects")
     .update({ time_commitment: commitment || null })
+    .eq("id", projectId)
+    .eq("owner_id", member.id);
+  if (error) return;
+  revalidatePath(`/forge/${project.slug}`);
+}
+
+export async function saveProjectCollaboration(formData: FormData) {
+  const member = await requireMember();
+  const projectId = String(formData.get("projectId") ?? "");
+  const value = String(formData.get("collaboration") ?? "");
+  const preference = value && isCollaborationPreference(value) ? value : null;
+  if (!projectIdPattern.test(projectId) || (value && !preference)) return;
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug, owner_id")
+    .eq("id", projectId)
+    .is("removed_at", null)
+    .maybeSingle();
+  if (!project || project.owner_id !== member.id) return;
+  const { error } = await supabase
+    .from("projects")
+    .update({ collaboration_type: preference })
     .eq("id", projectId)
     .eq("owner_id", member.id);
   if (error) return;

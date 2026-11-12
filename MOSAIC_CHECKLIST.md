@@ -143,7 +143,7 @@ Status is what a person can do in the app today. A database table with no screen
 - [x] Specify responsibilities and expected contribution
 - [x] Specify project stage
 - [x] Specify time commitment
-- [ ] Specify remote or in-person preference
+- [x] Specify remote or in-person preference
 - [ ] Receive collaboration applications
 - [ ] Review applicant profiles and projects
 - [ ] Accept or decline applicants
